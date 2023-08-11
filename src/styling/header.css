@@ -1,0 +1,15 @@
+.header-container {
+    margin-top: 3vh;
+}
+
+.header-title {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+}
+.header-content {
+    align-items: baseline;
+    display: flex;
+    background-color: pink;
+    justify-content: space-between;
+}

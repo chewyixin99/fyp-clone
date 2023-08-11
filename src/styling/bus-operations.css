@@ -1,0 +1,61 @@
+.operations-container {
+    background-color: pink;
+    margin-top: 1rem !important;
+    padding: 1rem;
+}
+.service-route {
+    background-color: aqua !important;
+    height: 100px;
+}
+
+.bus-operations {
+    margin-top: 1rem !important;
+    background-color:bisque !important;
+    height: 30vh;
+}
+
+.route-bar {
+    background-color: aliceblue !important;
+    width: 1200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.route-travelled {
+    background-color: darkcyan !important;
+    width: 0%;
+}
+
+.bus-stop-1 {
+    background-color: black !important;
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 1px;
+}
+
+.bus-stop-2 {
+    background-color: black !important;
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 1px;
+}
+
+.traffic-light-1 {
+    background-color: orangered !important;
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 50px;
+    min-width: 1px;
+}
+
+.control-panel {
+    display: flex;
+    justify-content: space-between; 
+}
+
+
