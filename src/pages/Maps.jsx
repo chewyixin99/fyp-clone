@@ -7,6 +7,7 @@ import {
 } from "@react-google-maps/api";
 import { Link } from "react-router-dom";
 import { stopObjs } from "../data/constants";
+import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
 
 const containerStyle = {
   width: "600px",
@@ -56,11 +57,6 @@ const Maps = () => {
     setZoom(null);
   }, []);
 
-  const onMarkerClick = (event) => {
-    console.log(event);
-    console.log("markerClicked");
-  };
-
   const resetZoomAndCenter = () => {
     setCenter(defaultCenter);
     setZoom(defaultZoom);
@@ -95,23 +91,7 @@ const Maps = () => {
             })}
             {stops.map((stop) => {
               return (
-                <Marker
-                  key={stop.stopId}
-                  map={map}
-                  position={{
-                    lat: stop.lat,
-                    lng: stop.lng,
-                  }}
-                  onClick={onMarkerClick}
-                >
-                  {/* <InfoWindow>
-                    <div>
-                      <p>stopId: {stop.stopId}</p>
-                      <p>lat: {stop.lat}</p>
-                      <p>lng: {stop.lng}</p>
-                    </div>
-                  </InfoWindow> */}
-                </Marker>
+                <MarkerWithInfoWindow key={stop.stopId} stop={stop} map={map} />
               );
             })}
           </GoogleMap>
