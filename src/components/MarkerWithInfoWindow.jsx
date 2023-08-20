@@ -25,12 +25,16 @@ const MarkerWithInfoWindow = ({ stop, map }) => {
   const marker = (
     <Marker
       key={stop.stopId}
+      title={stop.stopName}
       map={map}
       position={{
         lat: stop.lat,
         lng: stop.lng,
       }}
       onClick={onMarkerClick}
+      options={{
+        opacity: stop.opacity,
+      }}
     >
       {infoOpen && infoWindow}
     </Marker>
@@ -41,6 +45,7 @@ const MarkerWithInfoWindow = ({ stop, map }) => {
 
 MarkerWithInfoWindow.propTypes = {
   stop: PropTypes.object,
+  map: PropTypes.object,
 };
 
 export default MarkerWithInfoWindow;

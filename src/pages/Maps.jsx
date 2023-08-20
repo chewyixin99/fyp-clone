@@ -1,17 +1,12 @@
-import React, { useCallback, useState } from "react";
-import {
-  GoogleMap,
-  Marker,
-  LoadScript,
-  InfoWindow,
-} from "@react-google-maps/api";
+import { useCallback, useState, useEffect } from "react";
+import { GoogleMap, LoadScript } from "@react-google-maps/api";
 import { Link } from "react-router-dom";
 import { stopObjs } from "../data/constants";
 import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
 
 const containerStyle = {
-  width: "600px",
-  height: "600px",
+  width: "750px",
+  height: "750px",
 };
 
 const defaultCenter = {
@@ -20,15 +15,6 @@ const defaultCenter = {
 };
 
 const defaultZoom = 14;
-
-const markers = [
-  {
-    lat: 52.111523,
-    lng: 5.101634,
-  },
-];
-
-const stops = stopObjs;
 
 const classes = {
   button: "border hover:shadow-md px-3 py-1 rounded-md mx-3",
@@ -41,7 +27,10 @@ const Maps = () => {
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
-  // infowindow states
+  // bus progress state
+  const [markerIndex, setMarkerIndex] = useState(0);
+  // stops
+  const stops = stopObjs;
 
   const onLoad = useCallback((map) => {
     map.setZoom(zoom);
@@ -63,6 +52,21 @@ const Maps = () => {
     console.log("reset clicked");
   };
 
+  // TODO: listen for bus location and do some action
+  useEffect(() => {
+    if (markerIndex >= stops.length) {
+      return;
+    }
+    const interval = setInterval(() => {
+      setMarkerIndex(markerIndex + 1);
+      console.log("update bus location");
+    }, 200);
+    console.log(`bus location updated! ${markerIndex}`);
+    stops[markerIndex].opacity = 0.4;
+    // clear interval
+    return () => clearInterval(interval);
+  }, [markerIndex]);
+
   const renderMap = () => {
     return (
       <div>
@@ -76,23 +80,15 @@ const Maps = () => {
             onTilesLoaded={onTilesLoaded}
           >
             {/* Child components, such as markers, info windows, etc. */}
-            {markers.map((marker) => {
-              return (
-                <Marker
-                  key={marker.lat}
-                  map={map}
-                  position={{
-                    lat: marker.lat,
-                    lng: marker.lng,
-                  }}
-                  title="center"
-                />
-              );
-            })}
             {stops.map((stop) => {
-              return (
+              if (stop === null) {
+                return;
+              }
+              const markerWithInfoWindow = (
                 <MarkerWithInfoWindow key={stop.stopId} stop={stop} map={map} />
               );
+              // store marker for manipulation later
+              return markerWithInfoWindow;
             })}
           </GoogleMap>
         </LoadScript>
