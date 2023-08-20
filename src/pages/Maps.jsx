@@ -1,6 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { GoogleMap, Marker, LoadScript } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  Marker,
+  LoadScript,
+  InfoWindow,
+} from "@react-google-maps/api";
 import { Link } from "react-router-dom";
+import { stopObjs } from "../data/constants";
 
 const containerStyle = {
   width: "600px",
@@ -21,6 +27,8 @@ const markers = [
   },
 ];
 
+const stops = stopObjs;
+
 const classes = {
   button: "border hover:shadow-md px-3 py-1 rounded-md mx-3",
 };
@@ -32,6 +40,7 @@ const Maps = () => {
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
+  // infowindow states
 
   const onLoad = useCallback((map) => {
     map.setZoom(zoom);
@@ -46,6 +55,11 @@ const Maps = () => {
     setCenter(null);
     setZoom(null);
   }, []);
+
+  const onMarkerClick = (event) => {
+    console.log(event);
+    console.log("markerClicked");
+  };
 
   const resetZoomAndCenter = () => {
     setCenter(defaultCenter);
@@ -75,8 +89,29 @@ const Maps = () => {
                     lat: marker.lat,
                     lng: marker.lng,
                   }}
-                  // title={marker.title}
+                  title="center"
                 />
+              );
+            })}
+            {stops.map((stop) => {
+              return (
+                <Marker
+                  key={stop.stopId}
+                  map={map}
+                  position={{
+                    lat: stop.lat,
+                    lng: stop.lng,
+                  }}
+                  onClick={onMarkerClick}
+                >
+                  {/* <InfoWindow>
+                    <div>
+                      <p>stopId: {stop.stopId}</p>
+                      <p>lat: {stop.lat}</p>
+                      <p>lng: {stop.lng}</p>
+                    </div>
+                  </InfoWindow> */}
+                </Marker>
               );
             })}
           </GoogleMap>
