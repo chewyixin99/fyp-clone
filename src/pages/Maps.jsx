@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
-import { GoogleMap, LoadScript } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { Link } from "react-router-dom";
 import { stopObjs } from "../data/constants";
 import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
@@ -32,10 +32,13 @@ const Maps = () => {
   // stops
   const stops = stopObjs;
 
-  const onLoad = useCallback((map) => {
-    map.setZoom(zoom);
-    setMap(map);
-  }, []);
+  const onLoad = useCallback(
+    (map) => {
+      map.setZoom(zoom);
+      setMap(map);
+    },
+    [zoom]
+  );
 
   const onUnmount = useCallback(() => {
     setMap(null);
@@ -54,18 +57,21 @@ const Maps = () => {
 
   // TODO: listen for bus location and do some action
   useEffect(() => {
-    if (markerIndex >= stops.length) {
-      return;
-    }
+    let seconds = 1000;
     const interval = setInterval(() => {
       setMarkerIndex(markerIndex + 1);
-      console.log("update bus location");
-    }, 200);
-    console.log(`bus location updated! ${markerIndex}`);
-    stops[markerIndex].opacity = 0.4;
-    // clear interval
+    }, seconds);
+    if (markerIndex === 0) {
+      stops[stops.length - 1].opacity = 0.4;
+    } else if (markerIndex === stops.length) {
+      setMarkerIndex(0);
+      return () => clearInterval(interval);
+    } else {
+      stops[markerIndex - 1].opacity = 0.4;
+    }
+    stops[markerIndex].opacity = 1;
     return () => clearInterval(interval);
-  }, [markerIndex]);
+  }, [markerIndex, stops]);
 
   const renderMap = () => {
     return (
@@ -90,6 +96,7 @@ const Maps = () => {
               // store marker for manipulation later
               return markerWithInfoWindow;
             })}
+            <Marker position={defaultCenter} map={map} />
           </GoogleMap>
         </LoadScript>
       </div>
