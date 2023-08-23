@@ -28,7 +28,7 @@ const Maps = () => {
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
   // bus progress state
-  const [markerIndex, setMarkerIndex] = useState(0);
+  const [stopMarkerIndex, setStopMarkerIndex] = useState(0);
   // stops
   const stops = stopObjs;
 
@@ -55,23 +55,33 @@ const Maps = () => {
     console.log("reset clicked");
   };
 
+  const startBus = () => {
+    if (stopMarkerIndex === -1) {
+      setStopMarkerIndex(0);
+    }
+  };
+
   // TODO: listen for bus location and do some action
   useEffect(() => {
-    let seconds = 1000;
-    const interval = setInterval(() => {
-      setMarkerIndex(markerIndex + 1);
-    }, seconds);
-    if (markerIndex === 0) {
-      stops[stops.length - 1].opacity = 0.4;
-    } else if (markerIndex === stops.length) {
-      setMarkerIndex(0);
+    let seconds = 200;
+    if (stopMarkerIndex !== -1) {
+      const interval = setInterval(() => {
+        setStopMarkerIndex(stopMarkerIndex + 1);
+      }, seconds);
+      if (stopMarkerIndex === 0) {
+        // loop
+        stops[stops.length - 1].opacity = 0.4;
+      } else if (stopMarkerIndex === stops.length) {
+        // check if last stop, set to 0 to loop it
+        setStopMarkerIndex(-1);
+        return () => clearInterval(interval);
+      } else {
+        stops[stopMarkerIndex - 1].opacity = 0.4;
+      }
+      stops[stopMarkerIndex].opacity = 1;
       return () => clearInterval(interval);
-    } else {
-      stops[markerIndex - 1].opacity = 0.4;
     }
-    stops[markerIndex].opacity = 1;
-    return () => clearInterval(interval);
-  }, [markerIndex, stops]);
+  }, [stopMarkerIndex, stops]);
 
   const renderMap = () => {
     return (
@@ -123,6 +133,9 @@ const Maps = () => {
           type="button"
         >
           reset zoom and center
+        </button>
+        <button onClick={startBus} className={classes.button} type="button">
+          start bus journey
         </button>
       </div>
       {/* button controls */}

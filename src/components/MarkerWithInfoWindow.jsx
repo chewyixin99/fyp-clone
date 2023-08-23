@@ -7,13 +7,12 @@ const MarkerWithInfoWindow = ({ stop, map }) => {
   const onMarkerClick = () => {
     setInfoOpen(true);
   };
+  const onCloseClick = () => {
+    setInfoOpen(false);
+  };
 
   const infoWindow = (
-    <InfoWindow
-      onCloseClick={() => {
-        setInfoOpen(false);
-      }}
-    >
+    <InfoWindow onCloseClick={onCloseClick}>
       <div>
         <p>stopName: {stop.stopName}</p>
         <p>stopId: {stop.stopId}</p>
