@@ -16,6 +16,22 @@ const defaultCenter = {
 
 const defaultZoom = 14;
 
+const defaultIntervalTime = 200;
+
+// set to maximum of 10 journeys going on at once
+const defaultAllStopMarkerIndex = {
+  0: -1,
+  1: -1,
+  2: -1,
+  3: -1,
+  4: -1,
+  5: -1,
+  6: -1,
+  7: -1,
+  8: -1,
+  9: -1,
+};
+
 const classes = {
   button: "border hover:shadow-md px-3 py-1 rounded-md mx-3",
 };
@@ -28,7 +44,9 @@ const Maps = () => {
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
   // bus progress state
-  const [stopMarkerIndex, setStopMarkerIndex] = useState(0);
+  const [busIndex, setBusIndex] = useState(defaultAllStopMarkerIndex);
+  // TODO: keep track of bus number currently dispatched
+  const [numBusCurr, setNumBusCurr] = useState(0);
   // stops
   const stops = stopObjs;
 
@@ -56,32 +74,69 @@ const Maps = () => {
   };
 
   const startBus = () => {
-    if (stopMarkerIndex === -1) {
-      setStopMarkerIndex(0);
+    // on click, check if there are any buses running
+    // if yes, set the bus index to 0 (from -1) to start the loop
+    for (const bus in busIndex) {
+      if (busIndex[bus] === -1) {
+        setBusIndex({
+          ...busIndex,
+          [bus]: 0,
+        });
+        console.log(`add 1 bus to loop: numBuses now = ${numBusCurr + 1}`);
+        // update num buses currently in loop
+        setNumBusCurr(numBusCurr + 1);
+        break;
+      }
     }
   };
 
   // TODO: listen for bus location and do some action
   useEffect(() => {
-    let seconds = 200;
-    if (stopMarkerIndex !== -1) {
+    // only enter code if there is at least 1 bus running
+    if (numBusCurr !== 0) {
+      // create a copy and update before setting the new state
+      let busIndexCopy = JSON.parse(JSON.stringify(busIndex));
       const interval = setInterval(() => {
-        setStopMarkerIndex(stopMarkerIndex + 1);
-      }, seconds);
-      if (stopMarkerIndex === 0) {
-        // loop
-        stops[stops.length - 1].opacity = 0.4;
-      } else if (stopMarkerIndex === stops.length) {
-        // check if last stop, set to 0 to loop it
-        setStopMarkerIndex(-1);
-        return () => clearInterval(interval);
-      } else {
-        stops[stopMarkerIndex - 1].opacity = 0.4;
+        for (const bus in busIndexCopy) {
+          // only update if a journey is started and index is <= total num stops
+          if (busIndexCopy[bus] !== -1 && busIndexCopy[bus] !== stops.length) {
+            busIndexCopy[bus] += 1;
+          }
+        }
+        // set stops to updated stopMarkers
+        setBusIndex({ ...busIndexCopy });
+      }, defaultIntervalTime);
+      // loop through every bus to check if there is a need to update markers
+      for (const bus in busIndex) {
+        // find the curr stop that this bus is at
+        const currStop = busIndex[bus];
+        // only update buses who is currently out i.e., currStop !== -1
+        if (currStop !== -1) {
+          if (currStop === 0) {
+            stops[stops.length - 1].opacity = 0.4;
+          } else if (currStop === stops.length) {
+            // check if this bus is on its last stop, set to -1 to stop the journey
+            setBusIndex({
+              ...busIndex,
+              [bus]: -1,
+            });
+            console.log(
+              `remove 1 bus from loop: numBuses now = ${numBusCurr - 1}`
+            );
+            // keep track of buses that have ended their journey
+            setNumBusCurr(numBusCurr - 1);
+            return () => clearInterval(interval);
+          } else {
+            // clear prev stop's opacity
+            stops[currStop - 1].opacity = 0.4;
+          }
+          // set curr stop's opacity
+          stops[currStop].opacity = 1;
+        }
       }
-      stops[stopMarkerIndex].opacity = 1;
       return () => clearInterval(interval);
     }
-  }, [stopMarkerIndex, stops]);
+  }, [busIndex, stops, numBusCurr]);
 
   const renderMap = () => {
     return (
