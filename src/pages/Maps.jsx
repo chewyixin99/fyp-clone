@@ -3,10 +3,11 @@ import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { Link } from "react-router-dom";
 import { stopObjs } from "../data/constants";
 import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
+import BusStatus from "../components/BusStatus";
 
 const containerStyle = {
-  width: "750px",
-  height: "750px",
+  width: "500px",
+  height: "500px",
 };
 
 const defaultCenter = {
@@ -14,12 +15,12 @@ const defaultCenter = {
   lng: 5.101634,
 };
 
-const defaultZoom = 14;
+const defaultZoom = 13;
 
 const defaultIntervalTime = 200;
 
 // set to maximum of 10 journeys going on at once
-const defaultAllStopMarkerIndex = {
+const defaultAllBusIndex = {
   0: -1,
   1: -1,
   2: -1,
@@ -44,7 +45,7 @@ const Maps = () => {
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
   // bus progress state
-  const [busIndex, setBusIndex] = useState(defaultAllStopMarkerIndex);
+  const [busIndex, setBusIndex] = useState(defaultAllBusIndex);
   // TODO: keep track of bus number currently dispatched
   const [numBusCurr, setNumBusCurr] = useState(0);
   // stops
@@ -112,6 +113,7 @@ const Maps = () => {
         const currStop = busIndex[bus];
         // only update buses who is currently out i.e., currStop !== -1
         if (currStop !== -1) {
+          // condition not in use for now, but have to take note of currStop === 0 case
           if (currStop === 0) {
             stops[stops.length - 1].opacity = 0.4;
           } else if (currStop === stops.length) {
@@ -169,7 +171,7 @@ const Maps = () => {
   };
 
   return (
-    <div>
+    <div className="text-center">
       <div className="flex justify-center py-3">
         Maps is currently loaded for this&nbsp;
         <Link
@@ -195,6 +197,19 @@ const Maps = () => {
       </div>
       {/* button controls */}
       <div className="flex justify-center py-3">{renderMap()}</div>
+      <div>There are currently {numBusCurr} buses dispatched.</div>
+      <div className="grid grid-cols-3 max-w-[70%] mx-auto">
+        {Object.keys(busIndex).map((bus) => {
+          return (
+            <BusStatus
+              key={bus}
+              busNum={bus}
+              busStopNum={busIndex[bus]}
+              currStopDetails={stopObjs[busIndex[bus]]}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
