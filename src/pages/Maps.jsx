@@ -17,7 +17,9 @@ const defaultCenter = {
 
 const defaultZoom = 14;
 
-const defaultIntervalTime = 200;
+const defaultIntervalTime = 100;
+const defaultInactiveOpacity = 0.2;
+const defaultActiveOpacity = 1;
 
 // set to maximum of 12 journeys going on at once
 const defaultAllBusIndex = {
@@ -101,6 +103,7 @@ const Maps = () => {
     if (numBusCurr !== 0) {
       // if resume
       if (!paused) {
+        // update all buses to -1, to signify that all has ended their journey
         let tmpBusIndex = JSON.parse(JSON.stringify(busIndex));
         for (const bus in tmpBusIndex) {
           if (tmpBusIndex[bus] !== -1) {
@@ -115,6 +118,7 @@ const Maps = () => {
 
   const onSkipToEndClick = () => {
     if (numBusCurr !== 0) {
+      // update all buses to -1, to signify that all has ended their journey
       let tmpBusIndexCopy = JSON.parse(JSON.stringify(busIndex));
       for (const bus in tmpBusIndexCopy) {
         tmpBusIndexCopy[bus] = -1;
@@ -126,7 +130,8 @@ const Maps = () => {
 
   // TODO: listen for bus location and do some action
   useEffect(() => {
-    // only enter code if there is at least 1 bus running
+    // only enter code if there is
+    // 1. at least 1 bus running 2. not paused 3. not ended
     if (numBusCurr !== 0 && !paused && !ended) {
       // create a copy and update before setting the new state
       let busIndexCopy = JSON.parse(JSON.stringify(busIndex));
@@ -148,7 +153,7 @@ const Maps = () => {
         if (currStop !== -1) {
           // condition not in use for now, but have to take note of currStop === 0 case
           if (currStop === 0) {
-            stops[stops.length - 1].opacity = 0.4;
+            stops[stops.length - 1].opacity = defaultInactiveOpacity;
           } else if (currStop === stops.length) {
             // check if this bus is on its last stop, set to -1 to stop the journey
             setBusIndex({
@@ -158,26 +163,27 @@ const Maps = () => {
             console.log(
               `remove 1 bus from loop: numBuses now = ${numBusCurr - 1}`
             );
+            // use this to signify that all buses have concluded their journey
             if (numBusCurr - 1 === 0) {
               console.log("ending journey...");
               setEnded(false);
             }
-            // keep track of buses that have ended their journey
+            // keep track of buses that are still in journey
             setNumBusCurr(numBusCurr - 1);
             return () => clearInterval(interval);
           } else {
-            // clear prev stop's opacity
-            stops[currStop - 1].opacity = 0.4;
+            // reset prev stop's opacity
+            stops[currStop - 1].opacity = defaultInactiveOpacity;
           }
           // set curr stop's opacity
-          stops[currStop].opacity = 1;
+          stops[currStop].opacity = defaultActiveOpacity;
         }
       }
       return () => clearInterval(interval);
     } else if (ended) {
       console.log("journey ended");
       for (const stop of stops) {
-        stop.opacity = 0.4;
+        stop.opacity = defaultInactiveOpacity;
       }
       // reset buses
       setNumBusCurr(0);
@@ -274,7 +280,7 @@ const Maps = () => {
               key={bus}
               busNum={bus}
               busStopNum={busIndex[bus]}
-              currStopDetails={stopObjs[busIndex[bus]]}
+              currStopDetails={stops[busIndex[bus] - 1]}
             />
           );
         })}
