@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Polyline } from "@react-google-maps/api";
 import { Link } from "react-router-dom";
 import { stopObjs } from "../data/constants";
 import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
@@ -57,6 +57,8 @@ const Maps = () => {
   const [numBusCurr, setNumBusCurr] = useState(0);
   // stops
   const stops = stopObjs;
+  // polypath
+  const [polyPath, setPolyPath] = useState([]);
 
   const onLoad = useCallback(
     (map) => {
@@ -128,6 +130,16 @@ const Maps = () => {
     }
   };
 
+  // calculate polyline path once on initial render
+  useEffect(() => {
+    let tmpPolyPath = [];
+    for (const stop of stops) {
+      tmpPolyPath.push({ lat: stop.lat, lng: stop.lng });
+    }
+    setPolyPath(tmpPolyPath);
+  }, []);
+
+  // bus update logic
   // TODO: listen for bus location and do some action
   useEffect(() => {
     // only enter code if there is
@@ -204,6 +216,17 @@ const Maps = () => {
             onUnmount={onUnmount}
             onTilesLoaded={onTilesLoaded}
           >
+            <Polyline
+              map={map}
+              path={polyPath}
+              geodesic={true}
+              options={{
+                geodesic: true,
+                strokeColor: "#5729ce",
+                strokeOpacity: 0.75,
+                strokeWeight: 4,
+              }}
+            />
             {/* Child components, such as markers, info windows, etc. */}
             {stops.map((stop, index) => {
               if (stop === null) {
