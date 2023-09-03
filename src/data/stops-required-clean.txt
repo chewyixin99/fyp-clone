@@ -1,80 +1,41 @@
-stop_id,stop_code,stop_name,stop_lat,stop_lon,location_type,parent_station,stop_timezone,wheelchair_boarding,platform_code,zone_id
-2455207,50000201,"Utrecht, CS Centrumzijde (Perron A2)",52.090216,5.110857,0,stoparea:298994,,1,A2,
-2492470,50001450,"Utrecht, Sint Jacobsstraat",52.094179,5.114554,0,stoparea:131251,,1,,
-2492471,50001460,"Utrecht, Sint Jacobsstraat",52.094494,5.114494,0,stoparea:131251,,1,,
-stoparea:131251,,"Utrecht, Sint Jacobsstraat",52.094291999999996,5.114523999999999,1,,,0,,
-2492472,50001470,"Utrecht, Oudenoord",52.098227,5.111829,0,,,1,,
-2492473,50001480,"Utrecht, Oudenoord",52.098504,5.111025,0,,,1,,
-2492427,50000570,"Utrecht, David van Mollemstraat (Perron B)",52.100369,5.109481,0,,,1,B,
-stoparea:36419,,"Utrecht, Draaiweg",52.101388,5.114568500000001,1,,,0,,
-2492416,50000390,"Utrecht, Draaiweg",52.10137,5.114568,0,stoparea:36419,,1,,
-2492417,50000400,"Utrecht, Draaiweg",52.101613,5.114596,0,stoparea:36419,,1,,
-2492407,50000220,"Utrecht, Willem Dreeslaan",52.104893,5.11462,0,,,1,,
-2492535,50006170,"Utrecht, Willem Dreeslaan",52.103851,5.114612,0,,,1,,
-2492960,59150850,"Utrecht, Rhônedreef",52.111504,5.112565,0,stoparea:390242,,1,,
-2492961,59150860,"Utrecht, Rhonedreef",52.111676,5.11309,0,stoparea:390242,,1,,
-2492925,59150221,"Utrecht, Zamenhofdreef (Perron D)",52.114846,5.112136,0,stoparea:36684,,1,D,
-2455886,59150222,"Utrecht, Zamenhofdreef (Perron D)",52.114855,5.112121,0,stoparea:36684,,1,D,
-2492966,59151250,"Utrecht, Theemsdreef",52.116713,5.114577,0,,,1,,
-2492967,59151260,"Utrecht, Theemsdreef",52.116667,5.11449,0,,,1,,
-2492958,59150810,"Utrecht, Humberdreef",52.118365,5.11391,0,,,1,,
-2492959,59150820,"Utrecht, Humberdreef",52.118096,5.114364,0,,,1,,
-2455920,59150790,"Utrecht, Oranjerivierdreef",52.1196,5.111493,0,stoparea:36543,,1,,
-2492957,59150800,"Utrecht, Oranjerivierdreef",52.11968,5.111288,0,stoparea:36543,,1,,
-stoparea:36543,,"Utrecht, Oranjerivierdreef",52.119622,5.111391,1,,,0,,
-stoparea:387505,,"Utrecht, Nijldreef",52.12214,5.112062,1,,,0,,
-2492956,59150770,"Utrecht, Nijldreef",52.121884,5.112122,0,stoparea:387505,,1,,
-2455919,59150780,"Utrecht, Nijldreef",52.122414,5.112016,0,stoparea:387505,,1,,
-2492954,59150750,"Utrecht, Maniladreef",52.124178,5.109041,0,,,1,,
-2492955,59150760,"Utrecht, Maniladreef",52.124267,5.108865,0,,,1,,
-2492952,59150730,"Utrecht, Pekingdreef",52.125751,5.105483,0,,,1,,
-2492953,59150740,"Utrecht, Pekingdreef",52.126082,5.104648,0,,,1,,
-2492950,59150710,"Utrecht, Ammandreef",52.124481,5.100789,0,,,1,,
-2492951,59150720,"Utrecht, Ammandreef",52.124364,5.10057,0,,,1,,
-2455881,59150191,"Utrecht, Sint Maartendreef",52.123205,5.096883,0,,,1,,
-2455883,59150202,"Utrecht, Sint Maartendreef",52.123133,5.097045,0,,,1,,
-2492922,59150190,"Utrecht, Sint Maartendreef",52.123214,5.09684,0,,,1,,
-2455882,59150201,"Utrecht, Sint Maartendreef",52.123133,5.097045,0,,,1,,
-2492926,59150250,"Utrecht, Klopvaart",52.123945,5.094703,0,stoparea:36420,,1,,
-2492927,59150260,"Utrecht, Klopvaart",52.123731,5.095288,0,stoparea:36420,,1,,
-2301166,59150251,"Utrecht, Klopvaart",52.123927,5.094776,0,stoparea:36420,,1,,
-2455888,59150261,"Utrecht, Klopvaart",52.123767,5.095244,0,stoparea:36420,,1,,
-stoparea:36420,,"Utrecht, Klopvaart",52.1238425,5.095003,1,,,0,,
-stoparea:175824,,"Utrecht, Franciscusdreef",52.1229,5.0898769999999995,1,,,0,,
-2492985,59151780,"Utrecht, Franciscusdreef",52.123359,5.090472,0,stoparea:175824,,1,,
-2492984,59151770,"Utrecht, Franciscusdreef",52.122431,5.089252,0,stoparea:175824,,1,,
-2492982,59151730,"Utrecht, J.M. de Muinck Keizerlaan",52.118187,5.085367,0,stoparea:36428,,1,,
-2492983,59151760,"Utrecht, J.M. de Muinck Keizerlaan",52.116791,5.084165,0,stoparea:36428,,1,,
-stoparea:36428,,"Utrecht, J.M. de Muinck Keizerlaan",52.117368,5.084643,1,,,0,,
-stoparea:368295,,"Utrecht, Prins Bernhardplein",52.115256,5.083066,1,,,0,,
-stoparea:368296,,"Utrecht, Prins Bernhardlaan",52.11309,5.086825,1,,,0,,
-2455902,59150461,"Utrecht, Prins Bernhardplein",52.115179,5.083022,0,stoparea:36705,,1,,
-2455906,59150531,"Utrecht, Prins Bernhardplein",52.115404,5.082977,0,stoparea:36705,,1,,
-2492938,59150460,"Utrecht, Prins Bernhardplein",52.115081,5.083154,0,stoparea:36705,,1,,
-2339838,59150460,"Utrecht, Prins Bernhardplein",52.115179,5.083037,0,stoparea:368295,,1,,
-2492943,59150530,"Utrecht, Prins Bernhardplein",52.115332,5.083138,0,stoparea:36705,,1,,
-2339842,59150530,"Utrecht, Prins Bernhardplein",52.115332,5.083094,0,stoparea:368295,,1,,
-stoparea:36705,,"Utrecht, Prins Bernhardplein",52.11528475,5.082956,1,,,0,,
-2492979,59151590,"Utrecht, Prins Bernhardlaan",52.112906,5.086804,0,,,1,,
-2339845,59151590,"Utrecht, Prins Bernhardlaan",52.112897,5.086717,0,stoparea:368296,,1,,
-2492980,59151600,"Utrecht, Prins Bernhardlaan",52.113203,5.086904,0,,,1,,
-2339846,59151600,"Utrecht, Prins Bernhardlaan",52.113284,5.086933,0,stoparea:368296,,1,,
-2492929,59150330,"Utrecht, Muyskenweg",52.110336,5.083347,0,,,1,,
-2492930,59150340,"Utrecht, Muyskenweg",52.110595,5.082878,0,,,1,,
-2492928,59150300,"Utrecht, Sweder van Zuylenweg",52.107776,5.087744,0,stoparea:36749,,1,,
-2492944,59150550,"Utrecht, Sweder van Zuylenweg",52.108707,5.086146,0,stoparea:36749,,1,,
-stoparea:36749,,"Utrecht, Sweder van Zuylenweg",52.108237,5.0869525,1,,,0,,
-2492426,50000520,"Utrecht, Marnixlaan (Perron A)",52.10579,5.091173,0,stoparea:36548,,1,A,
-2492424,50000470,"Utrecht, Watertoren",52.103767,5.094704,0,,,1,,
-2492425,50000480,"Utrecht, Watertoren",52.103346,5.095421,0,,,1,,
-2492422,50000450,"Utrecht, Concordiastraat",52.101485,5.098645,0,stoparea:36695,,1,,
-2492423,50000460,"Utrecht, Concordiastraat",52.101064,5.099377,0,stoparea:36695,,1,,
-stoparea:36695,,"Utrecht, Concordiastraat",52.1014625,5.098674,1,,,0,,
-2492420,50000430,"Utrecht, Viaduct",52.098773,5.103376,0,,,1,,
-2492421,50000440,"Utrecht, Viaduct",52.09794,5.104695,0,,,1,,
-2492418,50000410,"Utrecht, Herenweg",52.096258,5.107741,0,stoparea:175822,,1,,
-2492419,50000420,"Utrecht, Herenweg",52.096123,5.107902,0,stoparea:175822,,1,,
-stoparea:175822,,"Utrecht, Herenweg",52.0962175,5.1077335,1,,,0,,
-stoparea:298991,,"Utrecht, Daalsesingel",52.093151500000005,5.111058,1,,,0,,
-2492404,50000160,"Utrecht, Daalsesingel",52.093066,5.111073,0,stoparea:298991,,1,,
-2492406,50000190,"Utrecht, Daalsesingel",52.093237,5.111087,0,stoparea:298991,,1,,
+stop_id,stop_code,stop_name,tts_stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station,direction,position
+10857,10857,Gresham Central Transit Center,gresham central transit center,Eastbound stop in Gresham (Stop ID 10857),45.502718,-122.427108,B,https://trimet.org/home/stop/10857,0,,East,At
+2253,2253,Gresham Central Transit Center,gresham central transit center,Eastbound stop in Gresham (Stop ID 2253),45.502592,-122.426486,B,https://trimet.org/home/stop/2253,0,,East,At
+13211,13211,NE Hood & 5th,northeast hood & 5th,Southbound stop in Gresham (Stop ID 13211),45.501098,-122.428024,B,https://trimet.org/home/stop/13211,0,,South,Nearside
+13033,13033,NE Hood & 2nd,northeast hood & 2nd,Southbound stop in Gresham (Stop ID 13033),45.498613,-122.427832,B,https://trimet.org/home/stop/13033,0,,South,Farside
+13474,13474,E Powell & NE Elliott,east powell & northeast elliott,Eastbound stop in Gresham (Stop ID 13474),45.49792,-122.424876,B,https://trimet.org/home/stop/13474,0,,East,Opposite
+4520,4520,E Powell & SE Cleveland,east powell & southeast cleveland,Eastbound stop in Gresham (Stop ID 4520),45.497919,-122.421209,B,https://trimet.org/home/stop/4520,0,,East,Nearside
+4531,4531,E Powell & NE Liberty,east powell & northeast liberty,Eastbound stop in Gresham (Stop ID 4531),45.497888,-122.418723,B,https://trimet.org/home/stop/4531,0,,East,Opposite
+4529,4529,E Powell & SE Hogan,east powell & southeast hogan,Eastbound stop in Gresham (Stop ID 4529),45.497829,-122.414506,B,https://trimet.org/home/stop/4529,0,,East,Nearside
+4639,4639,E Powell & SE 3rd,east powell & southeast 3rd,Southbound stop in Gresham (Stop ID 4639),45.495758,-122.412109,B,https://trimet.org/home/stop/4639,0,,South,Opposite
+4545,4545,E Powell & SE Rene,east powell & southeast rene,Eastbound stop in Gresham (Stop ID 4545),45.494326,-122.409729,B,https://trimet.org/home/stop/4545,0,,East,Farside
+4713,4713,2800 Block SE Powell Valley,twenty-eight-hundred block southeast powell valley,Eastbound stop in Gresham (Stop ID 4713),45.493064,-122.403517,B,https://trimet.org/home/stop/4713,0,,East,At
+4715,4715,SE Powell Valley & Hale,southeast powell valley & hale,Eastbound stop in Gresham (Stop ID 4715),45.492544,-122.401249,B,https://trimet.org/home/stop/4715,0,,East,Opposite
+13475,13475,SE 257th/Kane & Powell Valley,"southeast 257th, kane & powell valley",Southbound stop in Gresham (Stop ID 13475),45.49147,-122.398983,B,https://trimet.org/home/stop/13475,0,,South,Farside
+13554,13554,SE 257th/Kane & 11th,"southeast 257th, kane & 11th",Southbound stop in Gresham (Stop ID 13554),45.48911,-122.398653,B,https://trimet.org/home/stop/13554,0,,South,Nearside
+4231,4231,SE Orient Dr & 14th ,southeast orient drive & 14th ,Southbound stop in Gresham (Stop ID 4231),45.485929,-122.397177,B,https://trimet.org/home/stop/4231,0,,South,Farside
+9233,9233,1800 Block SE Orient Dr,eighteen-hundred block southeast orient drive,Eastbound stop in Gresham (Stop ID 9233),45.484018,-122.394979,B,https://trimet.org/home/stop/9233,0,,East,Nearside
+13555,13555,SE Orient Dr & Chase,southeast orient drive & chase,Southbound stop in Gresham (Stop ID 13555),45.478503,-122.388731,B,https://trimet.org/home/stop/13555,0,,South,Opposite
+4230,4230,SE Orient Dr & Welch Rd,southeast orient drive & welch road,Southbound stop in Gresham (Stop ID 4230),45.47569,-122.385419,B,https://trimet.org/home/stop/4230,0,,South,Farside
+13650,13650,SE Orient Dr & Elsa St,southeast orient drive & elsa street,Eastbound stop in Multnomah Co. (Stop ID 13650),45.471538,-122.375957,B,https://trimet.org/home/stop/13650,0,,East,Nearside
+13560,13560,SE 282nd & Welch Rd,southeast 282nd & welch road,Northbound stop in Gresham (Stop ID 13560),45.476036,-122.37262,B,https://trimet.org/home/stop/13560,0,,North,Farside
+7297,7297,SE 282nd & Chase,southeast 282nd & chase,Northbound stop in Gresham (Stop ID 7297),45.47907,-122.37259,B,https://trimet.org/home/stop/7297,0,,North,Nearside
+13561,13561,SE 282nd & Salquist,southeast 282nd & sawlquist,Northbound stop in Gresham (Stop ID 13561),45.483048,-122.372615,B,https://trimet.org/home/stop/13561,0,,North,Farside
+13867,13867,SE 282nd & Powell Valley,southeast 282nd & powell valley,Northbound stop in Gresham (Stop ID 13867),45.487817,-122.37261,B,https://trimet.org/home/stop/13867,0,,North,Nearside
+13562,13562,Powell Valley & Old Woods Lp Flag Stop,powell valley & old woods lp flag stop,Westbound stop in Gresham (Stop ID 13562),45.488317,-122.376921,B,https://trimet.org/home/stop/13562,0,,West,At
+4719,4719,SE Powell Valley & Dogwood,southeast powell valley & dogwood,Westbound stop in Gresham (Stop ID 4719),45.490258,-122.383515,B,https://trimet.org/home/stop/4719,0,,West,Nearside
+8945,8945,SE Powell Valley & Greenway,southeast powell valley & greenway,Westbound stop in Gresham (Stop ID 8945),45.490482,-122.388496,B,https://trimet.org/home/stop/8945,0,,West,Farside
+9383,9383,SE Powell Valley & Barnes Flag Stop - 20230804,southeast powell valley & barnes flag stop,Westbound stop in Gresham (Stop ID 9383),45.49039,-122.393125,B,https://trimet.org/home/stop/9383,0,,West,At
+4720,4720,SE Powell Valley & Robin,southeast powell valley & robin,Westbound stop in Gresham (Stop ID 4720),45.492896,-122.401776,B,https://trimet.org/home/stop/4720,0,,West,Opposite
+4714,4714,2800 Block SE Powell Valley,twenty-eight-hundred block southeast powell valley,Westbound stop in Gresham (Stop ID 4714),45.493288,-122.403489,B,https://trimet.org/home/stop/4714,0,,West,At
+4518,4518,E Powell & SE Burnside,east powell & southeast burnside,Westbound stop in Gresham (Stop ID 4518),45.494175,-122.40753,B,https://trimet.org/home/stop/4518,0,,West,Farside
+4546,4546,E Powell & SE Rene,east powell & southeast rene,Westbound stop in Gresham (Stop ID 4546),45.494565,-122.409819,B,https://trimet.org/home/stop/4546,0,,West,Opposite
+4638,4638,E Powell & SE 3rd,east powell & southeast 3rd,Northbound stop in Gresham (Stop ID 4638),45.49611,-122.411966,B,https://trimet.org/home/stop/4638,0,,North,Farside
+4528,4528,E Powell & NE Hogan,east powell & northeast hogan,Westbound stop in Gresham (Stop ID 4528),45.497948,-122.413778,B,https://trimet.org/home/stop/4528,0,,West,Nearside
+8461,8461,E Powell & NE Liberty,east powell & northeast liberty,Westbound stop in Gresham (Stop ID 8461),45.498117,-122.418266,B,https://trimet.org/home/stop/8461,0,,West,Nearside
+4521,4521,E Powell & NE Cleveland,east powell & northeast cleveland,Westbound stop in Gresham (Stop ID 4521),45.498148,-122.421777,B,https://trimet.org/home/stop/4521,0,,West,Farside
+13473,13473,E Powell & NE Elliott,east powell & northeast elliott,Westbound stop in Gresham (Stop ID 13473),45.49817,-122.424482,B,https://trimet.org/home/stop/13473,0,,West,Nearside
+10657,10657,NE Hood & 2nd,northeast hood & 2nd,Northbound stop in Gresham (Stop ID 10657),45.498868,-122.427625,B,https://trimet.org/home/stop/10657,0,,North,Nearside
+10654,10654,NE Hood & 5th,northeast hood & 5th,Northbound stop in Gresham (Stop ID 10654),45.500913,-122.427922,B,https://trimet.org/home/stop/10654,0,,North,Nearside
+10857,10857,Gresham Central Transit Center,gresham central transit center,Eastbound stop in Gresham (Stop ID 10857),45.502718,-122.427108,B,https://trimet.org/home/stop/10857,0,,East,At
+8199,8199,Gresham Central Transit Center,gresham central transit center,Eastbound stop in Gresham (Stop ID 8199),45.502862,-122.426918,B,https://trimet.org/home/stop/8199,0,,East,At

@@ -6,20 +6,20 @@ import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
 import BusStatus from "../components/BusStatus";
 
 const containerStyle = {
-  width: "500px",
-  height: "500px",
+  width: "95vw",
+  height: "50vh",
 };
 
 const defaultCenter = {
-  lat: 52.111523,
-  lng: 5.101634,
+  lat: 45.489935,
+  lng: -122.401626,
 };
 
-const defaultZoom = 13;
+const defaultZoom = 14;
 
-const defaultIntervalTime = 200;
+const defaultIntervalTime = 1000;
 
-// set to maximum of 10 journeys going on at once
+// set to maximum of 12 journeys going on at once
 const defaultAllBusIndex = {
   0: -1,
   1: -1,
@@ -31,6 +31,8 @@ const defaultAllBusIndex = {
   7: -1,
   8: -1,
   9: -1,
+  10: -1,
+  11: -1,
 };
 
 const classes = {
@@ -163,7 +165,8 @@ const Maps = () => {
               // store marker for manipulation later
               return markerWithInfoWindow;
             })}
-            <Marker position={defaultCenter} map={map} />
+            {/* reference point for when map is laoded */}
+            {/* <Marker position={defaultCenter} map={map} /> */}
           </GoogleMap>
         </LoadScript>
       </div>
@@ -176,12 +179,13 @@ const Maps = () => {
         Maps is currently loaded for this&nbsp;
         <Link
           className="text-blue-600 hover:underline"
-          to="https://moovitapp.com/netherlands-101/lines/3/756601/3334111/en?ref=2&poiType=line&customerId=4908&af_sub8=%2Findex%2Fen%2Fpublic_transit-line-3-Netherlands-101-1210496-756601-0"
+          to="https://trimet.org/schedules/r084.htm"
           target="_blank"
           rel="noopener noreferrer"
         >
           bus route
         </Link>
+        . (require VPN)
       </div>
       <div className="flex justify-center py-3">
         <button
@@ -198,7 +202,7 @@ const Maps = () => {
       {/* button controls */}
       <div className="flex justify-center py-3">{renderMap()}</div>
       <div>There are currently {numBusCurr} buses dispatched.</div>
-      <div className="grid grid-cols-3 max-w-[70%] mx-auto">
+      <div className="grid grid-cols-3 max-w-[100%] mx-auto">
         {Object.keys(busIndex).map((bus) => {
           return (
             <BusStatus
