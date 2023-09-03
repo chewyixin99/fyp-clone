@@ -7,17 +7,17 @@ import BusStatus from "../components/BusStatus";
 
 const containerStyle = {
   width: "95vw",
-  height: "50vh",
+  height: "60vh",
 };
 
 const defaultCenter = {
-  lat: 45.489935,
-  lng: -122.401626,
+  lat: 45.488184,
+  lng: -122.399686,
 };
 
 const defaultZoom = 14;
 
-const defaultIntervalTime = 1000;
+const defaultIntervalTime = 200;
 
 // set to maximum of 12 journeys going on at once
 const defaultAllBusIndex = {
@@ -37,6 +37,7 @@ const defaultAllBusIndex = {
 
 const classes = {
   button: "border hover:shadow-md px-3 py-1 rounded-md mx-3",
+  buttonDisabled: "border px-3 py-1 rounded-md mx-3 bg-gray-200",
 };
 
 const Maps = () => {
@@ -48,6 +49,8 @@ const Maps = () => {
   const [zoom, setZoom] = useState(defaultZoom);
   // bus progress state
   const [busIndex, setBusIndex] = useState(defaultAllBusIndex);
+  const [paused, setPaused] = useState(false);
+  const [ended, setEnded] = useState(false);
   // TODO: keep track of bus number currently dispatched
   const [numBusCurr, setNumBusCurr] = useState(0);
   // stops
@@ -76,9 +79,10 @@ const Maps = () => {
     console.log("reset clicked");
   };
 
-  const startBus = () => {
+  const onStartBusClick = () => {
     // on click, check if there are any buses running
     // if yes, set the bus index to 0 (from -1) to start the loop
+    setEnded(false);
     for (const bus in busIndex) {
       if (busIndex[bus] === -1) {
         setBusIndex({
@@ -93,10 +97,37 @@ const Maps = () => {
     }
   };
 
+  const onPauseClick = () => {
+    if (numBusCurr !== 0) {
+      // if resume
+      if (!paused) {
+        let tmpBusIndex = JSON.parse(JSON.stringify(busIndex));
+        for (const bus in tmpBusIndex) {
+          if (tmpBusIndex[bus] !== -1) {
+            tmpBusIndex[bus] += 1;
+          }
+        }
+        setBusIndex(tmpBusIndex);
+      }
+      setPaused(!paused);
+    }
+  };
+
+  const onSkipToEndClick = () => {
+    if (numBusCurr !== 0) {
+      let tmpBusIndexCopy = JSON.parse(JSON.stringify(busIndex));
+      for (const bus in tmpBusIndexCopy) {
+        tmpBusIndexCopy[bus] = -1;
+      }
+      setBusIndex(tmpBusIndexCopy);
+      setEnded(true);
+    }
+  };
+
   // TODO: listen for bus location and do some action
   useEffect(() => {
     // only enter code if there is at least 1 bus running
-    if (numBusCurr !== 0) {
+    if (numBusCurr !== 0 && !paused && !ended) {
       // create a copy and update before setting the new state
       let busIndexCopy = JSON.parse(JSON.stringify(busIndex));
       const interval = setInterval(() => {
@@ -127,6 +158,10 @@ const Maps = () => {
             console.log(
               `remove 1 bus from loop: numBuses now = ${numBusCurr - 1}`
             );
+            if (numBusCurr - 1 === 0) {
+              console.log("ending journey...");
+              setEnded(false);
+            }
             // keep track of buses that have ended their journey
             setNumBusCurr(numBusCurr - 1);
             return () => clearInterval(interval);
@@ -139,8 +174,17 @@ const Maps = () => {
         }
       }
       return () => clearInterval(interval);
+    } else if (ended) {
+      console.log("journey ended");
+      for (const stop of stops) {
+        stop.opacity = 0.4;
+      }
+      // reset buses
+      setNumBusCurr(0);
+      // reset pause state
+      setPaused(false);
     }
-  }, [busIndex, stops, numBusCurr]);
+  }, [busIndex, stops, numBusCurr, paused, ended]);
 
   const renderMap = () => {
     return (
@@ -155,12 +199,12 @@ const Maps = () => {
             onTilesLoaded={onTilesLoaded}
           >
             {/* Child components, such as markers, info windows, etc. */}
-            {stops.map((stop) => {
+            {stops.map((stop, index) => {
               if (stop === null) {
                 return;
               }
               const markerWithInfoWindow = (
-                <MarkerWithInfoWindow key={stop.stopId} stop={stop} map={map} />
+                <MarkerWithInfoWindow key={index} stop={stop} map={map} />
               );
               // store marker for manipulation later
               return markerWithInfoWindow;
@@ -195,8 +239,29 @@ const Maps = () => {
         >
           reset zoom and center
         </button>
-        <button onClick={startBus} className={classes.button} type="button">
-          start bus journey
+        <button
+          onClick={onStartBusClick}
+          className={paused ? classes.buttonDisabled : classes.button}
+          type="button"
+          disabled={paused}
+        >
+          dispatch new bus
+        </button>
+        <button
+          onClick={onPauseClick}
+          className={numBusCurr === 0 ? classes.buttonDisabled : classes.button}
+          type="button"
+          disabled={numBusCurr === 0}
+        >
+          {paused ? "resume" : "pause"}
+        </button>
+        <button
+          onClick={onSkipToEndClick}
+          className={numBusCurr === 0 ? classes.buttonDisabled : classes.button}
+          type="button"
+          disabled={numBusCurr === 0}
+        >
+          skip to end
         </button>
       </div>
       {/* button controls */}
