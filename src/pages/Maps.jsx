@@ -233,7 +233,13 @@ const Maps = () => {
                 return;
               }
               const markerWithInfoWindow = (
-                <MarkerWithInfoWindow key={index} stop={stop} map={map} />
+                <MarkerWithInfoWindow
+                  key={index}
+                  data={stops}
+                  index={index}
+                  stop={stop}
+                  map={map}
+                />
               );
               // store marker for manipulation later
               return markerWithInfoWindow;
