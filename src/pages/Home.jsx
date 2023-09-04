@@ -10,6 +10,7 @@ const Home = () => {
   const [triggerRun, setTriggerRun] = useState(false);
   const [triggerPause, setTriggerPause] = useState(false); // if bus is at bus stop, stop adding travel distance
   const [distanceTravelled, setDistanceTravelled] = useState(0); // if bus is at bus stop, stop adding travel distance
+  const [formattedBusStopDistance, setFormattedBusStopDistance] = useState([]); // if bus is at bus stop, stop adding travel distance
   const travelRef = useRef(null);
   const pause_btn = useRef(null);
   const run_btn = useRef(null);
@@ -21,7 +22,7 @@ const Home = () => {
 
   var runRef = null;
 
-  const bus_stop_data = [
+  const [busStopData, setBusStopData] = useState([
     {
       bus_stop_id: "1",
       bus_stop_name: "Bus Stop 1",
@@ -34,10 +35,29 @@ const Home = () => {
       bus_stop_relative_distance: 1000,
       bus_stop_duration: 2000,
     },
-  ];
+    {
+      bus_stop_id: "3",
+      bus_stop_name: "Bus Stop 3",
+      bus_stop_relative_distance: 1500,
+      bus_stop_duration: 1000,
+    },
+    {
+      bus_stop_id: "4",
+      bus_stop_name: "Bus Stop 4",
+      bus_stop_relative_distance: 1800,
+      bus_stop_duration: 2000,
+    },
+  ]);
 
   const formatDistance = (data) => {
     return Number(parseFloat((data / totalDistance) * 100)).toFixed(2);
+  };
+
+  const formatBusStopDistance = (data) => {
+    var format_data = data.map((item) =>
+      formatDistance(item.bus_stop_relative_distance)
+    );
+    setFormattedBusStopDistance(format_data);
   };
 
   const running_function = () => {
@@ -48,11 +68,12 @@ const Home = () => {
         ).toFixed(2)
       );
       setDistanceTravelled(relative_distance_travelled);
-      var listOfBusStopDistance = [formatDistance(200), formatDistance(1000)];
       if (
-        listOfBusStopDistance.includes(relative_distance_travelled.toString())
+        formattedBusStopDistance.includes(
+          relative_distance_travelled.toString()
+        )
       ) {
-        var item = bus_stop_data.filter((item) => {
+        var item = busStopData.filter((item) => {
           return (
             relative_distance_travelled.toString() ==
             formatDistance(item.bus_stop_relative_distance)
@@ -71,6 +92,10 @@ const Home = () => {
 
   useEffect(() => {
     loadBusStops();
+    formatBusStopDistance(busStopData);
+  }, []);
+
+  useEffect(() => {
     if (triggerRun) {
       running_function();
     }
@@ -89,14 +114,13 @@ const Home = () => {
 
   const loadBusStops = () => {
     var busStopHTML = ``;
-    for (var i = 0; i < bus_stop_data.length; i++) {
+    for (var i = 0; i < busStopData.length; i++) {
       var relative_distance_percentage =
-        (bus_stop_data[i].bus_stop_relative_distance / totalDistance) * 100;
+        (busStopData[i].bus_stop_relative_distance / totalDistance) * 100;
       var relative_distance =
         (route_bar_width * relative_distance_percentage) / 100;
-      busStopHTML += `<div class="bus-stop-${
-        i + 1
-      }" style="left:${relative_distance}px">&nbsp;</div>`;
+      console.log(relative_distance);
+      busStopHTML += `<div class="bus-stop" style="left:${relative_distance}px">&nbsp;</div>`;
     }
     document.querySelector(".bus-stop").innerHTML += busStopHTML;
   };
@@ -221,8 +245,49 @@ const Home = () => {
             <div>{distanceTravelled}</div>
           </div>
         </div>
+        <div className="row p-4">
+        <p class="text-3xl font-bold text-gray-900 dark:text-white">Bus Stop Timings (ms)</p>
+          <form>
+            <div class="grid gap-6 mb-6 md:grid-cols-2">
+              { busStopData?.map((item) => 
+                <div>
+                <label
+                  for={`bus_stop_id_${item.bus_stop_id}`}
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  {item.bus_stop_name}
+                </label>
+                <label
+                  for={`bus_stop_id_${item.bus_stop_id}`}
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Relative Distance from Start: {item.bus_stop_relative_distance}m or {formatDistance(item.bus_stop_relative_distance)}% of the total distance
+                </label>
+                <input
+                  type="text"
+                  id={`bus_stop_id_${item.bus_stop_id}`}
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-25 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={item.bus_stop_duration}
+                  onChange={(e) => {
+                    var new_bus_stop_data = busStopData.map((bus_stop) => {
+                      if (bus_stop.bus_stop_id == item.bus_stop_id) {
+                        bus_stop.bus_stop_duration = e.target.value;
+                      }
+                      return bus_stop;
+                    });
+                    setBusStopData(new_bus_stop_data);
+                  }}
+                />
+              </div>
+              )
+                 
+              }
+             
+            </div>
+          </form>
+        </div>
 
-        <div className="row statistics-container">
+        <div className="row statistics-container p-4">
           <div className="statistics">
             Statistics (Shows the statistics of the bus service in card
             components)
