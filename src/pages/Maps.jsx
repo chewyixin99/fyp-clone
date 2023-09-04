@@ -254,6 +254,21 @@ const Maps = () => {
 
   return (
     <div className="text-center">
+       <nav>
+        {/* temporary routing */}
+        <ul>
+          <li>
+            <Link to={`/`}>
+              <button
+                type="button"
+                className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              >
+                Home
+              </button>
+            </Link>
+          </li>
+        </ul>
+      </nav>
       <div className="flex justify-center py-3">
         Maps is currently loaded for this&nbsp;
         <Link
