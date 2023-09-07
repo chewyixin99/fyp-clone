@@ -1,6 +1,4 @@
 import React from "react";
-import "../styling/bus-operations.css";
-import { useState, useEffect, useRef } from "react";
 import { Outlet, Link } from "react-router-dom";
 
 const Home = () => {

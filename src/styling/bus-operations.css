@@ -11,7 +11,7 @@
 .bus-operations {
     margin-top: 1rem !important;
     background-color:bisque !important;
-    height: 30vh;
+    height: 50vh;
 }
 
 .route-bar {
@@ -34,15 +34,6 @@
     left: 0;
     min-width: 1px;
 }
-
-/* .bus-stop-2 {
-    background-color: black !important;
-    z-index: 10;
-    position: absolute;
-    top: 0;
-    left: 0;
-    min-width: 1px;
-} */
 
 .traffic-light-1 {
     background-color: orangered !important;

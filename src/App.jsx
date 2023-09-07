@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Maps from "./pages/Maps";
-import Journey from "./pages/Journey";
+import Journey from "./pages/Journeys/";
 import Settings from "./pages/Settings";
 
 const App = () => {

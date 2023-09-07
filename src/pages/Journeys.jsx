@@ -1,9 +1,9 @@
 import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect, useRef } from "react";
-import { Outlet, Link } from "react-router-dom";
+import Journey from "../components/Journey";
 
-const Journey = () => {
+const Journeys = () => {
   const [busSpeed, setBusSpeed] = useState(35);
   const [totalDistance, setTotalDistance] = useState(3100);
   const [RDPPM, setRDPPM] = useState(0);
@@ -160,77 +160,24 @@ const Journey = () => {
   };
 
   return (
-    <div>
-      <div className="container">
-        <div className="row operations-container">
-          <div className="service-route">
-            Service Route (Shows the route of the bus service w/ bus stops and
-            traffic lights of relative distance to one another )
-          </div>
-          <div className="bus-operations">
-            Bus Operations (Imagine Gantt chart where this component represents
-            the task while the route represents the dates)
-            <div className="control-panel">
-              <div className="">
-                <input
-                  type="range"
-                  id="bus_speed"
-                  name="bus_speed"
-                  min="10"
-                  max="60"
-                  onChange={(e) => {
-                    setBusSpeed(e.target.value);
-                  }}
-                />
-                <label for="bus_speed">Bus Speed</label>
-                {/* <input type="range" id="total_distance" name="total_distance" min="1000" max="10000" onChange={(e) => { setTotalDistance(e.target.value) }} /> */}
-                {/* <label for="total_distance">Total Distance (testing only)</label> */}
-              </div>
-
-              <div className="sm:flex">
-                <button
-                  onClick={startRun}
-                  id="run_simulation"
-                  ref={run_btn}
-                  type="button"
-                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  Start
-                </button>
-                <button
-                  onClick={stop}
-                  id="stop_simulation"
-                  ref={stop_btn}
-                  type="button"
-                  className="hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  Stop
-                </button>
-                <button
-                  onClick={pause}
-                  id="pause_simulation"
-                  ref={pause_btn}
-                  type="button"
-                  className="hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  Pause
-                </button>
-              </div>
-            </div>
-            <div className="route-bar">
-              <div
-                className="route-travelled"
-                style={{ width: "0%" }}
-                ref={travelRef}
-              >
-                &nbsp;
-              </div>
-              <div className="bus-stop"></div>
-            </div>
-            <div>{distanceTravelled}</div>
-          </div>
+    <div className="container">
+      <div className="row operations-container">
+        <div className="service-route">
+          Service Route (Shows the route of the bus service w/ bus stops and
+          traffic lights of relative distance to one another )
         </div>
-        <div className="row p-4">
+        <div className="bus-operations">
+          Bus Operations (Imagine Gantt chart where this component represents
+          the task while the route represents the dates)
+
+          <Journey id="1" bus_stop_data={busStopData} total_distance={totalDistance} route_bar_width={route_bar_width}/>
+          <Journey id="2" bus_stop_data={busStopData} total_distance={totalDistance} route_bar_width={route_bar_width}/>
+          <Journey id="3" bus_stop_data={busStopData} total_distance={totalDistance} route_bar_width={route_bar_width}/>
+          <Journey id="4" bus_stop_data={busStopData} total_distance={totalDistance} route_bar_width={route_bar_width}/>
+          <Journey id="5" bus_stop_data={busStopData} total_distance={totalDistance} route_bar_width={route_bar_width}/>
+        </div>
+      </div>
+      <div className="row p-4">
         <p class="text-3xl font-bold text-gray-900 dark:text-white">Bus Stop Timings (ms)</p>
           <form>
             <div class="grid gap-6 mb-6 md:grid-cols-2">
@@ -271,16 +218,8 @@ const Journey = () => {
             </div>
           </form>
         </div>
-
-        <div className="row statistics-container p-4">
-          <div className="statistics">
-            Statistics (Shows the statistics of the bus service in card
-            components)
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
 
-export default Journey;
+export default Journeys;
