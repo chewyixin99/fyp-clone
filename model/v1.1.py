@@ -1,16 +1,17 @@
 # gives us globally optimal solution with simplified assumptions, TODO: will refactor and explore rolling horizons
 
 from docplex.mp.model import Model
+import json
 
 # PARAMETERS
 num_trips = 5 # |N|
 num_stops = 5 # |S|
 original_dispatch_list = [0, 600, 1200, 1800, 2400] #j \in {1, .., |N|}
-prev_arrival_list = [0, 100, 200, 400, 700] # j = 0, s \in {2, .. , |S|} # MODIFIED keep for rolling horizons
+prev_arrival_list = [100, 200, 400, 700, 900] # j = 0, s \in {2, .. , |S|} # MODIFIED keep for rolling horizons
 prev_dwell_list = [100, 100, 100, 100] #j = 0, s \in {1, .., |S|-1}
-arrival_rate_list = [0.2, 0.2, 0.2, 0.2, 0.2]
-alighting_percentage_list = [0.1, 0.2, 0.3, 0.4]
-boarding_duration = 1
+arrival_rate_list = [0.03, 0.03, 0.1, 0.03, 0.03]
+alighting_percentage_list = [0.1, 0.5, 0.2, 0.3] # s \in {2, .. |S|}
+boarding_duration = 2
 alighting_duration = 2
 weights_list = [0.1, 0.2, 0.3, 0.4]
 bus_availability_list = [500, 1500, 2500, 3500, 4500]
@@ -150,6 +151,25 @@ def run_model():
     # Equation 17, Constraint 35
     model.add_constraint(slack >= 0)
 
+    # Additional bookkeeping constraints to output arrival_matrix NOTE: TESTING
+    # Equation 18
+    for j in range(1, num_trips+1):
+        model.add_constraint(arrival[j, 2] ==
+                            original_dispatch[j]
+                            + dispatch_offset[j]
+                            + interstation_travel[j, 1])
+
+    # Equation 19
+    for j in range(1, num_trips+1):
+        for s in range(3, num_stops+1):
+            model.add_constraint(arrival[j,s] ==
+                                arrival[j,s-1]
+                                + dwell[j,s-1]
+                                + interstation_travel[j,s-1])
+
+    # model.add_constraint(dispatch_offset[3] == -1) # TODO look into why no negatives
+
+
     # for j in range(1, num_trips+1): # to observe if dispatch optimisation was not used
     #     model.add_constraint(dispatch_offset[j] == 0)
 
@@ -168,6 +188,37 @@ def run_model():
                     Time of Dispatch = {original_dispatch[j] + dispatch_offset[j].solution_value:.0f}")
 
     print("\nObjective Function Value:", model.objective_value)
+
+    # OUTPUTS NOTE: to refactor once finalised
+
+    data_dict = {}
+
+    dwell_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(1, num_stops+1):
+            dwell_dict[f"{j},{s}"] = round(dwell[j,s].solution_value)
+
+    busload_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(1, num_stops+1):
+            busload_dict[f"{j},{s}"] = round(busload[j,s].solution_value)
+
+    arrival_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(2, num_stops+1):
+            arrival_dict[f"{j},{s}"] = round(arrival[j,s].solution_value)
+
+    # print(arrival_dict)
+
+    data_dict["dwell_matrix"] = dwell_dict
+    data_dict["busload_matrix"] = busload_dict
+    data_dict["arrival_matrix"] = arrival_dict
+
+    with open("../outputs/output.json", "w") as f:
+        json.dump(data_dict, f, indent=4)
+
+    
+    
 
 if __name__ == "__main__":
     run_model()
