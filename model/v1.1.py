@@ -3,7 +3,7 @@
 from docplex.mp.model import Model
 import json
 
-# PARAMETERS
+# MOCK PARAMETERS
 num_trips = 5 # |N|
 num_stops = 5 # |S|
 original_dispatch_list = [600, 1200, 1800, 2400, 3000] #j \in {1, .., |N|}
@@ -15,7 +15,6 @@ boarding_duration = 2
 alighting_duration = 2
 weights_list = [0.1, 0.2, 0.3, 0.4]
 bus_availability_list = [500, 1500, 2500, 3500, 4500]
-bus_availability_list = [0,0,0,0,0]
 initial_passengers_list = [5, 5, 10, 11, 12]
 max_allowed_deviation = 300
 target_headway_lists = [ # j \in {1, .. , |N|} s \in {2, .., |S|}
@@ -33,21 +32,35 @@ interstation_travel_lists = [ # j \in {1, .. , |N|} s \in {1, .., |S|-1}
     [100, 200, 300, 400]
 ]
 
+def convert_list_to_dict(list_to_convert, start_index, end_index):
+    return {i: list_to_convert[i-start_index] for i in range(start_index, end_index+1)}
+
+def convert_2dlist_to_dict(list_to_convert, j_start, j_end, s_start, s_end):
+    return {(j,s): list_to_convert[j-j_start][s-s_start] for j in range(j_start, j_end+1) for s in range(s_start, s_end+1)}
+
+def write_data_to_json(output_file_path, **dicts):
+    data_dict = {}
+    for k, v in dicts.items():
+        data_dict[k] = v
+
+    with open(output_file_path, "w") as f:
+        json.dump(data_dict, f, indent=4)
+
 def run_model():
 
     model = Model(name="bus_dispatch")
 
     # Transformation to dictionaries to be referred to by the constraints
-    original_dispatch = {j: original_dispatch_list[j-1] for j in range(1, num_trips+1)}
-    prev_arrival = {s: prev_arrival_list[s-1] for s in range(1, num_stops+1)} # MODIFIED keep for rolling horizons
-    prev_dwell = {s: prev_dwell_list[s-1] for s in range(1, num_stops)} # doesn't seem to be used
-    arrival_rate = {s: arrival_rate_list[s-1] for s in range(1, num_stops+1)}
-    alighting_percentage = {s: alighting_percentage_list[s-2] for s in range(2, num_stops+1)}
-    weights = {s: weights_list[s-2] for s in range(2, num_stops+1)}
-    bus_availability = {j: bus_availability_list[j-1] for j in range(1, num_trips+1)}
-    initial_passengers = {s: initial_passengers_list[s-1] for s in range(1, num_stops+1)}
-    target_headway = {(j,s): target_headway_lists[j-1][s-2] for j in range(1, num_trips+1) for s in range(2, num_stops+1)}
-    interstation_travel = {(j,s): interstation_travel_lists[j-1][s-1] for j in range(1, num_trips+1) for s in range(1, num_stops)}
+    original_dispatch = convert_list_to_dict(original_dispatch_list, 1, num_trips)
+    prev_arrival = convert_list_to_dict(prev_arrival_list, 1, num_stops) # MODIFIED keep for rolling horizons
+    prev_dwell = convert_list_to_dict(prev_dwell_list, 1, num_stops-1) # doesn't seem to be used
+    arrival_rate = convert_list_to_dict(arrival_rate_list, 1, num_stops)
+    alighting_percentage = convert_list_to_dict(alighting_percentage_list, 2, num_stops)
+    weights = convert_list_to_dict(weights_list, 2, num_stops)
+    bus_availability = convert_list_to_dict(bus_availability_list, 1, num_trips)
+    initial_passengers = convert_list_to_dict(initial_passengers_list, 1, num_stops)
+    target_headway = convert_2dlist_to_dict(target_headway_lists, 1, num_trips, 2, num_stops)
+    interstation_travel = convert_2dlist_to_dict(interstation_travel_lists, 1, num_trips, 1, num_stops-1)
 
 
     # DECISION VARIABLES
@@ -191,8 +204,6 @@ def run_model():
 
     # OUTPUTS NOTE: to refactor once finalised
 
-    data_dict = {}
-
     dwell_dict = {}
     for j in range(1, num_trips+1):
         for s in range(1, num_stops+1):
@@ -208,17 +219,12 @@ def run_model():
         for s in range(2, num_stops+1):
             arrival_dict[f"{j},{s}"] = round(arrival[j,s].solution_value)
 
-    # print(arrival_dict)
-
-    data_dict["dwell_matrix"] = dwell_dict
-    data_dict["busload_matrix"] = busload_dict
-    data_dict["arrival_matrix"] = arrival_dict
-
-    with open("../outputs/output.json", "w") as f:
-        json.dump(data_dict, f, indent=4)
-
-    
-    
+    write_data_to_json(
+        "../outputs/output.json",
+        dwell_matrix=dwell_dict,
+        busload_matrix=busload_dict,
+        arrival_matrix=arrival_dict
+        )
 
 if __name__ == "__main__":
     try:
