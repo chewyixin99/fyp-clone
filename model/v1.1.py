@@ -3,60 +3,12 @@
 from docplex.mp.model import Model
 import json
 
-# MOCK PARAMETERS
-num_trips = 5 # |N|
-num_stops = 5 # |S|
-original_dispatch_list = [600, 1200, 1800, 2400, 3000] #j \in {1, .., |N|}
-prev_arrival_list = [100, 200, 400, 700, 900] # j = 0, s \in {2, .. , |S|} # MODIFIED keep for rolling horizons
-prev_dwell_list = [100, 100, 100, 100] #j = 0, s \in {1, .., |S|-1}
-arrival_rate_list = [0.03, 0.03, 0.1, 0.03, 0.03]
-alighting_percentage_list = [0.1, 0.5, 0.2, 0.3] # s \in {2, .. |S|}
-boarding_duration = 2
-alighting_duration = 2
-weights_list = [0.1, 0.2, 0.3, 0.4]
-bus_availability_list = [500, 1500, 2500, 3500, 4500]
-initial_passengers_list = [5, 5, 10, 11, 12]
-max_allowed_deviation = 300
-target_headway_2dlist = [ # j \in {1, .. , |N|} s \in {2, .., |S|}
-    [100, 200, 200, 100],
-    [100, 200, 200, 100],
-    [100, 200, 200, 100],
-    [100, 200, 200, 100],
-    [100, 200, 200, 100]
-]
-interstation_travel_2dlist = [ # j \in {1, .. , |N|} s \in {1, .., |S|-1}
-    [100, 200, 300, 400],
-    [100, 200, 300, 400],
-    [100, 200, 300, 400],
-    [100, 200, 300, 400],
-    [100, 200, 300, 400]
-]
+# Ingestion of .json inputs
+def convert_json_to_dict(input_file_path):
+    with open(input_file_path, "r") as f:
+        data = json.load(f)
 
-parameters = {
-    "num_trips": num_trips,
-    "num_stops": num_stops,
-    "original_dispatch_list": original_dispatch_list,
-    "prev_arrival_list": prev_arrival_list,
-    "prev_dwell_list": prev_dwell_list,
-    "arrival_rate_list": arrival_rate_list,
-    "alighting_percentage_list": alighting_percentage_list,
-    "boarding_duration": boarding_duration,
-    "alighting_duration": alighting_duration,
-    "weights_list": weights_list,
-    "bus_availability_list": bus_availability_list,
-    "initial_passengers_list": initial_passengers_list,
-    "max_allowed_deviation": max_allowed_deviation,
-    "target_headway_2dlist": target_headway_2dlist,
-    "interstation_travel_2dlist": interstation_travel_2dlist
-}
-
-data_dict = {}
-for k, v in parameters.items():
-    data_dict[k] = v
-
-    with open("../inputs/mock_input.json", "w") as f:
-        json.dump(data_dict, f, indent=4)
-
+    return data
 
 def convert_list_to_dict(list_to_convert, start_index, end_index):
     return {i: list_to_convert[i-start_index] for i in range(start_index, end_index+1)}
@@ -72,21 +24,27 @@ def write_data_to_json(output_file_path, **dicts):
     with open(output_file_path, "w") as f:
         json.dump(data_dict, f, indent=4)
 
-def run_model():
+def run_model(data):
 
     model = Model(name="bus_dispatch")
 
+    num_trips = data["num_trips"]
+    num_stops = data["num_stops"]
+    boarding_duration = data["boarding_duration"]
+    alighting_duration = data["alighting_duration"]
+    max_allowed_deviation = data["max_allowed_deviation"]
+
     # Transformation to dictionaries to be referred to by the constraints
-    original_dispatch = convert_list_to_dict(original_dispatch_list, 1, num_trips)
-    prev_arrival = convert_list_to_dict(prev_arrival_list, 1, num_stops) # MODIFIED keep for rolling horizons
-    prev_dwell = convert_list_to_dict(prev_dwell_list, 1, num_stops-1) # doesn't seem to be used
-    arrival_rate = convert_list_to_dict(arrival_rate_list, 1, num_stops)
-    alighting_percentage = convert_list_to_dict(alighting_percentage_list, 2, num_stops)
-    weights = convert_list_to_dict(weights_list, 2, num_stops)
-    bus_availability = convert_list_to_dict(bus_availability_list, 1, num_trips)
-    initial_passengers = convert_list_to_dict(initial_passengers_list, 1, num_stops)
-    target_headway = convert_2dlist_to_dict(target_headway_2dlist, 1, num_trips, 2, num_stops)
-    interstation_travel = convert_2dlist_to_dict(interstation_travel_2dlist, 1, num_trips, 1, num_stops-1)
+    original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
+    prev_arrival = convert_list_to_dict(data["prev_arrival_list"], 1, num_stops) # MODIFIED keep for rolling horizons
+    prev_dwell = convert_list_to_dict(data["prev_dwell_list"], 1, num_stops-1) # doesn't seem to be used
+    arrival_rate = convert_list_to_dict(data["arrival_rate_list"], 1, num_stops)
+    alighting_percentage = convert_list_to_dict(data["alighting_percentage_list"], 2, num_stops)
+    weights = convert_list_to_dict(data["weights_list"], 2, num_stops)
+    bus_availability = convert_list_to_dict(data["bus_availability_list"], 1, num_trips)
+    initial_passengers = convert_list_to_dict(data["initial_passengers_list"], 1, num_stops)
+    target_headway = convert_2dlist_to_dict(data["target_headway_2dlist"], 1, num_trips, 2, num_stops)
+    interstation_travel = convert_2dlist_to_dict(data["interstation_travel_2dlist"], 1, num_trips, 1, num_stops-1)
 
 
     # DECISION VARIABLES
@@ -253,7 +211,8 @@ def run_model():
         )
 
 if __name__ == "__main__":
+    data = convert_json_to_dict("../inputs/mock_input.json")
     try:
-        run_model()
+        run_model(data)
     except Exception as e:
         print(e)
