@@ -17,20 +17,46 @@ weights_list = [0.1, 0.2, 0.3, 0.4]
 bus_availability_list = [500, 1500, 2500, 3500, 4500]
 initial_passengers_list = [5, 5, 10, 11, 12]
 max_allowed_deviation = 300
-target_headway_lists = [ # j \in {1, .. , |N|} s \in {2, .., |S|}
+target_headway_2dlist = [ # j \in {1, .. , |N|} s \in {2, .., |S|}
     [100, 200, 200, 100],
     [100, 200, 200, 100],
     [100, 200, 200, 100],
     [100, 200, 200, 100],
     [100, 200, 200, 100]
 ]
-interstation_travel_lists = [ # j \in {1, .. , |N|} s \in {1, .., |S|-1}
+interstation_travel_2dlist = [ # j \in {1, .. , |N|} s \in {1, .., |S|-1}
     [100, 200, 300, 400],
     [100, 200, 300, 400],
     [100, 200, 300, 400],
     [100, 200, 300, 400],
     [100, 200, 300, 400]
 ]
+
+parameters = {
+    "num_trips": num_trips,
+    "num_stops": num_stops,
+    "original_dispatch_list": original_dispatch_list,
+    "prev_arrival_list": prev_arrival_list,
+    "prev_dwell_list": prev_dwell_list,
+    "arrival_rate_list": arrival_rate_list,
+    "alighting_percentage_list": alighting_percentage_list,
+    "boarding_duration": boarding_duration,
+    "alighting_duration": alighting_duration,
+    "weights_list": weights_list,
+    "bus_availability_list": bus_availability_list,
+    "initial_passengers_list": initial_passengers_list,
+    "max_allowed_deviation": max_allowed_deviation,
+    "target_headway_2dlist": target_headway_2dlist,
+    "interstation_travel_2dlist": interstation_travel_2dlist
+}
+
+data_dict = {}
+for k, v in parameters.items():
+    data_dict[k] = v
+
+    with open("../inputs/mock_input.json", "w") as f:
+        json.dump(data_dict, f, indent=4)
+
 
 def convert_list_to_dict(list_to_convert, start_index, end_index):
     return {i: list_to_convert[i-start_index] for i in range(start_index, end_index+1)}
@@ -59,8 +85,8 @@ def run_model():
     weights = convert_list_to_dict(weights_list, 2, num_stops)
     bus_availability = convert_list_to_dict(bus_availability_list, 1, num_trips)
     initial_passengers = convert_list_to_dict(initial_passengers_list, 1, num_stops)
-    target_headway = convert_2dlist_to_dict(target_headway_lists, 1, num_trips, 2, num_stops)
-    interstation_travel = convert_2dlist_to_dict(interstation_travel_lists, 1, num_trips, 1, num_stops-1)
+    target_headway = convert_2dlist_to_dict(target_headway_2dlist, 1, num_trips, 2, num_stops)
+    interstation_travel = convert_2dlist_to_dict(interstation_travel_2dlist, 1, num_trips, 1, num_stops-1)
 
 
     # DECISION VARIABLES
