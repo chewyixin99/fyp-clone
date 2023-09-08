@@ -6,7 +6,7 @@ import json
 # PARAMETERS
 num_trips = 5 # |N|
 num_stops = 5 # |S|
-original_dispatch_list = [0, 600, 1200, 1800, 2400] #j \in {1, .., |N|}
+original_dispatch_list = [600, 1200, 1800, 2400, 3000] #j \in {1, .., |N|}
 prev_arrival_list = [100, 200, 400, 700, 900] # j = 0, s \in {2, .. , |S|} # MODIFIED keep for rolling horizons
 prev_dwell_list = [100, 100, 100, 100] #j = 0, s \in {1, .., |S|-1}
 arrival_rate_list = [0.03, 0.03, 0.1, 0.03, 0.03]
@@ -147,7 +147,7 @@ def run_model():
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
     for j in range(1, num_trips+1):
         #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
-        model.add_constraint(slack >= dispatch_offset[j] - max_allowed_deviation)
+        model.add_constraint(slack >= (dispatch_offset[j] - max_allowed_deviation))
     # Equation 17, Constraint 35
     model.add_constraint(slack >= 0)
 
@@ -221,4 +221,7 @@ def run_model():
     
 
 if __name__ == "__main__":
-    run_model()
+    try:
+        run_model()
+    except Exception as e:
+        print(e)
