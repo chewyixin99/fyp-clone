@@ -1,13 +1,13 @@
 import { useCallback, useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Polyline } from "@react-google-maps/api";
 import { Link } from "react-router-dom";
-import { stopObjs } from "../data/constants";
+import { stopObjs, journeyMarkers } from "../data/constants";
 import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
 import BusStatus from "../components/BusStatus";
 
 const containerStyle = {
-  width: "95vw",
-  height: "60vh",
+  width: "1000px",
+  height: "700px",
 };
 
 const defaultCenter = {
@@ -18,23 +18,83 @@ const defaultCenter = {
 const defaultZoom = 14;
 
 const defaultIntervalTime = 100;
-const defaultInactiveOpacity = 0.2;
+const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 
 // set to maximum of 12 journeys going on at once
 const defaultAllBusIndex = {
-  0: -1,
-  1: -1,
-  2: -1,
-  3: -1,
-  4: -1,
-  5: -1,
-  6: -1,
-  7: -1,
-  8: -1,
-  9: -1,
-  10: -1,
-  11: -1,
+  0: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  1: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  2: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  3: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  4: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  5: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  6: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  7: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  8: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  9: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  10: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
+  11: {
+    currStop: -1,
+    avgStopTime: 20,
+    avgTimeBetweenStops: 35,
+    currBusLoad: 15,
+  },
 };
 
 const classes = {
@@ -57,6 +117,7 @@ const Maps = () => {
   const [numBusCurr, setNumBusCurr] = useState(0);
   // stops
   const stops = stopObjs;
+  const journey = journeyMarkers;
   // polypath
   const [polyPath, setPolyPath] = useState([]);
 
@@ -88,10 +149,13 @@ const Maps = () => {
     // if yes, set the bus index to 0 (from -1) to start the loop
     setEnded(false);
     for (const bus in busIndex) {
-      if (busIndex[bus] === -1) {
+      if (busIndex[bus].currStop === -1) {
         setBusIndex({
           ...busIndex,
-          [bus]: 0,
+          [bus]: {
+            ...busIndex[bus],
+            currStop: 0,
+          },
         });
         console.log(`add 1 bus to loop: numBuses now = ${numBusCurr + 1}`);
         // update num buses currently in loop
@@ -108,8 +172,8 @@ const Maps = () => {
         // update all buses to -1, to signify that all has ended their journey
         let tmpBusIndex = JSON.parse(JSON.stringify(busIndex));
         for (const bus in tmpBusIndex) {
-          if (tmpBusIndex[bus] !== -1) {
-            tmpBusIndex[bus] += 1;
+          if (tmpBusIndex[bus].currStop !== -1) {
+            tmpBusIndex[bus].currStop += 1;
           }
         }
         setBusIndex(tmpBusIndex);
@@ -123,7 +187,7 @@ const Maps = () => {
       // update all buses to -1, to signify that all has ended their journey
       let tmpBusIndexCopy = JSON.parse(JSON.stringify(busIndex));
       for (const bus in tmpBusIndexCopy) {
-        tmpBusIndexCopy[bus] = -1;
+        tmpBusIndexCopy[bus].currStop = -1;
       }
       setBusIndex(tmpBusIndexCopy);
       setEnded(true);
@@ -133,8 +197,8 @@ const Maps = () => {
   // calculate polyline path once on initial render
   useEffect(() => {
     let tmpPolyPath = [];
-    for (const stop of stops) {
-      tmpPolyPath.push({ lat: stop.lat, lng: stop.lng });
+    for (const point of journey) {
+      tmpPolyPath.push({ lat: point.lat, lng: point.lng });
     }
     setPolyPath(tmpPolyPath);
   }, []);
@@ -150,8 +214,11 @@ const Maps = () => {
       const interval = setInterval(() => {
         for (const bus in busIndexCopy) {
           // only update if a journey is started and index is <= total num stops
-          if (busIndexCopy[bus] !== -1 && busIndexCopy[bus] !== stops.length) {
-            busIndexCopy[bus] += 1;
+          if (
+            busIndexCopy[bus].currStop !== -1 &&
+            busIndexCopy[bus].currStop !== journey.length
+          ) {
+            busIndexCopy[bus].currStop += 1;
           }
         }
         // set stops to updated stopMarkers
@@ -160,17 +227,20 @@ const Maps = () => {
       // loop through every bus to check if there is a need to update markers
       for (const bus in busIndex) {
         // find the curr stop that this bus is at
-        const currStop = busIndex[bus];
+        const currStop = busIndex[bus].currStop;
         // only update buses who is currently out i.e., currStop !== -1
         if (currStop !== -1) {
           // condition not in use for now, but have to take note of currStop === 0 case
           if (currStop === 0) {
-            stops[stops.length - 1].opacity = defaultInactiveOpacity;
-          } else if (currStop === stops.length) {
+            journey[journey.length - 1].opacity = defaultInactiveOpacity;
+          } else if (currStop === journey.length) {
             // check if this bus is on its last stop, set to -1 to stop the journey
             setBusIndex({
               ...busIndex,
-              [bus]: -1,
+              [bus]: {
+                ...busIndex[bus],
+                currStop: -1,
+              },
             });
             console.log(
               `remove 1 bus from loop: numBuses now = ${numBusCurr - 1}`
@@ -185,24 +255,24 @@ const Maps = () => {
             return () => clearInterval(interval);
           } else {
             // reset prev stop's opacity
-            stops[currStop - 1].opacity = defaultInactiveOpacity;
+            journey[currStop - 1].opacity = defaultInactiveOpacity;
           }
           // set curr stop's opacity
-          stops[currStop].opacity = defaultActiveOpacity;
+          journey[currStop].opacity = defaultActiveOpacity;
         }
       }
       return () => clearInterval(interval);
     } else if (ended) {
       console.log("journey ended");
-      for (const stop of stops) {
-        stop.opacity = defaultInactiveOpacity;
+      for (const point of journey) {
+        point.opacity = defaultInactiveOpacity;
       }
       // reset buses
       setNumBusCurr(0);
       // reset pause state
       setPaused(false);
     }
-  }, [busIndex, stops, numBusCurr, paused, ended]);
+  }, [busIndex, journey, numBusCurr, paused, ended]);
 
   const renderMap = () => {
     return (
@@ -238,6 +308,22 @@ const Maps = () => {
                   data={stops}
                   index={index}
                   stop={stop}
+                  map={map}
+                />
+              );
+              // store marker for manipulation later
+              return markerWithInfoWindow;
+            })}
+            {journeyMarkers.map((point, index) => {
+              if (point === null) {
+                return;
+              }
+              const markerWithInfoWindow = (
+                <MarkerWithInfoWindow
+                  key={index}
+                  data={journeyMarkers}
+                  index={index}
+                  stop={point}
                   map={map}
                 />
               );
@@ -296,7 +382,7 @@ const Maps = () => {
           type="button"
           disabled={numBusCurr === 0}
         >
-          skip to end
+          skip to end / reset
         </button>
       </div>
       {/* button controls */}
@@ -308,8 +394,8 @@ const Maps = () => {
             <BusStatus
               key={bus}
               busNum={bus}
-              busStopNum={busIndex[bus]}
-              currStopDetails={stops[busIndex[bus] - 1]}
+              busDetails={busIndex[bus]}
+              currStopDetails={journey[busIndex[bus].currStop - 1]}
             />
           );
         })}

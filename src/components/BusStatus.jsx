@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 
-const BusStatus = ({ busNum, busStopNum, currStopDetails }) => {
+const BusStatus = ({ busNum, busDetails, currStopDetails }) => {
+  const busStopNum = busDetails.currStop;
   const inJourney = currStopDetails !== undefined;
   return (
     <div className="m-3 text-xs">
@@ -11,8 +12,10 @@ const BusStatus = ({ busNum, busStopNum, currStopDetails }) => {
         </div>
       ) : (
         <div className="flex justify-between">
-          <div>Bus {parseInt(busNum) + 1} status:</div>
-          <div>in journey at stop number {parseInt(busStopNum) + 1}</div>
+          <div>
+            Bus {parseInt(busNum) + 1} status: {currStopDetails.currentStatus}
+          </div>
+          <div>stop sequence {currStopDetails.stopSequence}</div>
         </div>
       )}
       <div className="border p-3 my-2">
@@ -37,7 +40,7 @@ const BusStatus = ({ busNum, busStopNum, currStopDetails }) => {
 
 BusStatus.propTypes = {
   busNum: PropTypes.string,
-  busStopNum: PropTypes.number,
+  busDetails: PropTypes.object,
   currStopDetails: PropTypes.object,
 };
 
