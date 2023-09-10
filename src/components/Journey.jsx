@@ -4,57 +4,25 @@ import { useState, useEffect, useRef } from "react";
 
 const Journey = (props) => {
   const [busSpeed, setBusSpeed] = useState(35);
-  const [totalDistance, setTotalDistance] = useState(3100);
   const [RDPPM, setRDPPM] = useState(0);
   const [triggerRun, setTriggerRun] = useState(false);
   const [triggerPause, setTriggerPause] = useState(false); // if bus is at bus stop, stop adding travel distance
   const [distanceTravelled, setDistanceTravelled] = useState(0); // if bus is at bus stop, stop adding travel distance
   const [formattedBusStopDistance, setFormattedBusStopDistance] = useState([]); // if bus is at bus stop, stop adding travel distance
-  const pause_btn = useRef(null);
-  const run_btn = useRef(null);
-  const stop_btn = useRef(null);
-
-  const relative_factor = 20; // affects bus speed -> how many times faster than actual speed
   const update_rate = 1; // affects bar update -> smoothness of animation
   const route_bar_width = 1200; //  simulator route bar width in pixels
 
   var runRef = null;
 
-  const [busStopData, setBusStopData] = useState([
-    {
-      bus_stop_id: "1",
-      bus_stop_name: "Bus Stop 1",
-      bus_stop_relative_distance: 200,
-      bus_stop_duration: 1000,
-    },
-    {
-      bus_stop_id: "2",
-      bus_stop_name: "Bus Stop 2",
-      bus_stop_relative_distance: 1000,
-      bus_stop_duration: 2000,
-    },
-    {
-      bus_stop_id: "3",
-      bus_stop_name: "Bus Stop 3",
-      bus_stop_relative_distance: 1500,
-      bus_stop_duration: 1000,
-    },
-    {
-      bus_stop_id: "4",
-      bus_stop_name: "Bus Stop 4",
-      bus_stop_relative_distance: 1800,
-      bus_stop_duration: 2000,
-    },
-  ]);
-
   const formatDistance = (data) => {
-    return Number(parseFloat((data / totalDistance) * 100)).toFixed(2);
+    return parseFloat(((data / props.totalDistance) * 100).toFixed(2));
   };
 
   const formatBusStopDistance = (data) => {
     var format_data = data.map((item) =>
-      formatDistance(item.bus_stop_relative_distance)
+      formatDistance(item.stopRelativeDistance)
     );
+
     setFormattedBusStopDistance(format_data);
   };
 
@@ -62,87 +30,83 @@ const Journey = (props) => {
     runRef = setInterval(() => {
       var relative_distance_travelled = Number(
         parseFloat(
-          document.querySelector(`.route-travelled-${props.id}`).style.width.split("%")[0]
+          document
+            .querySelector(`.route-travelled-${props.id}`)
+            .style.width.split("%")[0]
         ).toFixed(2)
       );
       setDistanceTravelled(relative_distance_travelled);
       if (
-        formattedBusStopDistance.includes(
-          relative_distance_travelled.toString()
-        )
+        props.formattedBusStopDistance.includes(relative_distance_travelled)
       ) {
-        var item = busStopData.filter((item) => {
+        var item = props.busStopData.filter((item) => {
           return (
-            relative_distance_travelled.toString() ==
-            formatDistance(item.bus_stop_relative_distance)
+            relative_distance_travelled ==
+            formatDistance(item.stopRelativeDistance)
           );
         });
-        var duration = item[0].bus_stop_duration;
+        var duration = item[0].stopDuration;
         clearInterval(runRef);
         setTimeout(() => {
-          add_travel_distance(RDPPM);
+          // 5 is to amplify the addition to travel distance to 'prime' the running interval
+          add_travel_distance(5*RDPPM);
           running_function();
-        }, duration);
+        }, duration/props.relativeFactor);
       }
       add_travel_distance(RDPPM);
     }, 1);
   };
 
-  useEffect(() => {
-    loadBusStops();
-    formatBusStopDistance(busStopData);
-  }, [props]);
+  useEffect(() => {console.log("reload");}, [props]);
 
   useEffect(() => {
     if (triggerRun) {
       running_function();
     }
+    console.log("reload");
     return () => clearInterval(runRef);
   }, [triggerRun, triggerPause]);
 
   const add_travel_distance = (relative_speed) => {
+    console.log("add");
     if (!triggerPause) {
-      
       var ref = document.querySelector(`.route-travelled-${props.id}`);
       ref.style.width =
         (
-          parseFloat(ref.style.width.split("%")[0]) +
-          relative_speed
+          parseFloat(ref.style.width.split("%")[0]) + relative_speed
         ).toString() + "%";
     }
   };
 
-  const loadBusStops = () => {
-    var busStopHTML = ``;
-    for (var i = 0; i < props.bus_stop_data.length; i++) {
-      var relative_distance_percentage =
-        (props.bus_stop_data[i].bus_stop_relative_distance /
-          props.total_distance) *
-        100;
-      var relative_distance =
-        (props.route_bar_width * relative_distance_percentage) / 100;
+  // const loadBusStops = () => {
+  //   var busStopHTML = ``;
+  //   for (var i = 0; i < props.bus_stop_data.length; i++) {
+  //     var relative_distance_percentage =
+  //       (props.bus_stop_data[i].bus_stop_relative_distance /
+  //         props.total_distance) *
+  //       100;
+  //     var relative_distance =
+  //       (props.route_bar_width * relative_distance_percentage) / 100;
 
-      busStopHTML += `<div class="bus-stop" style="left:${relative_distance}px">&nbsp;</div>`;
-    }
-    document.querySelector(`.bus-stop-${props.id}`).innerHTML = busStopHTML;
-  };
+  //     busStopHTML += `<div class="bus-stop" style="left:${relative_distance}px">&nbsp;</div>`;
+  //   }
+  //   document.querySelector(`.bus-stop`).innerHTML = busStopHTML;
+  // };
 
   const startRun = () => {
     var pause_btn = document.querySelector(`.pause_simulation_${props.id}`);
     var run_btn = document.querySelector(`.run_simulation_${props.id}`);
     var stop_btn = document.querySelector(`.stop_simulation_${props.id}`);
 
-    console.log(run_btn);
-    console.log(pause_btn);
     pause_btn.classList.remove("hidden");
     run_btn.classList.add("hidden");
     stop_btn.classList.remove("hidden");
     // how much percentage of the journey the bus travels realistically per millisecond
     var actual_distance_percentage_per_millisecond =
-      (((busSpeed / 3600) * 1000) / 1000 / totalDistance) * 100;
+      (((busSpeed / 3600) * 1000) / 1000 / props.totalDistance) * 100;
     // how much percentage of the journey the bus travels relatively per millisecond
     var relative_distance_percentage_per_millisecond =
-      actual_distance_percentage_per_millisecond * relative_factor;
+      actual_distance_percentage_per_millisecond * props.relativeFactor;
     setRDPPM(relative_distance_percentage_per_millisecond);
     // loadBusStops()
     setTriggerRun(true);
