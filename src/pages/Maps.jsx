@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Polyline } from "@react-google-maps/api";
 import { Link } from "react-router-dom";
-import { stopObjs } from "../data/constants";
+import { stopObjs, journeyMarkers } from "../data/constants";
 import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
 import BusStatus from "../components/BusStatus";
 
@@ -18,7 +18,7 @@ const defaultCenter = {
 const defaultZoom = 14;
 
 const defaultIntervalTime = 100;
-const defaultInactiveOpacity = 0.2;
+const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 
 // set to maximum of 12 journeys going on at once
@@ -117,6 +117,7 @@ const Maps = () => {
   const [numBusCurr, setNumBusCurr] = useState(0);
   // stops
   const stops = stopObjs;
+  const journey = journeyMarkers;
   // polypath
   const [polyPath, setPolyPath] = useState([]);
 
@@ -196,8 +197,8 @@ const Maps = () => {
   // calculate polyline path once on initial render
   useEffect(() => {
     let tmpPolyPath = [];
-    for (const stop of stops) {
-      tmpPolyPath.push({ lat: stop.lat, lng: stop.lng });
+    for (const point of journey) {
+      tmpPolyPath.push({ lat: point.lat, lng: point.lng });
     }
     setPolyPath(tmpPolyPath);
   }, []);
@@ -215,7 +216,7 @@ const Maps = () => {
           // only update if a journey is started and index is <= total num stops
           if (
             busIndexCopy[bus].currStop !== -1 &&
-            busIndexCopy[bus].currStop !== stops.length
+            busIndexCopy[bus].currStop !== journey.length
           ) {
             busIndexCopy[bus].currStop += 1;
           }
@@ -231,8 +232,8 @@ const Maps = () => {
         if (currStop !== -1) {
           // condition not in use for now, but have to take note of currStop === 0 case
           if (currStop === 0) {
-            stops[stops.length - 1].opacity = defaultInactiveOpacity;
-          } else if (currStop === stops.length) {
+            journey[journey.length - 1].opacity = defaultInactiveOpacity;
+          } else if (currStop === journey.length) {
             // check if this bus is on its last stop, set to -1 to stop the journey
             setBusIndex({
               ...busIndex,
@@ -254,24 +255,24 @@ const Maps = () => {
             return () => clearInterval(interval);
           } else {
             // reset prev stop's opacity
-            stops[currStop - 1].opacity = defaultInactiveOpacity;
+            journey[currStop - 1].opacity = defaultInactiveOpacity;
           }
           // set curr stop's opacity
-          stops[currStop].opacity = defaultActiveOpacity;
+          journey[currStop].opacity = defaultActiveOpacity;
         }
       }
       return () => clearInterval(interval);
     } else if (ended) {
       console.log("journey ended");
-      for (const stop of stops) {
-        stop.opacity = defaultInactiveOpacity;
+      for (const point of journey) {
+        point.opacity = defaultInactiveOpacity;
       }
       // reset buses
       setNumBusCurr(0);
       // reset pause state
       setPaused(false);
     }
-  }, [busIndex, stops, numBusCurr, paused, ended]);
+  }, [busIndex, journey, numBusCurr, paused, ended]);
 
   const renderMap = () => {
     return (
@@ -307,6 +308,22 @@ const Maps = () => {
                   data={stops}
                   index={index}
                   stop={stop}
+                  map={map}
+                />
+              );
+              // store marker for manipulation later
+              return markerWithInfoWindow;
+            })}
+            {journeyMarkers.map((point, index) => {
+              if (point === null) {
+                return;
+              }
+              const markerWithInfoWindow = (
+                <MarkerWithInfoWindow
+                  key={index}
+                  data={journeyMarkers}
+                  index={index}
+                  stop={point}
                   map={map}
                 />
               );
@@ -365,7 +382,7 @@ const Maps = () => {
           type="button"
           disabled={numBusCurr === 0}
         >
-          skip to end
+          skip to end / reset
         </button>
       </div>
       {/* button controls */}
@@ -378,7 +395,7 @@ const Maps = () => {
               key={bus}
               busNum={bus}
               busDetails={busIndex[bus]}
-              currStopDetails={stops[busIndex[bus].currStop - 1]}
+              currStopDetails={journey[busIndex[bus].currStop - 1]}
             />
           );
         })}
