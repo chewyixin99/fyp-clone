@@ -1,7 +1,13 @@
 .operations-container {
-    background-color: pink;
     margin-top: 1rem !important;
     padding: 1rem;
+}
+
+.route-container {
+    display: flex;
+    padding: 1rem;
+    padding-right: 0;
+    align-items: baseline;
 }
 .service-route {
     background-color: aqua !important;
@@ -10,43 +16,122 @@
 
 .bus-operations {
     margin-top: 1rem !important;
-    background-color:bisque !important;
-    height: 50vh;
+    border: 1px solid rgba(0, 0, 0, 0.349);
+    padding: 1rem;
+    padding-left: 2rem;
+    border-radius: 10px;
+    min-height: 50vh;
+    max-height: 70vh;
+}
+
+.bus-timings {
+    overflow: auto;
+    padding: 2rem;
 }
 
 .route-bar {
-    background-color: aliceblue !important;
-    width: 1402px;
+    background-color: #444 !important;
+    width: 1302px;
     position: relative;
-    overflow: hidden;
+    height: 8px;
+    z-index: 10;
 }
 
 .route-travelled {
-    background-color: darkcyan !important;
-    width: 0%;
+    background-color: #14BFCC !important;
+    height: 3px;
+    z-index: 12;
+    top: 2.5px;
+    left: 0px;
+    position: absolute;
+    z-index: 20;
 }
 
 .bus-stop {
-    background-color: black !important;
-    z-index: 10;
+    background-color: #444 !important;
     position: absolute;
-    top: 0;
-    left: 0;
-    min-width: 1px;
+    top: -4.5px;
+    left: 0px;
+    height: 17px;
+    width: 17px;
+    border-radius: 50%;
 }
 
-.traffic-light-1 {
-    background-color: orangered !important;
-    z-index: 10;
+.bus-stop-dot {
+    background-color: #14BFCC !important;
     position: absolute;
-    top: 0;
-    left: 50px;
-    min-width: 1px;
+    z-index: 10;
+    top: 0px;
+    height: 8px;
+    width: 8px;
+    border-radius: 50%;
 }
+
+.bus-stop-dot:hover {
+    background-color: #0d7a81 !important;
+}
+
 
 .control-panel {
     display: flex;
     justify-content: space-between; 
+    margin-bottom: 1rem;
+    gap: 1rem;
+    margin-left: 2rem;
 }
 
+.configuration-panel {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.349);
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
 
+.configuration-divider{
+    border-right: 1px solid rgba(0, 0, 0, 0.349);
+    height: 4rem;
+}
+
+.progress-tip {
+    position: absolute;
+    top: 0;
+    transition: transform .2s linear; 
+    z-index: 100;
+     
+    &:before { 
+      content: "";
+      position: absolute; 
+      top: -10px;
+      left: 0;
+      transform: translateX(-50%);
+      border-top: 5px solid #374151;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+    } 
+    
+    &:after {
+      content: attr(data-value);
+      position: absolute;
+      left: 0; 
+      top: -10px;
+      transform: translate(-50%,-100%);
+      padding: 20px 35px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 300;
+      background-color: #374151;
+      border-radius: 0.5rem;
+    }   
+  }
+
+.progress-tip-content {
+    position: absolute;
+    left: 0%; 
+    top: -44px;
+    z-index: 1000;
+    color: white;
+    font-size: 10px;
+    width: 55px;
+}
