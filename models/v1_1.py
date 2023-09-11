@@ -1,154 +1,13 @@
-# v1.0 is the original Q-hat proposed by K.Gkiotsalitis et al.
+# v1.1 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
 
 from docplex.mp.model import Model
-import json
-
-# Ingestion of .json inputs
-def convert_json_to_dict(input_file_path):
-    """
-    Convert JSON data from a file to a Python dictionary.
-
-    This function reads a JSON file located at the specified `input_file_path` and
-    converts its contents into a Python dictionary.
-
-    Args:
-        input_file_path (str): The path to the JSON file to be read.
-
-    Returns:
-        dict: A Python dictionary containing the JSON data.
-
-    Example:
-        >>> data_dict = convert_json_to_dict("input.json")
-
-        Assuming "input.json" contains the following JSON data:
-        {
-            "name": "John",
-            "age": 30,
-            "city": "New York"
-        }
-
-        The resulting Python dictionary will be:
-        {
-            "name": "John",
-            "age": 30,
-            "city": "New York"
-        }
-    """
-    with open(input_file_path, "r") as f:
-        data = json.load(f)
-
-    return data
-
-def convert_list_to_dict(list_to_convert, start_index, end_index):
-    """
-    Convert a list to a dictionary with integer keys.
-
-    This function takes a list and converts it into a dictionary with integer keys.
-    The indices of the list elements determine the keys in the resulting dictionary.
-
-    Args:
-        list_to_convert (list): The list to be converted.
-        start_index (int): The starting index for the list.
-        end_index (int): The ending index for the list.
-
-    Returns:
-        dict: A dictionary with integer keys representing the elements of the list.
-
-    Example:
-        >>> data_list = ["apple", "banana", "cherry"]
-        >>> result_dict = convert_list_to_dict(data_list, 1, 3)
-
-        The resulting dictionary will contain:
-        {
-            1: "apple",
-            2: "banana",
-            3: "cherry"
-        }
-    """
-    return {i: list_to_convert[i-start_index] for i in range(start_index, end_index+1)}
-
-def convert_2dlist_to_dict(list_to_convert, j_start, j_end, s_start, s_end):
-    """
-    Convert a 2D list to a dictionary with tuple keys.
-
-    This function takes a 2D list and converts it into a dictionary with tuple keys.
-    The indices of the list elements determine the keys in the resulting dictionary.
-
-    Args:
-        list_to_convert (list): The 2D list to be converted.
-        j_start (int): The starting index for the first dimension (j).
-        j_end (int): The ending index for the first dimension (j).
-        s_start (int): The starting index for the second dimension (s).
-        s_end (int): The ending index for the second dimension (s).
-
-    Returns:
-        dict: A dictionary with tuple keys representing the elements of the 2D list.
-
-    Example:
-        >>> data_list = [
-        ...     [1, 2, 3],
-        ...     [4, 5, 6],
-        ...     [7, 8, 9]
-        ... ]
-        >>> result_dict = convert_2dlist_to_dict(data_list, 1, 3, 1, 3)
-
-        The resulting dictionary will contain:
-        {
-            (1, 1): 1,
-            (1, 2): 2,
-            (1, 3): 3,
-            (2, 1): 4,
-            (2, 2): 5,
-            (2, 3): 6,
-            (3, 1): 7,
-            (3, 2): 8,
-            (3, 3): 9
-        }
-    """
-    return {(j,s): list_to_convert[j-j_start][s-s_start] for j in range(j_start, j_end+1) for s in range(s_start, s_end+1)}
-
-def write_data_to_json(output_file_path, **dicts):
-    """
-    Write dictionaries to a JSON file.
-
-    This function takes one or more dictionaries and writes their contents to a JSON file
-    specified by the `output_file_path`. The dictionaries are combined into a single JSON
-    object where each dictionary corresponds to a key-value pair in the JSON object.
-
-    Args:
-        output_file_path (str): The path to the JSON output file.
-        **dicts: One or more dictionaries to be written to the JSON file. Each dictionary
-            will be a key-value pair in the resulting JSON object.
-
-    Returns:
-        None
-
-    Example:
-        To write two dictionaries to a JSON file:
-
-        >>> dict1 = {"key1": "value1"}
-        >>> dict2 = {"key2": "value2"}
-        >>> write_data_to_json("output.json", dict1=dict1, dict2=dict2)
-
-    The resulting JSON file "output.json" will contain:
-
-    {
-        "dict1": {"key1": "value1"},
-        "dict2": {"key2": "value2"}
-    }
-    """
-    data_dict = {}
-    for k, v in dicts.items():
-        data_dict[k] = v
-
-    with open(output_file_path, "w") as f:
-        json.dump(data_dict, f, indent=4)
+from data.transformation import convert_list_to_dict, convert_2dlist_to_dict
 
 def run_model(data):
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
-    This function takes input data describing the bus dispatch problem and uses Q-hat optimisation
+    This function takes input data describing the bus dispatch problem and uses a modified Q-hat optimisation
     model to find an optimal dispatch schedule. It utilises various constraints and decision variables
     to minimise a specified objective function.
 
@@ -250,11 +109,8 @@ def run_model(data):
                             boarding_duration * willing_board[1,s]
                             + alighting_duration * alighting_percentage[s] * busload[1,s])
         
-    # Equation 9, Constraint 27
-        model.add_constraint(willing_board[1,s] ==
-                            (1 + arrival_rate[s] * boarding_duration)
-                            * arrival_rate[s]
-                            * (headway[j,s] - prev_dwell[s]))
+    # Equation 9, Constraint 27 modified according to Confluence v1.1
+        model.add_constraint(willing_board[1,s] == initial_passengers[s])
         
     # Equation 10, Constraint 28
         for j in range(2, num_trips+1):
@@ -269,11 +125,8 @@ def run_model(data):
                             * arrival_rate[s]
                             * (headway[j,s] - dwell[j-1,s]))
                 
-    # Equation 12, Constraint 30
-    model.add_constraint(busload[1,2] ==
-                        (1 + arrival_rate[1] * boarding_duration)
-                        * arrival_rate[1]
-                        * (original_dispatch[1] + dispatch_offset[1] - prev_arrival[1] - prev_dwell[1]))
+    # Equation 12, Constraint 30 modified according to Confluence v1.1
+    model.add_constraint(busload[1,2] == initial_passengers[1])
 
     # Equation 13, Constraint 31
     for s in range(3, num_stops+1):
@@ -359,16 +212,10 @@ def run_model(data):
         for s in range(2, num_stops+1):
             arrival_dict[f"{j},{s}"] = round(arrival[j,s].solution_value)
 
-    write_data_to_json(
-        "../outputs/v1.0_output.json",
-        dwell_matrix=dwell_dict,
-        busload_matrix=busload_dict,
-        arrival_matrix=arrival_dict
-        )
-
-if __name__ == "__main__":
-    data = convert_json_to_dict("../inputs/mock_input.json")
-    try:
-        run_model(data)
-    except Exception as e:
-        print(e)
+    variables_to_return = {
+        "dwell_dict": dwell_dict,
+        "busload_dict": busload_dict,
+        "arrival_dict": arrival_dict,
+    }
+            
+    return variables_to_return
