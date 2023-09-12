@@ -6,7 +6,7 @@ router = APIRouter(
 )
 
 @router.get(
-  "healthcheck",
+  "/healthcheck",
   description="Provides the status of the server.",
   tags=["admin"]
 )
