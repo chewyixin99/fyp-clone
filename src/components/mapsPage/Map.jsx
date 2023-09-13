@@ -2,7 +2,6 @@ import { useCallback, useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Polyline } from "@react-google-maps/api";
 import PropTypes from "prop-types";
 // custom imports
-import { stopObjs, journeyMarkers } from "../../data/constants";
 import MarkerWithInfoWindow from "./MarkerWithInfoWindow";
 import BusStatus from "./BusStatus";
 import { updateBusCurrStop } from "../../util/mapHelper";
@@ -64,7 +63,7 @@ const defaultAllBusIndex = {
   },
 };
 
-const Map = ({ isOptimized }) => {
+const Map = ({ isOptimized, stops, journey }) => {
   // map states
   // create an env variable with name 'VITE_MAPS_API_KEY' in your .env file to load this
   const MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY;
@@ -77,9 +76,6 @@ const Map = ({ isOptimized }) => {
   const [ended, setEnded] = useState(false);
   // TODO: keep track of bus number currently dispatched
   const [numBusCurr, setNumBusCurr] = useState(0);
-  // stops
-  const stops = stopObjs;
-  const journey = journeyMarkers;
   // polypath
   const [polyPath, setPolyPath] = useState([]);
 
@@ -219,14 +215,14 @@ const Map = ({ isOptimized }) => {
               // store marker for manipulation later
               return markerWithInfoWindow;
             })}
-            {journeyMarkers.map((point, index) => {
+            {journey.map((point, index) => {
               if (point === null) {
                 return;
               }
               const markerWithInfoWindow = (
                 <MarkerWithInfoWindow
                   key={index}
-                  data={journeyMarkers}
+                  data={journey}
                   index={index}
                   stop={point}
                   map={map}
@@ -246,7 +242,8 @@ const Map = ({ isOptimized }) => {
       <div className="flex justify-center py-3">
         {isOptimized ? "After" : "Before"} optimization
       </div>
-      <div>
+      <hr />
+      <div className="py-3">
         <MapControls
           busIndex={busIndex}
           defaultCenter={defaultCenter}
@@ -262,13 +259,15 @@ const Map = ({ isOptimized }) => {
           setEnded={setEnded}
         />
       </div>
-      {/* button controls */}
-      <div className="flex justify-center py-3">{renderMap()}</div>
       <div className="py-3">
         There are currently
-        <span className="px-3 py-1 border mx-2">{numBusCurr}</span>buses
-        dispatched.
+        <span className="px-3 py-1 border mx-2 bg-gray-100 font-bold">
+          {numBusCurr}
+        </span>
+        buses dispatched.
       </div>
+      {/* button controls */}
+      <div className="flex justify-center py-3">{renderMap()}</div>
       <div className="grid grid-cols-3 max-w-[100%] mx-auto">
         {Object.keys(busIndex).map((bus) => {
           return (
@@ -287,6 +286,8 @@ const Map = ({ isOptimized }) => {
 
 Map.propTypes = {
   isOptimized: PropTypes.bool,
+  stops: PropTypes.array,
+  journey: PropTypes.array,
 };
 
 export default Map;
