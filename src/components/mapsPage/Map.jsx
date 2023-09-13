@@ -1,13 +1,16 @@
 import { useCallback, useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Polyline } from "@react-google-maps/api";
-import { Link } from "react-router-dom";
-import { stopObjs, journeyMarkers } from "../data/constants";
-import MarkerWithInfoWindow from "../components/MarkerWithInfoWindow";
-import BusStatus from "../components/BusStatus";
+import PropTypes from "prop-types";
+// custom imports
+import { stopObjs, journeyMarkers } from "../../data/constants";
+import MarkerWithInfoWindow from "./MarkerWithInfoWindow";
+import BusStatus from "./BusStatus";
+import { updateBusCurrStop } from "../../util/mapHelper";
+import MapControls from "./MapControls";
 
 const containerStyle = {
-  width: "1000px",
-  height: "700px",
+  width: "40vw",
+  height: "30vw",
 };
 
 const defaultCenter = {
@@ -59,50 +62,9 @@ const defaultAllBusIndex = {
     avgTimeBetweenStops: 35,
     currBusLoad: 15,
   },
-  6: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  7: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  8: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  9: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  10: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  11: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
 };
 
-const classes = {
-  button: "border hover:shadow-md px-3 py-1 rounded-md mx-3",
-  buttonDisabled: "border px-3 py-1 rounded-md mx-3 bg-gray-200",
-};
-
-const Maps = () => {
+const Map = ({ isOptimized }) => {
   // map states
   // create an env variable with name 'VITE_MAPS_API_KEY' in your .env file to load this
   const MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY;
@@ -138,62 +100,6 @@ const Maps = () => {
     setZoom(null);
   }, []);
 
-  const resetZoomAndCenter = () => {
-    setCenter(defaultCenter);
-    setZoom(defaultZoom);
-    console.log("reset clicked");
-  };
-
-  const onStartBusClick = () => {
-    // on click, check if there are any buses running
-    // if yes, set the bus index to 0 (from -1) to start the loop
-    setEnded(false);
-    for (const bus in busIndex) {
-      if (busIndex[bus].currStop === -1) {
-        setBusIndex({
-          ...busIndex,
-          [bus]: {
-            ...busIndex[bus],
-            currStop: 0,
-          },
-        });
-        console.log(`add 1 bus to loop: numBuses now = ${numBusCurr + 1}`);
-        // update num buses currently in loop
-        setNumBusCurr(numBusCurr + 1);
-        break;
-      }
-    }
-  };
-
-  const onPauseClick = () => {
-    if (numBusCurr !== 0) {
-      // if resume
-      if (!paused) {
-        // update all buses to -1, to signify that all has ended their journey
-        let tmpBusIndex = JSON.parse(JSON.stringify(busIndex));
-        for (const bus in tmpBusIndex) {
-          if (tmpBusIndex[bus].currStop !== -1) {
-            tmpBusIndex[bus].currStop += 1;
-          }
-        }
-        setBusIndex(tmpBusIndex);
-      }
-      setPaused(!paused);
-    }
-  };
-
-  const onSkipToEndClick = () => {
-    if (numBusCurr !== 0) {
-      // update all buses to -1, to signify that all has ended their journey
-      let tmpBusIndexCopy = JSON.parse(JSON.stringify(busIndex));
-      for (const bus in tmpBusIndexCopy) {
-        tmpBusIndexCopy[bus].currStop = -1;
-      }
-      setBusIndex(tmpBusIndexCopy);
-      setEnded(true);
-    }
-  };
-
   // calculate polyline path once on initial render
   useEffect(() => {
     let tmpPolyPath = [];
@@ -201,7 +107,7 @@ const Maps = () => {
       tmpPolyPath.push({ lat: point.lat, lng: point.lng });
     }
     setPolyPath(tmpPolyPath);
-  }, []);
+  }, [journey]);
 
   // bus update logic
   // TODO: listen for bus location and do some action
@@ -214,10 +120,7 @@ const Maps = () => {
       const interval = setInterval(() => {
         for (const bus in busIndexCopy) {
           // only update if a journey is started and index is <= total num stops
-          if (
-            busIndexCopy[bus].currStop !== -1 &&
-            busIndexCopy[bus].currStop !== journey.length
-          ) {
+          if (updateBusCurrStop(busIndexCopy[bus], journey.length)) {
             busIndexCopy[bus].currStop += 1;
           }
         }
@@ -245,6 +148,8 @@ const Maps = () => {
             console.log(
               `remove 1 bus from loop: numBuses now = ${numBusCurr - 1}`
             );
+            // reset opacity after last station
+            journey[currStop - 1].opacity = defaultInactiveOpacity;
             // use this to signify that all buses have concluded their journey
             if (numBusCurr - 1 === 0) {
               console.log("ending journey...");
@@ -256,9 +161,9 @@ const Maps = () => {
           } else {
             // reset prev stop's opacity
             journey[currStop - 1].opacity = defaultInactiveOpacity;
+            // set curr stop's opacity
+            journey[currStop].opacity = defaultActiveOpacity;
           }
-          // set curr stop's opacity
-          journey[currStop].opacity = defaultActiveOpacity;
         }
       }
       return () => clearInterval(interval);
@@ -330,8 +235,6 @@ const Maps = () => {
               // store marker for manipulation later
               return markerWithInfoWindow;
             })}
-            {/* reference point for when map is laoded */}
-            {/* <Marker position={defaultCenter} map={map} /> */}
           </GoogleMap>
         </LoadScript>
       </div>
@@ -341,53 +244,31 @@ const Maps = () => {
   return (
     <div className="text-center">
       <div className="flex justify-center py-3">
-        Maps is currently loaded for this&nbsp;
-        <Link
-          className="text-blue-600 hover:underline"
-          to="https://trimet.org/schedules/r084.htm"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          bus route
-        </Link>
-        . (require VPN)
+        {isOptimized ? "After" : "Before"} optimization
       </div>
-      <div className="flex justify-center py-3">
-        <button
-          onClick={resetZoomAndCenter}
-          className={classes.button}
-          type="button"
-        >
-          reset zoom and center
-        </button>
-        <button
-          onClick={onStartBusClick}
-          className={paused ? classes.buttonDisabled : classes.button}
-          type="button"
-          disabled={paused}
-        >
-          dispatch new bus
-        </button>
-        <button
-          onClick={onPauseClick}
-          className={numBusCurr === 0 ? classes.buttonDisabled : classes.button}
-          type="button"
-          disabled={numBusCurr === 0}
-        >
-          {paused ? "resume" : "pause"}
-        </button>
-        <button
-          onClick={onSkipToEndClick}
-          className={numBusCurr === 0 ? classes.buttonDisabled : classes.button}
-          type="button"
-          disabled={numBusCurr === 0}
-        >
-          skip to end / reset
-        </button>
+      <div>
+        <MapControls
+          busIndex={busIndex}
+          defaultCenter={defaultCenter}
+          defaultZoom={defaultZoom}
+          numBusCurr={numBusCurr}
+          paused={paused}
+          ended={ended}
+          setBusIndex={setBusIndex}
+          setCenter={setCenter}
+          setZoom={setZoom}
+          setNumBusCurr={setNumBusCurr}
+          setPaused={setPaused}
+          setEnded={setEnded}
+        />
       </div>
       {/* button controls */}
       <div className="flex justify-center py-3">{renderMap()}</div>
-      <div>There are currently {numBusCurr} buses dispatched.</div>
+      <div className="py-3">
+        There are currently
+        <span className="px-3 py-1 border mx-2">{numBusCurr}</span>buses
+        dispatched.
+      </div>
       <div className="grid grid-cols-3 max-w-[100%] mx-auto">
         {Object.keys(busIndex).map((bus) => {
           return (
@@ -404,4 +285,8 @@ const Maps = () => {
   );
 };
 
-export default Maps;
+Map.propTypes = {
+  isOptimized: PropTypes.bool,
+};
+
+export default Map;

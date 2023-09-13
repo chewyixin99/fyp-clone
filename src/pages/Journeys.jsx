@@ -153,7 +153,7 @@ const Journeys = () => {
   }, [newBusStopData]);
 
   return (
-    <div className="container">
+    <div className="container mx-auto">
       <div className="row operations-container">
         <p class="text-3xl font-bold text-gray-900 dark:text-white">
           Bus Operations

@@ -1,7 +1,6 @@
 import PropTypes from "prop-types";
 
 const BusStatus = ({ busNum, busDetails, currStopDetails }) => {
-  const busStopNum = busDetails.currStop;
   const inJourney = currStopDetails !== undefined;
   return (
     <div className="m-3 text-xs">
