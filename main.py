@@ -1,7 +1,7 @@
 import json
 
 from models.v1_1 import run_model # NOTE: to change to other models (not frequent)
-from data.transformation import convert_json_to_dict, write_data_to_json
+from utils.transformation import convert_json_to_dict, write_data_to_json
 
 if __name__ == "__main__":
     input_data = convert_json_to_dict("./data/inputs/mock_input.json")

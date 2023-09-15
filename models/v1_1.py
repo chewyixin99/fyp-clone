@@ -1,7 +1,7 @@
 # v1.1 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
 
 from docplex.mp.model import Model
-from data.transformation import convert_list_to_dict, convert_2dlist_to_dict
+from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 
 def run_model(data):
     """
