@@ -23,59 +23,23 @@ const defaultIntervalTime = 100;
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 
-// set to maximum of 12 journeys going on at once
-const defaultAllBusIndex = {
-  0: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  1: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  2: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  3: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  4: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-  5: {
-    currStop: -1,
-    avgStopTime: 20,
-    avgTimeBetweenStops: 35,
-    currBusLoad: 15,
-  },
-};
-
-const Map = ({ isOptimized, stops, journey }) => {
+const Map = ({
+  isOptimized,
+  stops,
+  journey,
+  busIndex,
+  setBusIndex,
+  numBusCurr,
+  setNumBusCurr,
+}) => {
   // map states
   // create an env variable with name 'VITE_MAPS_API_KEY' in your .env file to load this
   const MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY;
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
-  // bus progress state
-  const [busIndex, setBusIndex] = useState(defaultAllBusIndex);
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
-  // TODO: keep track of bus number currently dispatched
-  const [numBusCurr, setNumBusCurr] = useState(0);
   // polypath
   const [polyPath, setPolyPath] = useState([]);
 
@@ -288,6 +252,10 @@ Map.propTypes = {
   isOptimized: PropTypes.bool,
   stops: PropTypes.array,
   journey: PropTypes.array,
+  busIndex: PropTypes.object,
+  setBusIndex: PropTypes.func,
+  numBusCurr: PropTypes.number,
+  setNumBusCurr: PropTypes.func,
 };
 
 export default Map;
