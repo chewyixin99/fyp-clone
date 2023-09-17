@@ -3,7 +3,9 @@ import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import Journey from "../components/Journey";
-import { stopObjs } from "../data/constants";
+import { stopObjsBefore } from "../data/constants";
+
+const stopObjs = stopObjsBefore;
 
 const Journeys = () => {
   const [totalDistance, setTotalDistance] = useState(3100);
@@ -156,47 +158,47 @@ const Journeys = () => {
             Details
           </p>
           <div className="configuration-panel">
-              <div className="configuration-panel-item">
-                <label
-                  htmlFor={`relative_factor`}
-                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  {`Relative Factor: ${relativeFactor}`}
-                </label>
-                <input
-                  type="range"
-                  id="relative_factor"
-                  name="relative_factor"
-                  min="1"
-                  max="50"
-                  value={relativeFactor}
-                  onChange={(e) => {
-                    setRelativeFactor(e.target.value);
-                  }}
-                />
-              </div>
-           
-              <div className="configuration-divider"/>
-              <div className="configuration-panel-item">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  {`Bus Number : 84`}
-                </label>
-              </div>
-              <div className="configuration-panel-item">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  {`City: Portland`}
-                </label>
-              </div>
-              <div className="configuration-panel-item">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  {`Total Distance : ${totalDistance}m`}
-                </label>
-              </div>
-              <div className="configuration-panel-item">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  {`Number of Bus Stops: 39`}
-                </label>
-              </div>
+            <div className="configuration-panel-item">
+              <label
+                htmlFor={`relative_factor`}
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
+                {`Relative Factor: ${relativeFactor}`}
+              </label>
+              <input
+                type="range"
+                id="relative_factor"
+                name="relative_factor"
+                min="1"
+                max="50"
+                value={relativeFactor}
+                onChange={(e) => {
+                  setRelativeFactor(e.target.value);
+                }}
+              />
+            </div>
+
+            <div className="configuration-divider" />
+            <div className="configuration-panel-item">
+              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {`Bus Number : 84`}
+              </label>
+            </div>
+            <div className="configuration-panel-item">
+              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {`City: Portland`}
+              </label>
+            </div>
+            <div className="configuration-panel-item">
+              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {`Total Distance : ${totalDistance}m`}
+              </label>
+            </div>
+            <div className="configuration-panel-item">
+              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {`Number of Bus Stops: 39`}
+              </label>
+            </div>
           </div>
 
           {Array.from(Array(1), (e, i) => {
