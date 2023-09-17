@@ -5,19 +5,11 @@ import PropTypes from "prop-types";
 import MarkerWithInfoWindow from "./MarkerWithInfoWindow";
 import BusStatus from "./BusStatus";
 import { updateBusCurrStop } from "../../util/mapHelper";
-import MapControls from "./MapControls";
 
 const containerStyle = {
   width: "40vw",
   height: "30vw",
 };
-
-const defaultCenter = {
-  lat: 45.488184,
-  lng: -122.399686,
-};
-
-const defaultZoom = 14;
 
 const defaultIntervalTime = 100;
 const defaultInactiveOpacity = 0;
@@ -31,15 +23,19 @@ const Map = ({
   setBusIndex,
   numBusCurr,
   setNumBusCurr,
+  paused,
+  setPaused,
+  zoom,
+  setZoom,
+  center,
+  setCenter,
+  ended,
+  setEnded,
 }) => {
   // map states
   // create an env variable with name 'VITE_MAPS_API_KEY' in your .env file to load this
   const MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY;
   const [map, setMap] = useState(null);
-  const [center, setCenter] = useState(defaultCenter);
-  const [zoom, setZoom] = useState(defaultZoom);
-  const [paused, setPaused] = useState(false);
-  const [ended, setEnded] = useState(false);
   // polypath
   const [polyPath, setPolyPath] = useState([]);
 
@@ -58,16 +54,16 @@ const Map = ({
   const onTilesLoaded = useCallback(() => {
     setCenter(null);
     setZoom(null);
-  }, []);
+  }, [setCenter, setZoom]);
 
   // calculate polyline path once on initial render
   useEffect(() => {
     let tmpPolyPath = [];
-    for (const point of journey) {
+    for (const point of stops) {
       tmpPolyPath.push({ lat: point.lat, lng: point.lng });
     }
     setPolyPath(tmpPolyPath);
-  }, [journey]);
+  }, [stops]);
 
   // bus update logic
   // TODO: listen for bus location and do some action
@@ -207,23 +203,7 @@ const Map = ({
         {isOptimized ? "After" : "Before"} optimization
       </div>
       <hr />
-      <div className="py-3">
-        <MapControls
-          busIndex={busIndex}
-          defaultCenter={defaultCenter}
-          defaultZoom={defaultZoom}
-          numBusCurr={numBusCurr}
-          paused={paused}
-          ended={ended}
-          setBusIndex={setBusIndex}
-          setCenter={setCenter}
-          setZoom={setZoom}
-          setNumBusCurr={setNumBusCurr}
-          setPaused={setPaused}
-          setEnded={setEnded}
-        />
-      </div>
-      <div className="py-3">
+      <div className="pt-5 pb-3">
         There are currently
         <span className="px-3 py-1 border mx-2 bg-gray-100 font-bold">
           {numBusCurr}
@@ -256,6 +236,14 @@ Map.propTypes = {
   setBusIndex: PropTypes.func,
   numBusCurr: PropTypes.number,
   setNumBusCurr: PropTypes.func,
+  paused: PropTypes.bool,
+  setPaused: PropTypes.func,
+  zoom: PropTypes.number,
+  setZoom: PropTypes.func,
+  center: PropTypes.object,
+  setCenter: PropTypes.func,
+  ended: PropTypes.bool,
+  setEnded: PropTypes.func,
 };
 
 export default Map;
