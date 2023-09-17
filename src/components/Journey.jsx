@@ -1,8 +1,11 @@
+/* eslint-disable react/prop-types */
+// eslint-disable-next-line no-unused-vars
 import React from "react";
 import "../styling/bus-operations.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const Journey = (props) => {
+  
   const [RDPPM, setRDPPM] = useState(0);
   const [triggerRun, setTriggerRun] = useState(false);
   const [triggerPause, setTriggerPause] = useState(false);
@@ -11,9 +14,9 @@ const Journey = (props) => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [updateKey, setUpdateKey] = useState(0);
   const update_rate = 1; // affects bar update -> smoothness of animation -> need to update calculations if change
-  var totalSeconds = 0;
   var runRef = null;
   var temp = [];
+  
   const formatDistance = (data) => {
     return parseFloat(((data / props.totalDistance) * 100).toFixed(2));
   };
@@ -56,7 +59,7 @@ const Journey = (props) => {
             temp.push(relative_distance_travelled);
             add_travel_distance(RDPPM);
             running_function();
-          }, duration / props.calibrationFactor);
+          }, duration);
         }
         add_travel_distance(RDPPM * 4);
       }, update_rate);
@@ -228,7 +231,7 @@ const Journey = (props) => {
                 width="20"
                 height="20"
                 fill="currentColor"
-                class="bi bi-play-fill"
+                className="bi bi-play-fill"
                 viewBox="0 0 16 16"
               >
                 <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
@@ -245,7 +248,7 @@ const Journey = (props) => {
                 width="20"
                 height="20"
                 fill="currentColor"
-                class="bi bi-stop-fill"
+                className="bi bi-stop-fill"
                 viewBox="0 0 16 16"
               >
                 <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z" />
@@ -263,7 +266,7 @@ const Journey = (props) => {
                   width="20"
                   height="20"
                   fill="currentColor"
-                  class="bi bi-pause-fill"
+                  className="bi bi-pause-fill"
                   viewBox="0 0 16 16"
                 >
                   <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z" />
@@ -274,7 +277,7 @@ const Journey = (props) => {
                   width="20"
                   height="20"
                   fill="currentColor"
-                  class="bi bi-play-fill"
+                  className="bi bi-play-fill"
                   viewBox="0 0 16 16"
                 >
                   <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
@@ -7,11 +8,9 @@ import { stopObjs } from "../data/constants";
 const Journeys = () => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const [relativeFactor, setRelativeFactor] = useState(20); // affects bus speed -> how many times faster than actual speed
-  const [calibrationFactor, setCalibrationFactor] = useState(4); 
   const route_bar_width = 1300; //  simulator route bar width in pixels
   const [busStopData, setBusStopData] = useState([]);
   const [newBusStopData, setNewBusStopData] = useState([]);
-  const [busSpeed, setBusSpeed] = useState(60);
 
   // convert string distance to float rounded off to 2 decimal place
   const formatDistance = (data) => {
@@ -60,7 +59,7 @@ const Journeys = () => {
       </div>`;
     }
 
-    for (var i = 0; i < 5; i++) {
+    for (let i = 0; i < 1; i++) {
       document.querySelector(`.bus-stop-${i}`).innerHTML += busStopHTML;
       document.querySelector(`.bus-stop-dot-${i}`).innerHTML += busStopDotHTML;
     }
@@ -90,7 +89,6 @@ const Journeys = () => {
     var busStopData = [];
     var totalDistance = 0;
     var distanceBetweenStops = [];
-    var current = 0;
     var sum;
     console.log(stopObjs);
     // first fencepost
@@ -135,12 +133,6 @@ const Journeys = () => {
   // load data from constants.js into getBusStopData
   useEffect(() => {
     getBusStopData(stopObjs);
-    const tooltipTriggerList = document.querySelectorAll(
-      '[data-bs-toggle="tooltip"]'
-    );
-    const tooltipList = [...tooltipTriggerList].map(
-      (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
-    );
   }, []);
   // get list of formatted relative bus stop distances
   useEffect(() => {
@@ -155,38 +147,19 @@ const Journeys = () => {
   return (
     <div className="container mx-auto">
       <div className="row operations-container">
-        <p class="text-3xl font-bold text-gray-900 dark:text-white">
+        <p className="text-3xl font-bold text-gray-900 dark:text-white">
           Bus Operations
         </p>
 
         <div className="bus-operations">
-          <p class="text-2md font-bold text-gray-900 dark:text-white">
-            Configurations
+          <p className="text-2md font-bold text-gray-900 dark:text-white">
+            Details
           </p>
           <div className="configuration-panel">
               <div className="configuration-panel-item">
                 <label
-                  for={`bus_speed`}
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  {`Bus Speed: ${busSpeed}km/h`}
-                </label>
-                <input
-                  type="range"
-                  id="bus_speed"
-                  name="bus_speed"
-                  value={busSpeed}
-                  min="10"
-                  max="80"
-                  onChange={(e) => {
-                    setBusSpeed(e.target.value);
-                  }}
-                />
-              </div>
-              <div className="configuration-panel-item">
-                <label
-                  for={`relative_factor`}
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  htmlFor={`relative_factor`}
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >
                   {`Relative Factor: ${relativeFactor}`}
                 </label>
@@ -202,107 +175,44 @@ const Journeys = () => {
                   }}
                 />
               </div>
-              <div className="configuration-panel-item">
-                <label
-                  for={`calibration_factor`}
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  {`Calibration Factor: ${calibrationFactor}`}
-                </label>
-                <input
-                  type="range"
-                  id="calibration_factor"
-                  name="calibration_factor"
-                  min="1"
-                  max="10"
-                  value={calibrationFactor}
-                  onChange={(e) => {
-                    setCalibrationFactor(e.target.value);
-                  }}
-                />
-              </div>
+           
               <div className="configuration-divider"/>
               <div className="configuration-panel-item">
-                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   {`Bus Number : 84`}
                 </label>
               </div>
               <div className="configuration-panel-item">
-                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   {`City: Portland`}
                 </label>
               </div>
               <div className="configuration-panel-item">
-                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   {`Total Distance : ${totalDistance}m`}
                 </label>
               </div>
               <div className="configuration-panel-item">
-                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   {`Number of Bus Stops: 39`}
                 </label>
               </div>
           </div>
 
-          {Array.from(Array(5), (e, i) => {
+          {Array.from(Array(1), (e, i) => {
             return (
               <Journey
+                key={i.toString()}
                 id={i.toString()}
                 busStopData={newBusStopData}
                 totalDistance={totalDistance}
                 route_bar_width={route_bar_width}
                 relativeFactor={relativeFactor}
-                busSpeed={busSpeed}
-                calibrationFactor={calibrationFactor}
+                busSpeed={60}
               />
             );
           })}
         </div>
-      </div>
-      <div className="row operations-container">
-      <p class="text-3xl font-bold text-gray-900 dark:text-white">
-          Bus Stop Timings (ms)
-        </p>
-        <div className="bus-operations bus-timings">
-        <form>
-          <div class="grid gap-6 mb-6 md:grid-cols-2">
-            {busStopData?.map((item) => (
-              <div>
-                <label
-                  for={`bus_stop_id_${item.stopId}`}
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  {item.stopName}
-                </label>
-                <label
-                  for={`bus_stop_id_${item.stopId}`}
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Relative Distance from Start: {item.stopRelativeDistance}m or{" "}
-                  {formatDistance(item.stopRelativeDistance)}% of the total
-                  distance
-                </label>
-                <input
-                  type="text"
-                  id={`bus_stop_id_${item.stopId}`}
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-25 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  value={item.stopDuration}
-                  onChange={(e) => {
-                    var new_bus_stop_data = busStopData.map((bus_stop) => {
-                      if (bus_stop.stopId == item.stopId) {
-                        bus_stop.stopDuration = e.target.value;
-                      }
-                      return bus_stop;
-                    });
-                    setBusStopData(new_bus_stop_data);
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </form>
-        </div>
-       
       </div>
     </div>
   );
