@@ -1,6 +1,7 @@
 .operations-container {
     margin-top: 1rem !important;
     padding: 1rem;
+    overflow: hidden;
 }
 
 .route-container {
@@ -21,6 +22,7 @@
     padding-left: 2rem;
     border-radius: 10px;
     max-height: 70vh;
+    max-width: 100vw;
 }
 
 .bus-timings {
@@ -30,7 +32,7 @@
 
 .route-bar {
     background-color: #444 !important;
-    width: 1302px;
+    width: 1602px;
     position: relative;
     height: 8px;
     z-index: 10;

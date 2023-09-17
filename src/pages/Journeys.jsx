@@ -8,7 +8,7 @@ import { stopObjs } from "../data/constants";
 const Journeys = () => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const [relativeFactor, setRelativeFactor] = useState(20); // affects bus speed -> how many times faster than actual speed
-  const route_bar_width = 1300; //  simulator route bar width in pixels
+  const route_bar_width = 1600; //  simulator route bar width in pixels
   const [busStopData, setBusStopData] = useState([]);
   const [newBusStopData, setNewBusStopData] = useState([]);
 
@@ -18,7 +18,7 @@ const Journeys = () => {
   };
   // get a list of formatted relative bus stop distances from start
   const formatBusStopDistance = (data) => {
-    console.log(data);
+    // console.log(data);
     var format_data = data.map((item) =>
       formatDistance(item.stopRelativeDistance)
     );
@@ -60,8 +60,8 @@ const Journeys = () => {
     }
 
     for (let i = 0; i < 1; i++) {
-      document.querySelector(`.bus-stop-${i}`).innerHTML += busStopHTML;
-      document.querySelector(`.bus-stop-dot-${i}`).innerHTML += busStopDotHTML;
+      // document.querySelector(`.bus-stop-${i}`).innerHTML += busStopHTML;
+      // document.querySelector(`.bus-stop-dot-${i}`).innerHTML += busStopDotHTML;
     }
   };
   // get distance between two coordinates in km
@@ -90,7 +90,7 @@ const Journeys = () => {
     var totalDistance = 0;
     var distanceBetweenStops = [];
     var sum;
-    console.log(stopObjs);
+    // console.log(stopObjs);
     // first fencepost
     busStopData.push({
       stopId: stopObjs[0].stopId,
@@ -127,7 +127,7 @@ const Journeys = () => {
     }, 0);
 
     setTotalDistance(Number(totalDistance * 1000).toFixed(0));
-    console.log(busStopData);
+    // console.log(busStopData);
     setBusStopData(busStopData);
   };
   // load data from constants.js into getBusStopData
@@ -136,7 +136,7 @@ const Journeys = () => {
   }, []);
   // get list of formatted relative bus stop distances
   useEffect(() => {
-    console.log(busStopData);
+    // console.log(busStopData);
     formatBusStopDistance(busStopData);
     // load bus stops
   }, [busStopData]);
@@ -145,7 +145,7 @@ const Journeys = () => {
   }, [newBusStopData]);
 
   return (
-    <div className="container mx-auto">
+    <div className="mx-auto">
       <div className="row operations-container">
         <p className="text-3xl font-bold text-gray-900 dark:text-white">
           Bus Operations

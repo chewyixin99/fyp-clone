@@ -3,44 +3,172 @@
 import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
+import { mockJson, stopObjs } from "../data/constants";
 
 const Journey = (props) => {
-  
+  const [busStopData, setBusStopData] = useState([]);
+  const [totalDistance, setTotalDistance] = useState(3100);
+  const [newBusStopData, setNewBusStopData] = useState([]);
+  const route_bar_width = 1600; //  simulator route bar width in pixels
+  const [relativeArrivalTiming, setRelativeArrivalTiming] = useState([]);
+  const [relativeStopDistance, setRelativeStopDistance] = useState([]);
+  const [dwellTiming, setDwellTiming] = useState([]);
+  const [distanceTravelled, setDistanceTravelled] = useState(0);
+  // add bus stops onto HTML
+  const loadBusStops = () => {
+    var busStopHTML = `<div class="bus-stop" style="left:-8px">&nbsp;</div>`;
+    var busStopDotHTML = `<div class="bus-stop-dot" style="left:-4.3px">&nbsp;</div>`;
+    // var busStopTipHTML = `<div class="progress-tip" style="left:-4.3px">&nbsp;</div>`;
+    for (var i = 0; i < newBusStopData.length; i++) {
+      var relative_distance_percentage =
+        (newBusStopData[i].stopRelativeDistance / totalDistance) * 100;
+      var relative_distance =
+        (route_bar_width * relative_distance_percentage) / 100;
+      busStopHTML += `<div class="bus-stop" style="left:${
+        relative_distance - 8.5
+      }px">&nbsp;</div>`;
+      busStopDotHTML += `<div class="bus-stop-dot" style="left:${
+        relative_distance - 4.3
+      }px">
+        <div class="group relative">
+          <button class="bus-stop-dot"></button>
+          <span class="pointer-events-none max-w-xs absolute text-sm text-white bg-gray-700 p-2 rounded-lg -top-32 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100">
+            ID: ${newBusStopData[i].stopId}
+            <br />
+            Name: ${newBusStopData[i].stopName}
+            <br />
+            Distance: ${newBusStopData[i].stopRelativeDistance.toFixed(0)}m / ${
+        newBusStopData[i].stopPercentDistance
+      }%
+          </span>
+        </div>
+      </div>`;
+    }
+
+    for (let i = 0; i < 1; i++) {
+      document.querySelector(`.bus-stop-ref`).innerHTML += busStopHTML;
+      document.querySelector(`.bus-stop-dot`).innerHTML += busStopDotHTML;
+    }
+  };
+  function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+  }
+  // get distance between two coordinates in km
+  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    var R = 6371; // Radius of the earth in kilometers
+    var dLat = deg2rad(lat2 - lat1); // deg2rad below
+    var dLon = deg2rad(lon2 - lon1);
+    var a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) *
+        Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c; // Distance in KM
+    return d;
+  };
+  const formatBusStopDistance = (data) => {
+    // console.log(data);
+    var format_data = data.map((item) =>
+      formatDistance(item.stopRelativeDistance)
+    );
+    var temp = data;
+    for (var i = 0; i < busStopData.length; i++) {
+      temp[i].stopPercentDistance = format_data[i];
+    }
+    setNewBusStopData(temp);
+  };
+  const getBusStopData = (stopObjs) => {
+    var busStopData = [];
+    var totalDistance = 0;
+    var distanceBetweenStops = [];
+    var sum;
+    // first fencepost
+    busStopData.push({
+      stopId: stopObjs[0].stopId,
+      stopName: stopObjs[0].stopName,
+      stopRelativeDistance: 0,
+      stopDuration: 0,
+    });
+
+    for (var i = 1; i < stopObjs.length; i++) {
+      var distance = getDistanceFromLatLonInKm(
+        stopObjs[i - 1].lat,
+        stopObjs[i - 1].lng,
+        stopObjs[i].lat,
+        stopObjs[i].lng
+      );
+
+      distanceBetweenStops.push(distance * 1000);
+      totalDistance += distance;
+
+      sum = distanceBetweenStops.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue;
+      }, 0);
+
+      busStopData.push({
+        stopId: stopObjs[i].stopId,
+        stopName: stopObjs[i].stopName,
+        stopRelativeDistance: sum,
+        stopDuration: 10000,
+      });
+    }
+
+    sum = distanceBetweenStops.reduce((accumulator, currentValue) => {
+      return accumulator + currentValue;
+    }, 0);
+
+    setTotalDistance(Number(totalDistance * 1000).toFixed(0));
+    setBusStopData(busStopData);
+  };
+  const formatDistance = (data) => {
+    return parseFloat(((data / totalDistance) * 100).toFixed(2));
+  };
+  // load data from constants.js into getBusStopData
+  useEffect(() => {
+    getBusStopData(stopObjs);
+  }, []);
+  useEffect(() => {
+    // console.log(busStopData);
+    formatBusStopDistance(busStopData);
+    // load bus stops
+  }, [busStopData]);
+
+  useEffect(() => {
+    loadBusStops();
+  }, [newBusStopData]);
+
   const [RDPPM, setRDPPM] = useState(0);
   const [triggerRun, setTriggerRun] = useState(false);
   const [triggerPause, setTriggerPause] = useState(false);
-  const [distanceTravelled, setDistanceTravelled] = useState(0);
+
   const [elapsedStartTime, setElapsedStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [updateKey, setUpdateKey] = useState(0);
   const update_rate = 1; // affects bar update -> smoothness of animation -> need to update calculations if change
   var runRef = null;
   var temp = [];
-  
-  const formatDistance = (data) => {
-    return parseFloat(((data / props.totalDistance) * 100).toFixed(2));
-  };
 
   const running_function = () => {
-    if (!triggerRun){
+    if (!triggerRun) {
       clearInterval(runRef);
-    }
-    else {
+    } else {
       runRef = setInterval(() => {
         var relative_distance_travelled = Number(
           parseFloat(
             document
-              .querySelector(`.route-travelled-${props.id}`)
+              .querySelector(`.route-travelled-ref`)
               .style.width.split("%")[0]
           ).toFixed(2)
         );
         setDistanceTravelled(relative_distance_travelled);
-  
+
         if (relative_distance_travelled >= 100) {
           clearInterval(runRef);
           setDistanceTravelled(100);
         }
-  
+
         if (
           props.busStopData.filter((item) => {
             return item.stopPercentDistance == relative_distance_travelled;
@@ -64,22 +192,64 @@ const Journey = (props) => {
         add_travel_distance(RDPPM * 4);
       }, update_rate);
     }
+  };
 
+  // "arrival_matrix": {
+  //   "1,1": 1020,
+  //   "1,2": 1096, // 1st bus at 2nd stop
+  //   "1,3": 1307,
+  //   "1,4": 1637,
+
+  // "distance_matrix": {
+  //   "1,1": 0, // 1st bus at 1st stop
+  //   "1,2": 50, // 1st bus at 2nd stop
+  //   "1,3": 255.31252875662275,
+
+  const getRelativeArrivalTiming = (data) => {
+    let stopDiff = data.arrival_matrix["1,1"];
+    let objValues = Object.values(data.arrival_matrix);
+    for (let i = 0; i < objValues.length; i++) {
+      objValues[i] = objValues[i] - stopDiff;
+    }
+    setRelativeArrivalTiming(objValues)
+  };
+
+  const getDwellTiming = (data) => {
+    let objValues = Object.values(data.dwell_matrix);
+    setDwellTiming(objValues)
+  };
+
+  const getRelativeStopDistance = (data) => {
+    let stopDiff = data.distance_matrix["1,1"];
+    let objValues = Object.values(data.distance_matrix);
+    let totalDistance = objValues[objValues.length - 1] - stopDiff
+    console.log(totalDistance);
+    setTotalDistance(objValues[objValues.length - 1])
+
+    for (let i = 0; i < objValues.length; i++) {
+      objValues[i] = objValues[i] - stopDiff;
+    }
+    
+    for (let i = 0; i < objValues.length; i++) {
+      objValues[i] = (objValues[i] - stopDiff) / totalDistance * 100;
+    }
+    
+    setRelativeStopDistance(objValues)
+    
   };
 
   useEffect(() => {
-    console.log("reload1 ");
-  }, [props]);
+    getRelativeArrivalTiming(mockJson);
+    getRelativeStopDistance(mockJson)
+    getDwellTiming(mockJson)
+  }, []);
 
   useEffect(() => {
-    console.log(triggerRun,"reload 2");
-
-      running_function();
-
-    
-    
-    return () => clearInterval(runRef);
-  }, [triggerRun]);
+    console.log(relativeArrivalTiming, "relativeArrivalTiming", relativeArrivalTiming.length, "length");
+    console.log(relativeStopDistance, "relativeStopDistance", relativeStopDistance.length, "length");
+    console.log(dwellTiming, "dwellTiming", dwellTiming.length, "length");
+    run()
+  }, [relativeArrivalTiming, relativeStopDistance, dwellTiming]);
 
   var timeRef = null;
 
@@ -113,10 +283,10 @@ const Journey = (props) => {
 
   const add_travel_distance = (relative_speed) => {
     if (!triggerPause) {
-      var ref = document.querySelector(`.route-travelled-${props.id}`);
-      var progressTip = document.querySelector(`.progress-tip-${props.id}`);
+      var ref = document.querySelector(`.route-travelled-ref`);
+      var progressTip = document.querySelector(`.progress-tip-ref`);
       var progressTipContent = document.querySelector(
-        `.progress-tip-content-${props.id}`
+        `.progress-tip-content-ref`
       );
       ref.style.width =
         (
@@ -133,7 +303,32 @@ const Journey = (props) => {
         ).toString() + "%";
     }
   };
+  var runningRef = null;
+  let count = 1;
+  let stopNo = 1;
+  const run = () => {
+    // [0, 76, 287, 617, 1045, 1]
+    // [0, 0.38633817208497534, 1.972739513404527, 4.110922597099867]
 
+    runningRef = setInterval(() => {
+      count ++
+      let nextStop = relativeStopDistance[stopNo]
+      let timeToNextStop = relativeArrivalTiming[stopNo]
+      let relative_distance_percentage_per_millisecond = nextStop / timeToNextStop / 1000
+
+      if (relativeArrivalTiming.includes(count)) {
+        console.log(count);
+        clearInterval(runningRef);
+        console.log(dwellTiming[stopNo]);
+        setTimeout(() => {
+          stopNo ++
+          run();
+        }, dwellTiming[stopNo]*10);
+        
+      } 
+      add_travel_distance(relative_distance_percentage_per_millisecond);
+    }, 1);
+  }
   const startRun = () => {
     var pause_btn = document.querySelector(`.pause_simulation_${props.id}`);
     var run_btn = document.querySelector(`.run_simulation_${props.id}`);
@@ -159,10 +354,9 @@ const Journey = (props) => {
 
   const pause = () => {
     setTriggerPause(!triggerPause);
-    if (triggerRun){
+    if (triggerRun) {
       setTriggerRun(false);
-    }
-    else {
+    } else {
       setTriggerRun(true);
     }
   };
@@ -193,39 +387,60 @@ const Journey = (props) => {
 
   return (
     <div>
-      <div className="route-container">
-        <div className="route-bar" >
-          <div
-            className={`route-travelled-${props.id} route-travelled`}
-            style={{ width: "0%" }}
-            key={updateKey}
+      <div className="control-panel">
+        <div className="sm:flex gap-2 justify-center">
+          <button
+            onClick={startRun}
+            id={`run_simulation_${props.id}}`}
+            type="button"
+            className={`run_simulation_${props.id} inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
           >
-            &nbsp;
-          </div>
-
-          <div
-            className={`progress-tip-${props.id} progress-tip`}
-            style={{ left: "0%" }}
-          ></div>
-          <div
-            className={`progress-tip-content-${props.id} progress-tip-content`}
-            style={{ left: "-1.8%" }}
-          >
-            Dist: {distanceTravelled}%
-            <br />
-            ET: {elapsedTime}s
-          </div>
-          <div className={`bus-stop-${props.id}`}></div>
-          <div className={`bus-stop-dot-${props.id}`}></div>
-        </div>
-        <div className="control-panel">
-          <div className="sm:flex gap-2 justify-center">
-            <button
-              onClick={startRun}
-              id={`run_simulation_${props.id}}`}
-              type="button"
-              className={`run_simulation_${props.id} inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              className="bi bi-play-fill"
+              viewBox="0 0 16 16"
             >
+              <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
+            </svg>
+          </button>
+          <button
+            onClick={stop}
+            id={`stop_simulation_${props.id}}`}
+            type="button"
+            className={`stop_simulation_${props.id} hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              className="bi bi-stop-fill"
+              viewBox="0 0 16 16"
+            >
+              <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z" />
+            </svg>
+          </button>
+          <button
+            onClick={pause}
+            id={`pause_simulation_${props.id}}`}
+            type="button"
+            className={`pause_simulation_${props.id} hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
+          >
+            {!triggerPause ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="currentColor"
+                className="bi bi-pause-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z" />
+              </svg>
+            ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -236,55 +451,34 @@ const Journey = (props) => {
               >
                 <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
               </svg>
-            </button>
-            <button
-              onClick={stop}
-              id={`stop_simulation_${props.id}}`}
-              type="button"
-              className={`stop_simulation_${props.id} hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="currentColor"
-                className="bi bi-stop-fill"
-                viewBox="0 0 16 16"
-              >
-                <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z" />
-              </svg>
-            </button>
-            <button
-              onClick={pause}
-              id={`pause_simulation_${props.id}}`}
-              type="button"
-              className={`pause_simulation_${props.id} hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
-            >
-              {!triggerPause ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  className="bi bi-pause-fill"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z" />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  className="bi bi-play-fill"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
-                </svg>
-              )}
-            </button>
+            )}
+          </button>
+        </div>
+      </div>
+      <div className="route-container">
+        <div className="route-bar">
+          <div
+            className={`route-travelled-ref route-travelled`}
+            style={{ width: "0%" }}
+            key={updateKey}
+          >
+            &nbsp;
           </div>
+
+          <div
+            className={`progress-tip-ref progress-tip`}
+            style={{ left: "0%" }}
+          ></div>
+          <div
+            className={`progress-tip-content-ref progress-tip-content`}
+            style={{ left: "-1.8%" }}
+          >
+            Dist: {distanceTravelled}%
+            <br />
+            ET: {elapsedTime}s
+          </div>
+          <div className={`bus-stop-ref`}></div>
+          <div className={`bus-stop-dot`}></div>
         </div>
       </div>
     </div>
