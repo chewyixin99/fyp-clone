@@ -33,14 +33,6 @@ def calculate_haversine_distance(coord1: tuple, coord2: tuple) -> float:
     
     return distance_in_metres
 
-
-# Example usage:
-coord1 = (52.5200, 13.4050)  # Berlin, Germany
-coord2 = (48.8566, 2.3522)   # Paris, France
-
-distance = calculate_haversine_distance(coord1, coord2)
-print(f"The Haversine distance between Berlin and Paris is approximately {distance:.2f} metres.")
-
 def split_line_between_coordinates(coord1, coord2, n):
     """
     Split the line between two sets of latitude and longitude coordinates into n equal parts.
@@ -68,15 +60,3 @@ def split_line_between_coordinates(coord1, coord2, n):
         intermediate_coordinates.append((intermediate_lat, intermediate_lon))
 
     return intermediate_coordinates
-
-# Example usage:
-coord1 = (52.5200, 13.4050)  # Berlin, Germany
-coord2 = (48.8566, 2.3522)   # Paris, France
-n = 5
-
-intermediate_coords = split_line_between_coordinates(coord1, coord2, n)
-
-# Print the intermediate coordinates
-for i, coord in enumerate(intermediate_coords, start=1):
-    print(f"Intermediate Point {i}: Latitude {coord[0]:.4f}, Longitude {coord[1]:.4f}")
-
