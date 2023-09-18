@@ -1,10 +1,10 @@
 import json
-from models.v1_2 import run_model # NOTE: to change to other models (not frequent)
+from models.v1_3 import run_model # NOTE: to change to other models (not frequent)
 from utils.transformation import convert_json_to_dict, write_data_to_json, json_to_feed
 
 if __name__ == "__main__":
 
-    model = "v1.2" # NOTE: to change to other models (not frequent)
+    model = "v1.3" # NOTE: to change to other models (not frequent)
 
     input_data = convert_json_to_dict("./data/inputs/mock_input.json")
 
