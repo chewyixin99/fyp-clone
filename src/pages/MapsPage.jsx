@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useState } from "react";
 import Map from "../components/mapsPage/Map";
 import MultiMapControls from "../components/mapsPage/MultiMapControls";
@@ -7,6 +8,7 @@ import {
   defaultBusIndexAfter,
   defaultBusIndexBefore,
 } from "../data/constants";
+import Papa from "papaparse";
 
 const defaultCenter = {
   lat: 45.488184,
@@ -17,9 +19,12 @@ const defaultZoom = 14;
 
 const MapsPage = () => {
   const stopsBefore = stopObjs.before;
-  const journeyBefore = journeyMarkers.before;
   const stopsAfter = stopObjs.after;
+  const journeyBefore = journeyMarkers.before;
   const journeyAfter = journeyMarkers.after;
+  // todo: uncomment below once full data in
+  // const [journeyBefore, setJourneyBefore] = useState([]);
+  // const [journeyAfter, setJourneyAfter] = useState([]);
 
   const [busIndexBefore, setBusIndexBefore] = useState(defaultBusIndexBefore);
   const [busIndexAfter, setBusIndexAfter] = useState(defaultBusIndexAfter);
@@ -30,6 +35,50 @@ const MapsPage = () => {
   const [ended, setEnded] = useState(false);
   const [zoom, setZoom] = useState(defaultZoom);
   const [center, setCenter] = useState(defaultCenter);
+
+  // todo: uncomment below once full data in
+  // const [polyPath, setPolyPath] = useState();
+
+  const fetchData = async () => {
+    Papa.parse("./v1.1_output.csv", {
+      // options
+      download: true,
+      complete: (res) => {
+        const tmpJourneyData = [];
+        const data = res.data.slice(1);
+        for (let i = 0; i < data.length; i += 20) {
+          const rowData = data[i];
+          tmpJourneyData.push({
+            timestamp: parseFloat(rowData[0]),
+            lat: parseFloat(rowData[4]),
+            lng: parseFloat(rowData[5]),
+            opacity: 0,
+            stopId: "to be filled",
+            stopName: "to be filled",
+            busStopNo: parseInt(rowData[3]),
+            currentStatus: rowData[2],
+            busTripNo: parseInt(rowData[1]),
+            distance: parseFloat(rowData[6]),
+          });
+        }
+        // setJourneyBefore(tmpJourneyData);
+        // setJourneyAfter(tmpJourneyData);
+
+        let tmpPolyPath = [];
+        for (const r of data) {
+          if (r[4] !== undefined && r[5] !== undefined) {
+            tmpPolyPath.push({ lat: parseFloat(r[4]), lng: parseFloat(r[5]) });
+          }
+        }
+        setPolyPath(tmpPolyPath);
+      },
+    });
+  };
+
+  useEffect(() => {
+    // todo: uncomment below once full data in
+    // fetchData();
+  }, []);
 
   return (
     <div>
@@ -69,6 +118,7 @@ const MapsPage = () => {
             setCenter={setCenter}
             ended={ended}
             setEnded={setEnded}
+            // polyPath={polyPath}
           />
         </div>
         <div className="w-[40vw] border">
@@ -88,6 +138,7 @@ const MapsPage = () => {
             setCenter={setCenter}
             ended={ended}
             setEnded={setEnded}
+            // polyPath={polyPath}
           />
         </div>
       </div>

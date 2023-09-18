@@ -31,6 +31,7 @@ const Map = ({
   setCenter,
   ended,
   setEnded,
+  // polyPath,
 }) => {
   // map states
   // create an env variable with name 'VITE_MAPS_API_KEY' in your .env file to load this

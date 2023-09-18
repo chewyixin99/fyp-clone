@@ -150,9 +150,9 @@ const MultiMapControls = ({
 };
 
 MultiMapControls.propTypes = {
-  busIndexBefore: PropTypes.array,
+  busIndexBefore: PropTypes.object,
   numBusCurrBefore: PropTypes.number,
-  busIndexAfter: PropTypes.array,
+  busIndexAfter: PropTypes.object,
   numBusCurrAfter: PropTypes.number,
   paused: PropTypes.bool,
   ended: PropTypes.bool,
