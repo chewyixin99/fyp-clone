@@ -28,7 +28,7 @@ def run_model(data):
         - Solution details for dispatch offsets, times of dispatch, and objective function value.
 
     Output:
-        - Writes the results (dwell times, busloads, arrival times) to a JSON file.
+        - Writes the results (dwell times, busloads, arrival times, dispatch times) to a JSON file.
 
     Note:
         This function uses IBM Decision Optimization CPLEX solver to find the optimal solution
@@ -218,10 +218,15 @@ def run_model(data):
         for s in range(2, num_stops+1):
             arrival_dict[f"{j},{s}"] = round(arrival[j,s].solution_value)
 
+    dispatch_dict = {}
+    for j in range(1, num_trips+1):
+        dispatch_dict[f"{j}"] = round(original_dispatch[j] + dispatch_offset[j].solution_value)
+
     variables_to_return = {
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
         "arrival_dict": arrival_dict,
+        "dispatch_dict": dispatch_dict,
     }
             
     return variables_to_return

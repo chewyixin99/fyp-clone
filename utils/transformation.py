@@ -1,4 +1,6 @@
+from utils.coordinates import calculate_haversine_distance, split_line_between_coordinates
 import json
+import pandas as pd
 
 # Ingestion of .json inputs
 def convert_json_to_dict(input_file_path):
@@ -140,3 +142,122 @@ def write_data_to_json(output_file_path, **dicts):
 
     with open(output_file_path, "w") as f:
         json.dump(data_dict, f, indent=4)
+
+def initialise_dataframe(current_trip, data, coordinates, cumulative_distances, polling_rate=1):
+
+    POLLING_RATE = polling_rate
+
+    # Initialize empty lists for each column
+    timestamps = []
+    bus_trip_nos = []
+    statuses = []
+    bus_stop_nos = []
+    latitudes = []
+    longitudes = []
+    distances = []
+
+    # dispatch from the bus depot
+    timestamps.append(data["dispatch_list"][f"{current_trip}"])
+    bus_trip_nos.append(current_trip)
+    statuses.append("DISPATCHED_FROM")
+    bus_stop_nos.append(1)
+    latitudes.append(coordinates[f"1"][0])
+    longitudes.append(coordinates[f"1"][1])
+    distances.append(0)
+
+    # Iterate through the keys in the arrival_matrix (assuming it contains all necessary keys)
+    for key in data["arrival_matrix"]:
+        # Split the key into trip number and stop number
+        trip_no, stop_no = map(int, key.split(','))
+
+        # Get the timestamp from the arrival_matrix
+        timestamp_seconds = data["arrival_matrix"][key]
+
+        # Append data to respective lists for stops
+        if trip_no == current_trip:
+            timestamps.append(timestamp_seconds)
+            bus_trip_nos.append(trip_no)
+            statuses.append("STOPPED_AT")
+            bus_stop_nos.append(stop_no)
+            latitudes.append(coordinates[f"{stop_no}"][0])
+            longitudes.append(coordinates[f"{stop_no}"][1])
+            distances.append(cumulative_distances[f"{stop_no}"])
+
+    timestamp_list = timestamps
+    for i in range(len(timestamp_list)-1): # timestamp_list[i] = every stop's timestamp
+        dwell_count = POLLING_RATE
+
+        num_intermediate_segments = timestamp_list[i+1] - timestamp_list[i]
+        segments = split_line_between_coordinates(
+            (coordinates[f"{i+1}"][0], coordinates[f"{i+1}"][1]),
+            (coordinates[f"{i+2}"][0], coordinates[f"{i+2}"][1]),
+            num_intermediate_segments
+            )
+
+        
+        interstation_distance = cumulative_distances[f"{i+2}"] - cumulative_distances[f"{i+1}"]
+        distance_per_timestep = interstation_distance / num_intermediate_segments
+
+        segment_count = 0
+        
+        for intermediate_time in range(timestamp_list[i]+1, (timestamp_list[i+1]), POLLING_RATE): #intermediate_time = timestamp at intermediates
+            if dwell_count <= data["dwell_matrix"][f"{current_trip},{i+1}"]:
+                timestamps.append(intermediate_time)
+                bus_trip_nos.append(current_trip)
+                statuses.append("DWELL_AT")
+                latitudes.append(coordinates[f"{i+1}"][0])
+                longitudes.append(coordinates[f"{i+1}"][1])
+                bus_stop_nos.append(i+1)
+                distances.append(cumulative_distances[f"{i+1}"])
+                dwell_count += POLLING_RATE
+
+            else:
+                timestamps.append(intermediate_time)
+                bus_trip_nos.append(current_trip)
+                statuses.append("TRANSIT_TO")
+                latitudes.append(segments[segment_count][0])
+                longitudes.append(segments[segment_count][1])
+                bus_stop_nos.append(i+2)
+                covered_distance = cumulative_distances[f"{i+1}"] + distance_per_timestep * (segment_count+1)
+                distances.append(covered_distance)  # Placeholder for NaN
+                segment_count += 1
+
+    # Create a DataFrame from the lists
+    df = pd.DataFrame({
+        "timestamp (in seconds)": timestamps,
+        "bus_trip_no": bus_trip_nos,
+        "status": statuses,
+        "bus_stop_no": bus_stop_nos,
+        "latitude": latitudes,
+        "longitude": longitudes,
+        "distance": distances
+    })
+
+    return df
+
+def json_to_feed(json_file_path, feed_output_path, polling_rate=1):
+    data = convert_json_to_dict(json_file_path)
+    polling_rate = polling_rate
+
+    num_trips = data["num_trips"]
+    num_stops = data["num_stops"]
+
+    coordinates = {f"{i+1}": (data["coordinates_list"][i][0], data["coordinates_list"][i][1]) for i in range(num_trips)}
+
+    cumulative_distances = {
+        "1": 0
+    }
+
+    for i in range(2, num_stops+1):
+        cumulative_distances[f"{i}"] = cumulative_distances[f"{i-1}"] + calculate_haversine_distance(coordinates[f"{i-1}"], coordinates[f"{i}"])
+
+
+    dataframes_list = []
+    for trip in range(1, num_trips+1): #TODO: change back
+        dataframes_list.append(initialise_dataframe(trip, data, coordinates, cumulative_distances, polling_rate))
+        
+    df = pd.concat(dataframes_list)
+    df = df.sort_values(by=["timestamp (in seconds)"])
+    df = df.reset_index(drop=True)
+
+    df.to_csv(feed_output_path, index=False)
