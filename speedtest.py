@@ -1,15 +1,21 @@
 import json
-from models.v1_2 import run_model # NOTE: to change to other models (not frequent)
+from models.v1_0 import run_model # NOTE: to change to other models (not frequent)
 from utils.transformation import convert_json_to_dict, write_data_to_json, json_to_feed
+
+import time
+from tqdm import tqdm
 
 if __name__ == "__main__":
 
-    model = "v1.2" # NOTE: to change to other models (not frequent)
+    model = 'v1.0'
 
     input_data = convert_json_to_dict("./data/inputs/mock_input.json")
 
     try:
-        output_data = run_model(input_data)
+        start_time = time.time()
+        for i in tqdm(range(1000)):
+            output_data = run_model(input_data)
+        print("--- %s seconds ---" % (time.time() - start_time))
 
         write_data_to_json(
         f"./data/outputs/json/{model}_output.json",
