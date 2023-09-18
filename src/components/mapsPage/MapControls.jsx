@@ -1,11 +1,6 @@
 import PropTypes from "prop-types";
 import { isBusInJourney } from "../../util/mapHelper";
 
-const classes = {
-  button: "border hover:shadow-md px-3 py-1 rounded-md mx-3",
-  buttonDisabled: "border px-3 py-1 rounded-md mx-3 bg-gray-200",
-};
-
 const MapControls = ({
   busIndex,
   setBusIndex,
@@ -78,14 +73,14 @@ const MapControls = ({
     <div className="flex justify-center py-3">
       <button
         onClick={resetZoomAndCenter}
-        className={classes.button}
+        className={`control-button`}
         type="button"
       >
         reset zoom and center
       </button>
       <button
         onClick={onStartBusClick}
-        className={paused ? classes.buttonDisabled : classes.button}
+        className={paused ? `control-button-disabled` : `control-button`}
         type="button"
         disabled={paused}
       >
@@ -93,7 +88,9 @@ const MapControls = ({
       </button>
       <button
         onClick={onPauseClick}
-        className={numBusCurr === 0 ? classes.buttonDisabled : classes.button}
+        className={
+          numBusCurr === 0 ? `control-button-disabled` : `control-button`
+        }
         type="button"
         disabled={numBusCurr === 0}
       >
@@ -101,7 +98,9 @@ const MapControls = ({
       </button>
       <button
         onClick={onSkipToEndClick}
-        className={numBusCurr === 0 ? classes.buttonDisabled : classes.button}
+        className={
+          numBusCurr === 0 ? `control-button-disabled` : `control-button`
+        }
         type="button"
         disabled={numBusCurr === 0}
       >

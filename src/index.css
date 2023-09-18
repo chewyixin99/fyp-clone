@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .control-button {
+    @apply
+    border hover:shadow-md px-3 py-1 rounded-md mx-3
+  }
+  .control-button-disabled {
+    @apply
+    border px-3 py-1 rounded-md mx-3 bg-gray-200
+  }
+}
