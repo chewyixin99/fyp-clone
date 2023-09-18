@@ -1,4 +1,5 @@
 # v1.1 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
+# and then changed Constraints 26 and 28 to make it max of boarding duration and alighting duration
 # and then changed Constraints 29, 31, 32, 33 and added Equation 20 to add bus capacity constraints
 
 from docplex.mp.model import Model
@@ -109,8 +110,8 @@ def run_model(data):
     # Equation 8, Constraint 26
     for s in range(2, num_stops):
         model.add_constraint(dwell[1,s] ==
-                            boarding_duration * willing_board[1,s]
-                            + alighting_duration * alighting_percentage[s] * busload[1,s])
+                            model.max(boarding_duration * willing_board[1,s],
+                            alighting_duration * alighting_percentage[s] * busload[1,s]))
         
     # Equation 9, Constraint 27 modified according to Confluence v1.1
         model.add_constraint(willing_board[1,s] == initial_passengers[s])
@@ -119,8 +120,8 @@ def run_model(data):
         for j in range(2, num_trips+1):
             for s in range(2, num_stops):
                 model.add_constraint(dwell[j,s] ==
-                                    boarding_duration * willing_board[j,s]
-                                    + alighting_duration * alighting_percentage[s] * busload[j,s])
+                                    model.max(boarding_duration * willing_board[j,s],
+                                    alighting_duration * alighting_percentage[s] * busload[j,s]))
                 
                 # Equation 11, Constraint 29
                 model.add_constraint(willing_board[j,s] ==
