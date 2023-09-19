@@ -253,7 +253,7 @@ def json_to_feed(json_file_path, feed_output_path, polling_rate=1):
 
 
     dataframes_list = []
-    for trip in range(1, num_trips+1): #TODO: change back
+    for trip in range(1, num_trips+1):
         dataframes_list.append(initialise_dataframe(trip, data, coordinates, cumulative_distances, polling_rate))
         
     df = pd.concat(dataframes_list)
