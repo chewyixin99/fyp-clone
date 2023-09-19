@@ -185,9 +185,9 @@ def initialise_dataframe(current_trip, data, coordinates, cumulative_distances, 
 
     timestamp_list = timestamps
     for i in range(len(timestamp_list)-1): # timestamp_list[i] = every stop's timestamp
-        dwell_count = POLLING_RATE
+        dwell_count = 1
 
-        num_intermediate_segments = timestamp_list[i+1] - timestamp_list[i]
+        num_intermediate_segments = timestamp_list[i+1] - timestamp_list[i] - data["dwell_matrix"][f"{current_trip},{i+1}"]
         segments = split_line_between_coordinates(
             (coordinates[f"{i+1}"][0], coordinates[f"{i+1}"][1]),
             (coordinates[f"{i+2}"][0], coordinates[f"{i+2}"][1]),
@@ -200,27 +200,29 @@ def initialise_dataframe(current_trip, data, coordinates, cumulative_distances, 
 
         segment_count = 0
         
-        for intermediate_time in range(timestamp_list[i]+1, (timestamp_list[i+1]), POLLING_RATE): #intermediate_time = timestamp at intermediates
+        for intermediate_time in range(timestamp_list[i]+1, (timestamp_list[i+1])): #intermediate_time = timestamp at intermediates
             if dwell_count <= data["dwell_matrix"][f"{current_trip},{i+1}"]:
-                timestamps.append(intermediate_time)
-                bus_trip_nos.append(current_trip)
-                statuses.append("DWELL_AT")
-                latitudes.append(coordinates[f"{i+1}"][0])
-                longitudes.append(coordinates[f"{i+1}"][1])
-                bus_stop_nos.append(i+1)
-                distances.append(cumulative_distances[f"{i+1}"])
-                dwell_count += POLLING_RATE
+                if intermediate_time % POLLING_RATE == 0:
+                    timestamps.append(intermediate_time)
+                    bus_trip_nos.append(current_trip)
+                    statuses.append("DWELL_AT")
+                    latitudes.append(coordinates[f"{i+1}"][0])
+                    longitudes.append(coordinates[f"{i+1}"][1])
+                    bus_stop_nos.append(i+1)
+                    distances.append(cumulative_distances[f"{i+1}"])
+                dwell_count += 1
 
             else:
-                timestamps.append(intermediate_time)
-                bus_trip_nos.append(current_trip)
-                statuses.append("TRANSIT_TO")
-                latitudes.append(segments[segment_count][0])
-                longitudes.append(segments[segment_count][1])
-                bus_stop_nos.append(i+2)
-                covered_distance = cumulative_distances[f"{i+1}"] + distance_per_timestep * (segment_count+1)
-                distances.append(covered_distance)  # Placeholder for NaN
-                segment_count += POLLING_RATE
+                if intermediate_time % POLLING_RATE == 0:
+                    timestamps.append(intermediate_time)
+                    bus_trip_nos.append(current_trip)
+                    statuses.append("TRANSIT_TO")
+                    latitudes.append(segments[segment_count][0])
+                    longitudes.append(segments[segment_count][1])
+                    bus_stop_nos.append(i+2)
+                    covered_distance = cumulative_distances[f"{i+1}"] + distance_per_timestep * (segment_count+1)
+                    distances.append(covered_distance)
+                segment_count += 1
 
     # Create a DataFrame from the lists
     df = pd.DataFrame({
