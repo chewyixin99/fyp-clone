@@ -220,7 +220,7 @@ def initialise_dataframe(current_trip, data, coordinates, cumulative_distances, 
                 bus_stop_nos.append(i+2)
                 covered_distance = cumulative_distances[f"{i+1}"] + distance_per_timestep * (segment_count+1)
                 distances.append(covered_distance)  # Placeholder for NaN
-                segment_count += 1
+                segment_count += POLLING_RATE
 
     # Create a DataFrame from the lists
     df = pd.DataFrame({

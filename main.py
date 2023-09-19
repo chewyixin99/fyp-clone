@@ -5,6 +5,7 @@ from utils.transformation import convert_json_to_dict, write_data_to_json, json_
 if __name__ == "__main__":
 
     model = "v1.4" # NOTE: to change to other models (not frequent)
+    polling_rate = 1
 
     input_data = convert_json_to_dict("./data/inputs/mock_input.json")
 
@@ -25,7 +26,8 @@ if __name__ == "__main__":
 
         json_to_feed(
             f"./data/outputs/json/{model}_output.json",
-            f"./data/outputs/csv/{model}_feed.csv",
+            f"./data/outputs/csv/{model}_poll{polling_rate}_feed.csv",
+            polling_rate=polling_rate
         )
 
     except Exception as e:
