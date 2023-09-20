@@ -3,7 +3,7 @@
 from docplex.mp.model import Model
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 
-def run_model(data):
+def run_model(data, silent=False):
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -188,12 +188,13 @@ def run_model(data):
     model.solve()
 
     # Output the results
-    for j in range(1, num_trips+1):
-            print(f"Trip {j}: Original dispatch timing = {original_dispatch[j]:.0f}\
-                    Trip {j}: Dispatch offset = {dispatch_offset[j].solution_value:.0f}\
-                    Time of Dispatch = {original_dispatch[j] + dispatch_offset[j].solution_value:.0f}")
+    if not silent:
+        for j in range(1, num_trips+1):
+                print(f"Trip {j}: Original dispatch timing = {original_dispatch[j]:.0f}\
+                        Trip {j}: Dispatch offset = {dispatch_offset[j].solution_value:.0f}\
+                        Time of Dispatch = {original_dispatch[j] + dispatch_offset[j].solution_value:.0f}")
 
-    print("\nObjective Function Value:", model.objective_value)
+        print("\nObjective Function Value:", model.objective_value)
 
     # OUTPUTS NOTE: to refactor once finalised
 
