@@ -134,7 +134,7 @@ def run_model(data):
     # Equation 13, Constraint 31
     for s in range(3, num_stops+1):
         model.add_constraint(busload[1,s] ==
-                            model.max(
+                            model.min(
                             (busload[1,s-1]
                             + willing_board[1,s-1]
                             - alighting_percentage[s-1] * busload[1,s-1]), capacity))
@@ -142,7 +142,7 @@ def run_model(data):
     # Equation 14, Constraint 32
     for j in range(2, num_trips+1):
         model.add_constraint(busload[j,2] ==
-                        model.max(
+                        model.min(
                         ((1 + arrival_rate[1] * boarding_duration)
                         * arrival_rate[1]
                         * (original_dispatch[j] + dispatch_offset[j] - original_dispatch[j-1] - dispatch_offset[j-1])), capacity))
@@ -151,7 +151,7 @@ def run_model(data):
     for j in range(2, num_trips+1):
         for s in range(3, num_stops+1):
             model.add_constraint(busload[j,s] ==
-                            model.max(
+                            model.min(
                             (busload[j,s-1]
                             + willing_board[j,s-1]
                             - alighting_percentage[s-1] * busload[j,s-1]), capacity))

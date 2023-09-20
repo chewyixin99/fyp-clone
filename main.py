@@ -5,7 +5,7 @@ from utils.transformation import convert_json_to_dict, write_data_to_json, json_
 if __name__ == "__main__":
 
     model = "v1.4" # NOTE: to change to other models (not frequent)
-    polling_rate = 1
+    polling_rate = 30
 
     input_data = convert_json_to_dict("./data/inputs/mock_input.json")
 
