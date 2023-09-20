@@ -22,6 +22,7 @@ if __name__ == "__main__":
         dwell_matrix=output_data["dwell_dict"],
         busload_matrix=output_data["busload_dict"],
         arrival_matrix=output_data["arrival_dict"],
+        headway_matrix=output_data["headway_dict"],
         dispatch_list=output_data["dispatch_dict"],
         )
 
