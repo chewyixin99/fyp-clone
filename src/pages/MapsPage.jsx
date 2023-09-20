@@ -1,23 +1,30 @@
 import { useEffect } from "react";
-import { useState } from "react";
+import PropTypes from "prop-types";
 import Map from "../components/mapsPage/Map";
-import MultiMapControls from "../components/mapsPage/MultiMapControls";
 import {
   stopObjs,
   journeyMarkers,
-  defaultBusIndexAfter,
-  defaultBusIndexBefore,
 } from "../data/constants";
 import Papa from "papaparse";
 
-const defaultCenter = {
-  lat: 45.488184,
-  lng: -122.399686,
-};
-
-const defaultZoom = 14;
-
-const MapsPage = () => {
+const MapsPage = ({
+  paused,
+  ended,
+  setPaused,
+  setEnded,
+  busIndexBefore,
+  busIndexAfter,
+  setBusIndexBefore,
+  setBusIndexAfter,
+  numBusCurrBefore,
+  numBusCurrAfter,
+  setNumBusCurrBefore,
+  setNumBusCurrAfter,
+  zoom,
+  setZoom,
+  center,
+  setCenter,
+}) => {
   const stopsBefore = stopObjs.before;
   const stopsAfter = stopObjs.after;
   const journeyBefore = journeyMarkers.before;
@@ -25,16 +32,6 @@ const MapsPage = () => {
   // todo: uncomment below once full data in
   // const [journeyBefore, setJourneyBefore] = useState([]);
   // const [journeyAfter, setJourneyAfter] = useState([]);
-
-  const [busIndexBefore, setBusIndexBefore] = useState(defaultBusIndexBefore);
-  const [busIndexAfter, setBusIndexAfter] = useState(defaultBusIndexAfter);
-  const [numBusCurrBefore, setNumBusCurrBefore] = useState(0);
-  const [numBusCurrAfter, setNumBusCurrAfter] = useState(0);
-
-  const [paused, setPaused] = useState(false);
-  const [ended, setEnded] = useState(false);
-  const [zoom, setZoom] = useState(defaultZoom);
-  const [center, setCenter] = useState(defaultCenter);
 
   // todo: uncomment below once full data in
   // const [polyPath, setPolyPath] = useState();
@@ -70,7 +67,7 @@ const MapsPage = () => {
             tmpPolyPath.push({ lat: parseFloat(r[4]), lng: parseFloat(r[5]) });
           }
         }
-        setPolyPath(tmpPolyPath);
+        // setPolyPath(tmpPolyPath);
       },
     });
   };
@@ -82,23 +79,6 @@ const MapsPage = () => {
 
   return (
     <div>
-      {/* Controls below */}
-      <MultiMapControls
-        busIndexBefore={busIndexBefore}
-        busIndexAfter={busIndexAfter}
-        numBusCurrBefore={numBusCurrBefore}
-        numBusCurrAfter={numBusCurrAfter}
-        paused={paused}
-        ended={ended}
-        setBusIndexBefore={setBusIndexBefore}
-        setBusIndexAfter={setBusIndexAfter}
-        setNumBusCurrBefore={setNumBusCurrBefore}
-        setNumBusCurrAfter={setNumBusCurrAfter}
-        setCenter={setCenter}
-        setZoom={setZoom}
-        setPaused={setPaused}
-        setEnded={setEnded}
-      />
       {/* Maps below */}
       <div className="flex justify-evenly my-10">
         <div className="w-[40vw] border">
@@ -144,6 +124,25 @@ const MapsPage = () => {
       </div>
     </div>
   );
+};
+
+MapsPage.propTypes = {
+  paused: PropTypes.bool,
+  ended: PropTypes.bool,
+  setPaused: PropTypes.func,
+  setEnded: PropTypes.func,
+  busIndexBefore: PropTypes.object,
+  numBusCurrBefore: PropTypes.number,
+  busIndexAfter: PropTypes.object,
+  numBusCurrAfter: PropTypes.number,
+  setBusIndexBefore: PropTypes.func,
+  setNumBusCurrBefore: PropTypes.func,
+  setBusIndexAfter: PropTypes.func,
+  setNumBusCurrAfter: PropTypes.func,
+  setCenter: PropTypes.func,
+  setZoom: PropTypes.func,
+  zoom: PropTypes.number,
+  center: PropTypes.object,
 };
 
 export default MapsPage;
