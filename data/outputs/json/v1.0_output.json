@@ -1,6 +1,7 @@
 {
     "num_trips": 5,
     "num_stops": 5,
+    "bus_capacity": 100,
     "original_dispatch_list": [
         600,
         1200,

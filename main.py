@@ -16,6 +16,7 @@ if __name__ == "__main__":
         f"./data/outputs/json/{model}_output.json",
         num_trips=input_data["num_trips"],
         num_stops=input_data["num_stops"],
+        bus_capacity=input_data["bus_capacity"],
         original_dispatch_list=input_data["original_dispatch_list"],
         coordinates_list=input_data["coordinates_list"],
         dwell_matrix=output_data["dwell_dict"],

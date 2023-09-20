@@ -44,6 +44,7 @@ def run_model(data):
     boarding_duration = data["boarding_duration"]
     alighting_duration = data["alighting_duration"]
     max_allowed_deviation = data["max_allowed_deviation"]
+    capacity = data["bus_capacity"]
 
     # Transformation to dictionaries to be referred to by the constraints
     original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
@@ -56,7 +57,6 @@ def run_model(data):
     initial_passengers = convert_list_to_dict(data["initial_passengers_list"], 1, num_stops)
     target_headway = convert_2dlist_to_dict(data["target_headway_2dlist"], 1, num_trips, 2, num_stops)
     interstation_travel = convert_2dlist_to_dict(data["interstation_travel_2dlist"], 1, num_trips, 1, num_stops-1)
-    capacity = 100 #TODO: to remove hard-code once confirmed
 
 
     # DECISION VARIABLES
