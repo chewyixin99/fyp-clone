@@ -1,6 +1,7 @@
 from utils.coordinates import calculate_haversine_distance, split_line_between_coordinates
 import json
 import pandas as pd
+import os
 
 # Ingestion of .json inputs
 def convert_json_to_dict(input_file_path):
@@ -140,6 +141,11 @@ def write_data_to_json(output_file_path, **dicts):
     for k, v in dicts.items():
         data_dict[k] = v
 
+    directory_path = os.path.dirname(output_file_path)
+
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+
     with open(output_file_path, "w") as f:
         json.dump(data_dict, f, indent=4)
 
@@ -261,5 +267,10 @@ def json_to_feed(json_file_path, feed_output_path, polling_rate=1):
     df = pd.concat(dataframes_list)
     df = df.sort_values(by=["timestamp (in seconds)"])
     df = df.reset_index(drop=True)
+
+    directory_path = os.path.dirname(feed_output_path)
+
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
 
     df.to_csv(feed_output_path, index=False)

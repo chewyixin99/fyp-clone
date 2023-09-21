@@ -7,13 +7,13 @@ if __name__ == "__main__":
     model = "v1.4" # NOTE: to change to other models (not frequent)
     polling_rate = 30
 
-    input_data = convert_json_to_dict("./data/inputs/mock_input.json")
+    input_data = convert_json_to_dict("./data/inputs/mock/mock_input.json")
 
     try:
         output_data = run_model(input_data)
 
         write_data_to_json(
-        f"./data/outputs/json/{model}_output.json",
+        output_file_path=f"./data/outputs/json/{model}/{model}_output.json",
         num_trips=input_data["num_trips"],
         num_stops=input_data["num_stops"],
         bus_capacity=input_data["bus_capacity"],
@@ -27,8 +27,8 @@ if __name__ == "__main__":
         )
 
         json_to_feed(
-            f"./data/outputs/json/{model}_output.json",
-            f"./data/outputs/csv/{model}_poll{polling_rate}_feed.csv",
+            f"./data/outputs/json/{model}/{model}_output.json",
+            f"./data/outputs/csv/{model}/{model}_poll{polling_rate}_feed.csv",
             polling_rate=polling_rate
         )
 
