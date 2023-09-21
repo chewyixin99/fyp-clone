@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
-import React from "react";
+import React, { useCallback } from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
-import { mockJson, stopObjs } from "../data/constants";
+import { mockJson, stopObjsAfter } from "../data/constants";
+import Papa from "papaparse";
 
 const Journey = (props) => {
+  const [data, setData] = useState([]);
   const [busStopData, setBusStopData] = useState([]);
   const [totalDistance, setTotalDistance] = useState(3100);
   const [newBusStopData, setNewBusStopData] = useState([]);
@@ -14,41 +16,60 @@ const Journey = (props) => {
   const [relativeStopDistance, setRelativeStopDistance] = useState([]);
   const [dwellTiming, setDwellTiming] = useState([]);
   const [distanceTravelled, setDistanceTravelled] = useState(0);
+  const [numOfTrips, setNumOfTrips] = useState(0);
+  const [elapsedStartTime, setElapsedStartTime] = useState({});
+  const [elapsedTime, setElapsedTime] = useState({});
+  const [isJourneyComplete, setIsJourneyComplete] = useState({});
+  const [count, setCount] = useState(0);
+  const [RDPPM, setRDPPM] = useState(0);
+  const [triggerRun, setTriggerRun] = useState(false);
+  const [triggerPause, setTriggerPause] = useState(false);
+
+  const [updateKey, setUpdateKey] = useState(0);
+  const update_rate = 1; // affects bar update -> smoothness of animation -> need to update calculations if change
+  var runRef = null;
+  var temp = [];
+  var timeRef = null;
+  var runningRef = null;
+  let stopNo = 1;
+
   // add bus stops onto HTML
   const loadBusStops = () => {
-    var busStopHTML = `<div class="bus-stop" style="left:-8px">&nbsp;</div>`;
-    var busStopDotHTML = `<div class="bus-stop-dot" style="left:-4.3px">&nbsp;</div>`;
-    // var busStopTipHTML = `<div class="progress-tip" style="left:-4.3px">&nbsp;</div>`;
-    for (var i = 0; i < newBusStopData.length; i++) {
+    // var busStopHTML = `<div class="bus-stop" style="left:-8.5px">&nbsp;</div>`;
+    // var busStopDotHTML = `<div class="bus-stop-dot" style="left:-3.5px">&nbsp;</div>`;
+    // var busStopTipHTML = `<div class="progress-tip" style="left:-3.5px">&nbsp;</div>`;
+    var busStopHTML = ``;
+    var busStopDotHTML = ``;
+    for (var i = 0; i < relativeStopDistance.length; i++) {
       var relative_distance_percentage =
-        (newBusStopData[i].stopRelativeDistance / totalDistance) * 100;
+        (relativeStopDistance[i]?.distance / totalDistance) * 100;
       var relative_distance =
         (route_bar_width * relative_distance_percentage) / 100;
       busStopHTML += `<div class="bus-stop" style="left:${
         relative_distance - 8.5
       }px">&nbsp;</div>`;
       busStopDotHTML += `<div class="bus-stop-dot" style="left:${
-        relative_distance - 4.3
+        relative_distance - 3.5
       }px">
         <div class="group relative">
           <button class="bus-stop-dot"></button>
           <span class="pointer-events-none max-w-xs absolute text-sm text-white bg-gray-700 p-2 rounded-lg -top-32 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100">
-            ID: ${newBusStopData[i].stopId}
+            ID: ${relativeStopDistance[i]?.stopId}
             <br />
-            Name: ${newBusStopData[i].stopName}
+            Name: ${relativeStopDistance[i]?.stopName}
             <br />
-            Distance: ${newBusStopData[i].stopRelativeDistance.toFixed(0)}m / ${
-        newBusStopData[i].stopPercentDistance
-      }%
+            Distance: ${relativeStopDistance[i]?.distance.toFixed(
+              0
+            )}m / ${totalDistance.toFixed(
+        0
+      )}m (${relative_distance_percentage.toFixed(0)}%)
           </span>
         </div>
       </div>`;
     }
 
-    for (let i = 0; i < 1; i++) {
-      document.querySelector(`.bus-stop-ref`).innerHTML += busStopHTML;
-      document.querySelector(`.bus-stop-dot`).innerHTML += busStopDotHTML;
-    }
+    document.querySelector(`.bus-stop-ref`).innerHTML += busStopHTML;
+    document.querySelector(`.bus-stop-dot-ref`).innerHTML += busStopDotHTML;
   };
   function deg2rad(deg) {
     return deg * (Math.PI / 180);
@@ -125,74 +146,84 @@ const Journey = (props) => {
   const formatDistance = (data) => {
     return parseFloat(((data / totalDistance) * 100).toFixed(2));
   };
+  // useEffect(() => {
+  //   if (triggerRun && !triggerPause) {
+  //     elapsedTimeFunction();
+  //   } else {
+  //     clearInterval(timeRef);
+  //   }
+
+  //   return () => clearInterval(timeRef);
+  // }, [triggerRun, triggerPause]);
   // load data from constants.js into getBusStopData
+  // useEffect(() => {
+  //   getBusStopData(stopObjsAfter);
+  // }, []);
+  // useEffect(() => {
+  // console.log(busStopData);
+  // formatBusStopDistance(busStopData);
+  // load bus stops
+  // }, [busStopData]);
+
   useEffect(() => {
-    getBusStopData(stopObjs);
+    // getRelativeArrivalTiming(mockJson);
+
+    // getDwellTiming(mockJson);
+    fetchData();
   }, []);
+
   useEffect(() => {
-    // console.log(busStopData);
-    formatBusStopDistance(busStopData);
-    // load bus stops
-  }, [busStopData]);
+    // get total distance and relative stop distance data
+    extractData(data);
+  }, [data]);
 
   useEffect(() => {
     loadBusStops();
-  }, [newBusStopData]);
+  }, [relativeStopDistance, totalDistance, numOfTrips]);
 
-  const [RDPPM, setRDPPM] = useState(0);
-  const [triggerRun, setTriggerRun] = useState(false);
-  const [triggerPause, setTriggerPause] = useState(false);
+  // const running_function = () => {
+  //   if (!triggerRun) {
+  //     clearInterval(runRef);
+  //   } else {
+  //     runRef = setInterval(() => {
+  //       var relative_distance_travelled = Number(
+  //         parseFloat(
+  //           document
+  //             .querySelector(`.route-travelled-ref`)
+  //             .style.width.split("%")[0]
+  //         ).toFixed(2)
+  //       );
+  //       setDistanceTravelled(relative_distance_travelled);
 
-  const [elapsedStartTime, setElapsedStartTime] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [updateKey, setUpdateKey] = useState(0);
-  const update_rate = 1; // affects bar update -> smoothness of animation -> need to update calculations if change
-  var runRef = null;
-  var temp = [];
+  //       if (relative_distance_travelled >= 100) {
+  //         clearInterval(runRef);
+  //         setDistanceTravelled(100);
+  //       }
 
-  const running_function = () => {
-    if (!triggerRun) {
-      clearInterval(runRef);
-    } else {
-      runRef = setInterval(() => {
-        var relative_distance_travelled = Number(
-          parseFloat(
-            document
-              .querySelector(`.route-travelled-ref`)
-              .style.width.split("%")[0]
-          ).toFixed(2)
-        );
-        setDistanceTravelled(relative_distance_travelled);
-
-        if (relative_distance_travelled >= 100) {
-          clearInterval(runRef);
-          setDistanceTravelled(100);
-        }
-
-        if (
-          props.busStopData.filter((item) => {
-            return item.stopPercentDistance == relative_distance_travelled;
-          }).length > 0 &&
-          !temp.includes(relative_distance_travelled)
-        ) {
-          var item = props.busStopData.filter((item) => {
-            return (
-              relative_distance_travelled ==
-              formatDistance(item.stopRelativeDistance)
-            );
-          });
-          var duration = item[0].stopDuration;
-          clearInterval(runRef);
-          setTimeout(() => {
-            temp.push(relative_distance_travelled);
-            add_travel_distance(RDPPM);
-            running_function();
-          }, duration);
-        }
-        add_travel_distance(RDPPM * 4);
-      }, update_rate);
-    }
-  };
+  //       if (
+  //         props.busStopData.filter((item) => {
+  //           return item.stopPercentDistance == relative_distance_travelled;
+  //         }).length > 0 &&
+  //         !temp.includes(relative_distance_travelled)
+  //       ) {
+  //         var item = props.busStopData.filter((item) => {
+  //           return (
+  //             relative_distance_travelled ==
+  //             formatDistance(item.stopRelativeDistance)
+  //           );
+  //         });
+  //         var duration = item[0].stopDuration;
+  //         clearInterval(runRef);
+  //         setTimeout(() => {
+  //           temp.push(relative_distance_travelled);
+  //           add_travel_distance(RDPPM);
+  //           running_function();
+  //         }, duration);
+  //       }
+  //       add_travel_distance(RDPPM * 4);
+  //     }, update_rate);
+  //   }
+  // };
 
   // "arrival_matrix": {
   //   "1,1": 1020,
@@ -211,145 +242,240 @@ const Journey = (props) => {
     for (let i = 0; i < objValues.length; i++) {
       objValues[i] = objValues[i] - stopDiff;
     }
-    setRelativeArrivalTiming(objValues)
+    setRelativeArrivalTiming(objValues);
   };
 
   const getDwellTiming = (data) => {
     let objValues = Object.values(data.dwell_matrix);
-    setDwellTiming(objValues)
+    setDwellTiming(objValues);
   };
 
-  const getRelativeStopDistance = (data) => {
-    let stopDiff = data.distance_matrix["1,1"];
-    let objValues = Object.values(data.distance_matrix);
-    let totalDistance = objValues[objValues.length - 1] - stopDiff
-    console.log(totalDistance);
-    setTotalDistance(objValues[objValues.length - 1])
+  // const getRelativeStopDistance = (data) => {
+  //   let stopDiff = data.distance_matrix["1,1"];
+  //   let objValues = Object.values(data.distance_matrix);
+  //   let totalDistance = objValues[objValues.length - 1] - stopDiff;
+  //   console.log(totalDistance);
+  //   setTotalDistance(objValues[objValues.length - 1]);
 
-    for (let i = 0; i < objValues.length; i++) {
-      objValues[i] = objValues[i] - stopDiff;
-    }
-    
-    for (let i = 0; i < objValues.length; i++) {
-      objValues[i] = (objValues[i] - stopDiff) / totalDistance * 100;
-    }
-    
-    setRelativeStopDistance(objValues)
-    
+  //   for (let i = 0; i < objValues.length; i++) {
+  //     objValues[i] = objValues[i] - stopDiff;
+  //   }
+
+  //   for (let i = 0; i < objValues.length; i++) {
+  //     objValues[i] = ((objValues[i] - stopDiff) / totalDistance) * 100;
+  //   }
+
+  //   // setRelativeStopDistance(objValues);
+  // };
+
+  const fetchData = async () => {
+    Papa.parse("./v1.1_output.csv", {
+      // options
+      download: true,
+      complete: (res) => {
+        const tmpJourneyData = [];
+        const data = res.data.slice(1);
+        // console.log(data);
+        for (let i = 0; i < data.length; i++) {
+          const rowData = data[i];
+          tmpJourneyData.push({
+            timestamp: parseFloat(rowData[0]),
+            lat: parseFloat(rowData[4]),
+            lng: parseFloat(rowData[5]),
+            opacity: 0,
+            stopId: "to be filled",
+            stopName: "to be filled",
+            busStopNo: parseInt(rowData[3]),
+            currentStatus: rowData[2],
+            busTripNo: parseInt(rowData[1]),
+            distance: parseFloat(rowData[6]),
+          });
+        }
+        setData(tmpJourneyData);
+      },
+    });
   };
 
-  useEffect(() => {
-    getRelativeArrivalTiming(mockJson);
-    getRelativeStopDistance(mockJson)
-    getDwellTiming(mockJson)
-  }, []);
-
-  useEffect(() => {
-    console.log(relativeArrivalTiming, "relativeArrivalTiming", relativeArrivalTiming.length, "length");
-    console.log(relativeStopDistance, "relativeStopDistance", relativeStopDistance.length, "length");
-    console.log(dwellTiming, "dwellTiming", dwellTiming.length, "length");
-    run()
-  }, [relativeArrivalTiming, relativeStopDistance, dwellTiming]);
-
-  var timeRef = null;
-
-  const elapsedTimeFunction = () => {
-    timeRef = setInterval(() => {
-      setElapsedTime(((new Date() - elapsedStartTime) / 1000).toFixed(1));
-      var relative_distance_travelled = Number(
-        parseFloat(
-          document
-            .querySelector(`.route-travelled-${props.id}`)
-            .style.width.split("%")[0]
-        ).toFixed(2)
+  const extractData = (data) => {
+    let stopDistance = data.filter((item) => {
+      return (
+        (item.currentStatus == "STOPPED_AT" ||
+          item.currentStatus == "DISPATCHED_FROM") &&
+        item.busTripNo == 1
       );
-
-      if (relative_distance_travelled >= 100) {
-        clearInterval(timeRef);
-        setTriggerRun(false);
-      }
-    }, 1);
+    });
+    let numberOfBusTrips = data.filter((item) => {
+      return item.currentStatus == "DISPATCHED_FROM";
+    });
+    setCount(data[0]?.timestamp);
+    // let tripDataObj = {};
+    // data.map((item) => {
+    //   tripDataObj[item.timestamp] = item;
+    // });
+    // console.log(tripDataObj);
+    setRelativeStopDistance(stopDistance);
+    // set last bus stop distance as max distance
+    setTotalDistance(stopDistance[stopDistance.length - 1]?.distance);
+    setNumOfTrips(numberOfBusTrips.length);
   };
+
+  // const elapsedTimeFunction = () => {
+  //   timeRef = setInterval(() => {
+  //     setElapsedTime(((new Date() - elapsedStartTime) / 1000).toFixed(1));
+  //     var relative_distance_travelled = Number(
+  //       parseFloat(
+  //         document
+  //           .querySelector(`.route-travelled-${props.id}`)
+  //           .style.width.split("%")[0]
+  //       ).toFixed(2)
+  //     );
+
+  //     if (relative_distance_travelled >= 100) {
+  //       clearInterval(timeRef);
+  //       setTriggerRun(false);
+  //     }
+  //   }, 1);
+  // };
+
+  // const run = () => {
+  //   // [0, 76, 287, 617, 1045, 1]
+  //   // [0, 0.38633817208497534, 1.972739513404527, 4.110922597099867]
+
+  //   runningRef = setInterval(() => {
+  //     count++;
+  //     let nextStop = relativeStopDistance[stopNo];
+  //     let timeToNextStop = relativeArrivalTiming[stopNo];
+  //     let relative_distance_percentage_per_millisecond =
+  //       nextStop / timeToNextStop / 1000;
+
+  //     if (relativeArrivalTiming.includes(count)) {
+  //       console.log(count);
+  //       clearInterval(runningRef);
+  //       console.log(dwellTiming[stopNo]);
+  //       setTimeout(() => {
+  //         stopNo++;
+  //         run();
+  //       }, dwellTiming[stopNo] * 10);
+  //     }
+  //     add_travel_distance(relative_distance_percentage_per_millisecond);
+  //   }, 1);
+  // };
 
   useEffect(() => {
-    if (triggerRun && !triggerPause) {
-      elapsedTimeFunction();
-    } else {
-      clearInterval(timeRef);
-    }
+    // timeRef = setInterval(() => {
+    //   // setElapsedStartTime((prevElapsedStartTime) => {
+    //   //   return {
+    //   //     ...prevElapsedStartTime,
+    //   //     [data[localCount].busTripNo]: new Date(),
+    //   //   };
+    //   // });
+    //   setElapsedTime(...elapsedStartTime);
+    // }, 10);
+    // let ref = document.querySelector(`.progress-tip-content-elapsed-time-ref`);
+    // ref.innerHTML = `{(new Date() - elapsedStartTime[i + 1]) > 60
+    //   ? Math.floor((new Date() - elapsedStartTime[i + 1]) / 60) +
+    //     "m" +
+    //     ((new Date() - elapsedStartTime[i + 1]) % 60) +
+    //     "s"
+    //   : (new Date() - elapsedStartTime[i + 1]) + "s"}`
+  }, [elapsedStartTime]);
 
-    return () => clearInterval(timeRef);
-  }, [triggerRun, triggerPause]);
-
-  const add_travel_distance = (relative_speed) => {
-    if (!triggerPause) {
-      var ref = document.querySelector(`.route-travelled-ref`);
-      var progressTip = document.querySelector(`.progress-tip-ref`);
-      var progressTipContent = document.querySelector(
-        `.progress-tip-content-ref`
-      );
-      ref.style.width =
-        (
-          parseFloat(ref.style.width.split("%")[0]) + relative_speed
-        ).toString() + "%";
-      progressTip.style.left =
-        (
-          parseFloat(progressTip.style.left.split("%")[0]) + relative_speed
-        ).toString() + "%";
-      progressTipContent.style.left =
-        (
-          parseFloat(progressTipContent.style.left.split("%")[0]) +
-          relative_speed
-        ).toString() + "%";
-    }
-  };
-  var runningRef = null;
-  let count = 1;
-  let stopNo = 1;
-  const run = () => {
-    // [0, 76, 287, 617, 1045, 1]
-    // [0, 0.38633817208497534, 1.972739513404527, 4.110922597099867]
-
-    runningRef = setInterval(() => {
-      count ++
-      let nextStop = relativeStopDistance[stopNo]
-      let timeToNextStop = relativeArrivalTiming[stopNo]
-      let relative_distance_percentage_per_millisecond = nextStop / timeToNextStop / 1000
-
-      if (relativeArrivalTiming.includes(count)) {
-        console.log(count);
-        clearInterval(runningRef);
-        console.log(dwellTiming[stopNo]);
-        setTimeout(() => {
-          stopNo ++
-          run();
-        }, dwellTiming[stopNo]*10);
-        
-      } 
-      add_travel_distance(relative_distance_percentage_per_millisecond);
-    }, 1);
-  }
   const startRun = () => {
     var pause_btn = document.querySelector(`.pause_simulation_${props.id}`);
     var run_btn = document.querySelector(`.run_simulation_${props.id}`);
     var stop_btn = document.querySelector(`.stop_simulation_${props.id}`);
-    setElapsedStartTime(new Date());
+    // setElapsedStartTime(new Date());
     pause_btn.classList.remove("hidden");
     run_btn.classList.add("hidden");
     stop_btn.classList.remove("hidden");
+    runFunction(data);
     // how much percentage of the journey the bus travels realistically per millisecond
-    console.log(props.totalDistance);
-    var actual_distance_percentage_per_millisecond =
-      (((props.busSpeed / 3600 / 1000) * 1000) / props.totalDistance) * 100;
+    // console.log(props.totalDistance);
+    // var actual_distance_percentage_per_millisecond =
+    //   (((props.busSpeed / 3600 / 1000) * 1000) / props.totalDistance) * 100;
 
-    console.log(actual_distance_percentage_per_millisecond);
-    // how much percentage of the journey the bus travels relatively per millisecond
-    console.log(actual_distance_percentage_per_millisecond);
-    var relative_distance_percentage_per_millisecond =
-      actual_distance_percentage_per_millisecond * props.relativeFactor;
-    setRDPPM(relative_distance_percentage_per_millisecond);
-    // loadBusStops()
-    setTriggerRun(true);
+    // console.log(actual_distance_percentage_per_millisecond);
+    // // how much percentage of the journey the bus travels relatively per millisecond
+    // console.log(actual_distance_percentage_per_millisecond);
+    // var relative_distance_percentage_per_millisecond =
+    //   actual_distance_percentage_per_millisecond * props.relativeFactor;
+    // setRDPPM(relative_distance_percentage_per_millisecond);
+    // // loadBusStops()
+    // setTriggerRun(true);
+  };
+  const runFunction = (data) => {
+    localStorage.clear();
+
+    let localCount = 0;
+    if (data.length < 0) {
+      alert("Data error. Please try again.");
+      return;
+    }
+    console.log(data[0]);
+    runRef = setInterval(() => {
+      if (data[localCount].currentStatus == "TRANSIT_TO") {
+        if (formatDistance(data[localCount].distance) == 100) {
+          alert("hi");
+        }
+        add_travel_distance(
+          data[localCount].distance,
+          data[localCount].busTripNo
+        );
+        // console.log(data[localCount].distance, data[localCount].busTripNo);
+      } else if (
+        data[localCount].currentStatus == "STOPPED_AT" &&
+        formatDistance(data[localCount].distance) == 100
+      ) {
+        setIsJourneyComplete((prevIsJourneyComplete) => {
+          return {
+            ...prevIsJourneyComplete,
+            [data[localCount].busTripNo]: true,
+          };
+        });
+        add_travel_distance(totalDistance, data[localCount].busTripNo);
+      } else if (data[localCount].currentStatus == "DWELL_AT") {
+        add_travel_distance(
+          data[localCount].distance,
+          data[localCount].busTripNo
+        );
+      } else if (data[localCount].currentStatus == "DISPATCHED_FROM") {
+        setElapsedStartTime((prevElapsedStartTime) => {
+          return {
+            ...prevElapsedStartTime,
+            [data[localCount].busTripNo]: new Date(),
+          };
+        });
+        localStorage.setItem(data[localCount].busTripNo, new Date().getTime());
+
+        add_travel_distance(
+          data[localCount].distance,
+          data[localCount].busTripNo
+        );
+      }
+      localCount++;
+      setElapsedTime(new Date().getTime());
+    }, 10);
+  };
+
+  const add_travel_distance = (newDistance, tripNo, elapsedTime) => {
+    // var ref = document.querySelector(`.route-travelled-ref`);
+    var progressTip = document.querySelector(`.progress-tip-ref-${tripNo}`);
+    var progressTipContent = document.querySelector(
+      `.progress-tip-content-ref-${tripNo}`
+    );
+    var progressTipContentDist = document.querySelector(
+      `.progress-tip-content-dist-ref-${tripNo}`
+    );
+
+    // ref.style.width = formatDistance(newDistance) + "%";
+    progressTip.style.left = formatDistance(newDistance) + "%";
+    progressTipContent.style.left = formatDistance(newDistance) - 2.7 + "%";
+    progressTipContentDist.innerHTML =
+      "Dist.: " +
+      newDistance.toFixed(0) +
+      "m / " +
+      formatDistance(newDistance).toFixed(0) +
+      "%";
   };
 
   const pause = () => {
@@ -464,21 +590,47 @@ const Journey = (props) => {
           >
             &nbsp;
           </div>
+          {[...Array(numOfTrips)].map((x, i) => (
+            <div key={i}>
+              <div
+                className={`progress-tip-ref-${i + 1} progress-tip`}
+                style={{ left: "0%" }}
+              ></div>
+              <div
+                className={`progress-tip-content-ref-${
+                  i + 1
+                } progress-tip-content`}
+                style={{ left: "-2.7%" }}
+              >
+                Trip No.: {""}
+                <p
+                  className={`progress-tip-content-trip-no-ref-${
+                    i + 1
+                  } progress-tip-dist`}
+                ></p>
+                <p
+                  className={`progress-tip-content-dist-ref-${
+                    i + 1
+                  } progress-tip-dist`}
+                >
+                  Dist.: 0m / 0%
+                </p>
+                Elapsed: {""}
+                <span
+                  className={`progress-tip-content-elapsed-time-ref-${
+                    i + 1
+                  } progress-tip-dist progress-tip-content-elapsed-time-ref`}
+                >
+                  {elapsedTime - localStorage.getItem(i + 1)
+                    ? (elapsedTime - localStorage.getItem(i + 1)) / 10
+                    : 0 + "s"}
+                </span>
+              </div>
+            </div>
+          ))}
 
-          <div
-            className={`progress-tip-ref progress-tip`}
-            style={{ left: "0%" }}
-          ></div>
-          <div
-            className={`progress-tip-content-ref progress-tip-content`}
-            style={{ left: "-1.8%" }}
-          >
-            Dist: {distanceTravelled}%
-            <br />
-            ET: {elapsedTime}s
-          </div>
           <div className={`bus-stop-ref`}></div>
-          <div className={`bus-stop-dot`}></div>
+          <div className={`bus-stop-dot-ref`}></div>
         </div>
       </div>
     </div>

@@ -133,18 +133,18 @@ const Journeys = () => {
     setBusStopData(busStopData);
   };
   // load data from constants.js into getBusStopData
-  useEffect(() => {
-    getBusStopData(stopObjs);
-  }, []);
-  // get list of formatted relative bus stop distances
-  useEffect(() => {
-    // console.log(busStopData);
-    formatBusStopDistance(busStopData);
-    // load bus stops
-  }, [busStopData]);
-  useEffect(() => {
-    loadBusStops();
-  }, [newBusStopData]);
+  // useEffect(() => {
+  //   getBusStopData(stopObjs);
+  // }, []);
+  // // get list of formatted relative bus stop distances
+  // useEffect(() => {
+  //   // console.log(busStopData);
+  //   formatBusStopDistance(busStopData);
+  //   // load bus stops
+  // }, [busStopData]);
+  // useEffect(() => {
+  //   loadBusStops();
+  // }, [newBusStopData]);
 
   return (
     <div className="mx-auto">

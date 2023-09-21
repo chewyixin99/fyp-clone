@@ -9,6 +9,7 @@
     padding: 1rem;
     padding-right: 0;
     align-items: baseline;
+    margin-top: 2rem;
 }
 .service-route {
     background-color: aqua !important;
@@ -32,7 +33,7 @@
 
 .route-bar {
     background-color: #444 !important;
-    width: 1602px;
+    width: 1600px;
     position: relative;
     height: 8px;
     z-index: 10;
@@ -51,10 +52,10 @@
 .bus-stop {
     background-color: #444 !important;
     position: absolute;
-    top: -4.5px;
+    top: -5px;
     left: 0px;
-    height: 17px;
-    width: 17px;
+    height: 18px;
+    width: 18px;
     border-radius: 50%;
 }
 
@@ -118,7 +119,7 @@
       left: 0; 
       top: -10px;
       transform: translate(-50%,-100%);
-      padding: 20px 35px;
+      padding: 30px 100px;
       color: #fff;
       font-size: 13px;
       font-weight: 300;
@@ -129,10 +130,15 @@
 
 .progress-tip-content {
     position: absolute;
-    left: 0%; 
-    top: -44px;
+    left: -10px; 
+    top: -60px;
     z-index: 1000;
     color: white;
     font-size: 10px;
-    width: 55px;
+    width: 100%;
+}
+
+.progress-tip-dist {
+    left: -2.7%;
+    width: 100%;
 }
