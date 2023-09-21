@@ -4,14 +4,14 @@ import PropTypes from "prop-types";
 // custom imports
 import MarkerWithInfoWindow from "./MarkerWithInfoWindow";
 import BusStatus from "./BusStatus";
-import { updateBusCurrStop } from "../../util/mapHelper";
+import { resetOpacity, updateBusCurrStop } from "../../util/mapHelper";
 
 const containerStyle = {
   width: "40vw",
   height: "30vw",
 };
 
-const defaultIntervalTime = 100;
+const defaultIntervalTime = 200;
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 
@@ -105,6 +105,7 @@ const Map = ({
             console.log(
               `remove 1 bus from loop: numBuses now = ${numBusCurr - 1}`
             );
+            resetOpacity(journey);
             // reset opacity after last station
             journey[currStop - 1].opacity = defaultInactiveOpacity;
             // use this to signify that all buses have concluded their journey

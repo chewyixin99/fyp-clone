@@ -15,3 +15,9 @@ export const busesCurrentlyInJourney = (numBusArr) => {
   }
   return false;
 };
+
+export const resetOpacity = (objsArr) => {
+  for (const obj of objsArr) {
+    obj.opacity = 0;
+  }
+};

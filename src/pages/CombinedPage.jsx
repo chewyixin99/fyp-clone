@@ -1,23 +1,27 @@
-import { busesCurrentlyInJourney, isBusInJourney } from "../../util/mapHelper";
-import PropTypes from "prop-types";
-import { defaultCenter, defaultZoom } from "../../data/constants";
+import { useState } from "react";
+import {
+  defaultBusIndexAfter,
+  defaultBusIndexBefore,
+  defaultCenter,
+  defaultZoom,
+} from "../data/constants";
+import { busesCurrentlyInJourney, isBusInJourney } from "../util/mapHelper";
+import MapsPage from "./MapsPage";
 
-const MultiMapControls = ({
-  busIndexBefore,
-  numBusCurrBefore,
-  busIndexAfter,
-  numBusCurrAfter,
-  paused,
-  setBusIndexBefore,
-  setNumBusCurrBefore,
-  setBusIndexAfter,
-  setNumBusCurrAfter,
-  setEnded,
-  setPaused,
-  setCenter,
-  setZoom,
-}) => {
-  const onDispatchBusesClick = () => {
+const CombinedPage = () => {
+  // yixin states
+  const [zoom, setZoom] = useState(defaultZoom);
+  const [center, setCenter] = useState(defaultCenter);
+  const [busIndexBefore, setBusIndexBefore] = useState(defaultBusIndexBefore);
+  const [busIndexAfter, setBusIndexAfter] = useState(defaultBusIndexAfter);
+  const [numBusCurrBefore, setNumBusCurrBefore] = useState(0);
+  const [numBusCurrAfter, setNumBusCurrAfter] = useState(0);
+  // end of yixin states
+  const [paused, setPaused] = useState(false);
+  const [ended, setEnded] = useState(false);
+
+  const onStartClick = () => {
+    // yixin logic
     setEnded(false);
     let busIndexBeforeCopy = JSON.parse(JSON.stringify(busIndexBefore));
     for (const bus in busIndexBeforeCopy) {
@@ -41,9 +45,11 @@ const MultiMapControls = ({
         break;
       }
     }
+    // end of yixin logic
   };
 
   const onPauseClick = () => {
+    // start of yixin logic
     if (busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])) {
       if (!paused) {
         // Before
@@ -65,14 +71,11 @@ const MultiMapControls = ({
       }
       setPaused(!paused);
     }
+    // end of yixin logic
   };
 
-  const resetZoomAndCenter = () => {
-    setCenter(defaultCenter);
-    setZoom(defaultZoom);
-  };
-
-  const onSkipToEndClick = () => {
+  const onEndClick = () => {
+    // start of yixin logic
     if (busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])) {
       // update all buses to -1, to signify that all has ended their journey
       // before
@@ -89,75 +92,80 @@ const MultiMapControls = ({
       setBusIndexAfter(tmpBusIndexCopyAfter);
       setEnded(true);
     }
+    // end of yixin logic
+  };
+
+  const onResetZoomAndCenterClick = () => {
+    setCenter(defaultCenter);
+    setZoom(defaultZoom);
   };
 
   return (
     <div>
-      <div className="text-center mb-5">Controls</div>
-      <div className="flex justify-center">
+      {/* test buttons to test logic */}
+      <div className="flex justify-center items-center py-5">
         <button
-          className={paused ? `control-button-disabled` : `control-button`}
+          onClick={onStartClick}
           type="button"
-          disabled={paused}
-          onClick={onDispatchBusesClick}
+          className={paused ? "control-button-disabled" : "control-button"}
         >
-          dispatch buses
+          start
         </button>
         <button
           onClick={onPauseClick}
+          type="button"
           className={
             !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
               ? `control-button-disabled`
               : `control-button`
-          }
-          type="button"
-          disabled={
-            !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
           }
         >
           {paused ? "resume" : "pause"}
         </button>
         <button
-          onClick={onSkipToEndClick}
+          onClick={onEndClick}
+          type="button"
           className={
             !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
               ? `control-button-disabled`
               : `control-button`
           }
-          type="button"
-          disabled={
-            !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
-          }
         >
-          skip to end / reset
+          end
         </button>
         <button
-          onClick={resetZoomAndCenter}
-          className={`control-button`}
+          onClick={onResetZoomAndCenterClick}
           type="button"
+          className="control-button"
         >
-          reset zoom and center
+          reset zoom and center map
         </button>
+      </div>
+      {/* JianLin's component */}
+      <div className=""></div>
+      {/* Yixin's component */}
+      <div className="">
+        <MapsPage
+          paused={paused}
+          ended={ended}
+          setPaused={setPaused}
+          setEnded={setEnded}
+          zoom={zoom}
+          setZoom={setZoom}
+          center={center}
+          setCenter={setCenter}
+          busIndexBefore={busIndexBefore}
+          setBusIndexBefore={setBusIndexBefore}
+          busIndexAfter={busIndexAfter}
+          setBusIndexAfter={setBusIndexAfter}
+          numBusCurrBefore={numBusCurrBefore}
+          numBusCurrAfter={numBusCurrAfter}
+          setNumBusCurrBefore={setNumBusCurrBefore}
+          setNumBusCurrAfter={setNumBusCurrAfter}
+        />
       </div>
     </div>
   );
 };
 
-MultiMapControls.propTypes = {
-  busIndexBefore: PropTypes.object,
-  numBusCurrBefore: PropTypes.number,
-  busIndexAfter: PropTypes.object,
-  numBusCurrAfter: PropTypes.number,
-  paused: PropTypes.bool,
-  ended: PropTypes.bool,
-  setBusIndexBefore: PropTypes.func,
-  setNumBusCurrBefore: PropTypes.func,
-  setBusIndexAfter: PropTypes.func,
-  setNumBusCurrAfter: PropTypes.func,
-  setCenter: PropTypes.func,
-  setZoom: PropTypes.func,
-  setPaused: PropTypes.func,
-  setEnded: PropTypes.func,
-};
-
-export default MultiMapControls;
+export default CombinedPage;
