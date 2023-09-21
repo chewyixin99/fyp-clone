@@ -213,6 +213,11 @@ def run_model(data, silent=False):
         for s in range(2, num_stops+1):
             arrival_dict[f"{j},{s}"] = round(arrival[j,s].solution_value)
 
+    headway_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(2, num_stops+1):
+            headway_dict[f"{j},{s}"] = round(headway[j,s].solution_value)
+
     dispatch_dict = {}
     for j in range(1, num_trips+1):
         dispatch_dict[f"{j}"] = round(original_dispatch[j] + dispatch_offset[j].solution_value)
@@ -221,6 +226,7 @@ def run_model(data, silent=False):
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
         "arrival_dict": arrival_dict,
+        "headway_dict": headway_dict,
         "dispatch_dict": dispatch_dict,
     }
             
