@@ -1,16 +1,21 @@
 import json
-from models.v1_4 import run_model # NOTE: to change to other models (not frequent)
+import re
+from models.v2_0 import run_model # NOTE: to change to other models (not frequent)
 from utils.transformation import convert_json_to_dict, write_data_to_json, json_to_feed
 
 if __name__ == "__main__":
 
-    model = "v1.4" # NOTE: to change to other models (not frequent)
+    model = "v2.0" # NOTE: to change to other models (not frequent)
     polling_rate = 30
+    is_first_trip = True
 
     input_data = convert_json_to_dict("./data/inputs/mock/mock_input.json")
 
     try:
-        output_data = run_model(input_data)
+        if bool(re.match(r'v([3-9]|\d{2,})\.\d+|v2\.[0-9]+', model)): # check for models versions v2.0 and above
+            output_data = run_model(data=input_data, is_first_trip=is_first_trip)
+        else:
+            output_data = run_model(data=input_data)
 
         write_data_to_json(
         output_file_path=f"./data/outputs/json/{model}/{model}_output.json",
