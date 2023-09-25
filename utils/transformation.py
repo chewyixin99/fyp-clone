@@ -2,6 +2,7 @@ from utils.coordinates import calculate_haversine_distance, split_line_between_c
 import json
 import pandas as pd
 import os
+from typing import Dict, Tuple, Any
 
 # Ingestion of .json inputs
 def convert_json_to_dict(input_file_path):
@@ -149,7 +150,42 @@ def write_data_to_json(output_file_path, **dicts):
     with open(output_file_path, "w") as f:
         json.dump(data_dict, f, indent=4)
 
-def initialise_dataframe(current_trip, data, coordinates, cumulative_distances, polling_rate=1):
+def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: Dict[str, Tuple[float, float]], 
+                         cumulative_distances: Dict[str, float], polling_rate: int = 1) -> pd.DataFrame:
+    """
+    Initialises a DataFrame containing bus trip details for a GIVEN bus trip.
+    It is used as a helper function to initialise dataframes to be concatenated later.
+
+    This function creates a DataFrame containing timestamps, bus trip numbers, status of the trip, 
+    bus stop numbers, latitudes, longitudes, and cumulative distances. It captures the dispatch from 
+    the depot, stops at bus stops, dwelling times, and transit times between stops. 
+    Intermediate data points based on a given polling rate are also included.
+
+    Args:
+        current_trip (int): The bus trip number for which the DataFrame is being generated.
+        data (dict): A dictionary containing trip-related data. Expected keys include "dispatch_list", 
+            "arrival_matrix", and "dwell_matrix".
+        coordinates (dict): A dictionary mapping bus stop numbers to their corresponding 
+            latitude and longitude coordinates. Example: {"1": (40.7128, -74.0060)}
+        cumulative_distances (dict): A dictionary mapping bus stop numbers to the cumulative 
+            distance (from the start) up to that stop.
+        polling_rate (int, optional): The interval in seconds at which data points are to be sampled. 
+            Defaults to 1.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the detailed bus trip data with columns: 
+            "timestamp (in seconds)", "bus_trip_no", "status", "bus_stop_no", "latitude", 
+            "longitude", and "distance".
+
+    Note:
+        - The status in the DataFrame can be one of the following:
+            - "DISPATCHED_FROM": When the bus is dispatched from the depot.
+            - "STOPPED_AT": When the bus stops at a bus stop.
+            - "DWELL_AT": When the bus is dwelling at a bus stop.
+            - "TRANSIT_TO": When the bus is in transit between two stops.
+        - The function relies on the `split_line_between_coordinates` to determine the intermediate coordinates 
+            between two bus stops.
+    """
 
     POLLING_RATE = polling_rate
 
@@ -243,7 +279,35 @@ def initialise_dataframe(current_trip, data, coordinates, cumulative_distances, 
 
     return df
 
-def json_to_feed(json_file_path, feed_output_path, polling_rate=1):
+def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int = 1) -> None:
+    """
+    Converts a JSON file containing bus trip data into a CSV feed with detailed trip information.
+
+    This function reads bus trip data from a given JSON file and constructs a DataFrame with 
+    detailed information about each trip, such as timestamps, trip numbers, bus stop numbers, 
+    latitudes, longitudes, and distances. The DataFrame is then written to a CSV file at the 
+    specified output path.
+
+    Args:
+        json_file_path (str): Path to the input JSON file containing bus trip data.
+        feed_output_path (str): Path where the generated CSV feed should be saved.
+        polling_rate (int, optional): The interval in seconds at which data points are to be sampled. 
+            Defaults to 1.
+
+    Outputs:
+        CSV file: A file containing the detailed bus trip data with columns such as "timestamp (in seconds)", 
+                  "bus_trip_no", "status", "bus_stop_no", "latitude", "longitude", and "distance".
+
+    Notes:
+        - The function uses `convert_json_to_dict` to parse the input JSON file.
+        - Cumulative distances between stops are computed using the `calculate_haversine_distance` function.
+        - Trip details are constructed using the `initialise_dataframe` function for each trip.
+        - If the directory specified in the `feed_output_path` doesn't exist, it is created.
+    """
+
+    if not isinstance(polling_rate, int):
+        raise TypeError("\nTypeError: Polling rate is not an integer! Please make it an integer.")
+    
     data = convert_json_to_dict(json_file_path)
     polling_rate = polling_rate
 

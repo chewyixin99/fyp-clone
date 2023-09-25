@@ -2,8 +2,9 @@
 
 from docplex.mp.model import Model
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
+from typing import Dict, Any
 
-def run_model(data, silent=False):
+def run_model(data: Dict[str, Any], silent: bool = False) -> None:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -28,7 +29,7 @@ def run_model(data, silent=False):
         - Solution details for dispatch offsets, times of dispatch, and objective function value.
 
     Output:
-        - Writes the results (dwell times, busloads, arrival times, dispatch times) to a JSON file.
+        - Writes the results (dwell times, busloads, arrival times, dwell times, dispatch times) to a JSON file.
 
     Note:
         This function uses IBM Decision Optimization CPLEX solver to find the optimal solution
