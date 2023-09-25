@@ -1,6 +1,8 @@
-# v1.1 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
+# v2.0 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
 # and then changed Constraints 26 and 28 to make it max of boarding duration and alighting duration
 # and then changed Constraints 29, 31, 32, 33 and added Equation 20 to add bus capacity constraints
+
+# Constraints 6, 20, 27, 30 has been further revised to account for is_first_trip vs regular trips.
 
 from docplex.mp.model import Model
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
@@ -113,7 +115,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
     else:
         f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips))
                             for s in range(2, num_stops))
-                            
+
     # Equation 6, Constraint 20
     model.add_constraint(beta > 0)
 
@@ -150,7 +152,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
                             * (arrival_rate[s]
                             * (headway[j,s] - dwell[j-1,s])) + stranded[j,s])
                 
-    # Equation 12, Constraint 30 modified according to Confluence v1.1
+    # Equation 12, Constraint 30 modified according to Confluence v2.0
     if is_first_trip:
         model.add_constraint(busload[1,2] == initial_passengers[1])
     else:

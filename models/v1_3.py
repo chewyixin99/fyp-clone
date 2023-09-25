@@ -1,4 +1,4 @@
-# v1.1 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
+# v1.3 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
 # and then changed Constraints 29, 31, 32, 33 and added Equation 20 to add bus capacity constraints
 
 from docplex.mp.model import Model
