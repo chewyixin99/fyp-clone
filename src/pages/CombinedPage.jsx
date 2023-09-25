@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   defaultBusIndexAfter,
   defaultBusIndexBefore,
@@ -8,6 +8,7 @@ import {
 import { busesCurrentlyInJourney, isBusInJourney } from "../util/mapHelper";
 import MapsPage from "./MapsPage";
 import Journey from "../components/Journey";
+import Papa from "papaparse";
 
 const CombinedPage = () => {
   // yixin states
@@ -18,12 +19,46 @@ const CombinedPage = () => {
   const [numBusCurrBefore, setNumBusCurrBefore] = useState(0);
   const [numBusCurrAfter, setNumBusCurrAfter] = useState(0);
   // end of yixin states
-  const [paused, setPaused] = useState(false);
-  const [ended, setEnded] = useState(false);
-  
+
   // jianlin states
   const [start, setStart] = useState(false);
   // end of jianlin states
+
+  // combined
+  const [paused, setPaused] = useState(false);
+  const [ended, setEnded] = useState(false);
+  const [journeyData, setJourneyData] = useState([]);
+
+  const fetchData = async () => {
+    Papa.parse("./v1.1_output.csv", {
+      // options
+      download: true,
+      complete: (res) => {
+        const tmpJourneyData = [];
+        const data = res.data.slice(1);
+        for (let i = 0; i < data.length; i++) {
+          const rowData = data[i];
+          tmpJourneyData.push({
+            timestamp: parseFloat(rowData[0]),
+            lat: parseFloat(rowData[4]),
+            lng: parseFloat(rowData[5]),
+            opacity: 0,
+            stopId: "to be filled",
+            stopName: "to be filled",
+            busStopNo: parseInt(rowData[3]),
+            currentStatus: rowData[2],
+            busTripNo: parseInt(rowData[1]),
+            distance: parseFloat(rowData[6]),
+          });
+        }
+        setJourneyData(tmpJourneyData);
+      },
+    });
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const onStartClick = () => {
     // yixin logic
@@ -160,6 +195,7 @@ const CombinedPage = () => {
           paused={paused}
           ended={ended}
           start={start}
+          data={journeyData}
         />
       </div>
       {/* Yixin's component */}
@@ -181,6 +217,7 @@ const CombinedPage = () => {
           numBusCurrAfter={numBusCurrAfter}
           setNumBusCurrBefore={setNumBusCurrBefore}
           setNumBusCurrAfter={setNumBusCurrAfter}
+          allJourneyData={journeyData}
         />
       </div>
     </div>

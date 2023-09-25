@@ -1,11 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import Map from "../components/mapsPage/Map";
-import {
-  stopObjs,
-  journeyMarkers,
-} from "../data/constants";
-import Papa from "papaparse";
+import { stopObjs, journeyMarkers } from "../data/constants";
+import { getRecordsWithUniqueKey } from "../util/mapHelper";
 
 const MapsPage = ({
   paused,
@@ -24,58 +21,44 @@ const MapsPage = ({
   setZoom,
   center,
   setCenter,
+  allJourneyData,
 }) => {
   const stopsBefore = stopObjs.before;
   const stopsAfter = stopObjs.after;
+
   const journeyBefore = journeyMarkers.before;
   const journeyAfter = journeyMarkers.after;
-  // todo: uncomment below once full data in
+  // * todo: unomment once full data out
   // const [journeyBefore, setJourneyBefore] = useState([]);
   // const [journeyAfter, setJourneyAfter] = useState([]);
 
-  // todo: uncomment below once full data in
+  // * todo: unomment once full data out
   // const [polyPath, setPolyPath] = useState();
 
-  const fetchData = async () => {
-    Papa.parse("./v1.1_output.csv", {
-      // options
-      download: true,
-      complete: (res) => {
-        const tmpJourneyData = [];
-        const data = res.data.slice(1);
-        for (let i = 0; i < data.length; i += 20) {
-          const rowData = data[i];
-          tmpJourneyData.push({
-            timestamp: parseFloat(rowData[0]),
-            lat: parseFloat(rowData[4]),
-            lng: parseFloat(rowData[5]),
-            opacity: 0,
-            stopId: "to be filled",
-            stopName: "to be filled",
-            busStopNo: parseInt(rowData[3]),
-            currentStatus: rowData[2],
-            busTripNo: parseInt(rowData[1]),
-            distance: parseFloat(rowData[6]),
-          });
-        }
-        // setJourneyBefore(tmpJourneyData);
-        // setJourneyAfter(tmpJourneyData);
-
-        let tmpPolyPath = [];
-        for (const r of data) {
-          if (r[4] !== undefined && r[5] !== undefined) {
-            tmpPolyPath.push({ lat: parseFloat(r[4]), lng: parseFloat(r[5]) });
-          }
-        }
-        // setPolyPath(tmpPolyPath);
-      },
-    });
-  };
-
+  // process journey data
   useEffect(() => {
     // todo: uncomment below once full data in
-    // fetchData();
-  }, []);
+    let processedJourneyData = [];
+    for (let i = 0; i < allJourneyData.length; i += 20) {
+      processedJourneyData.push(allJourneyData[i]);
+    }
+
+    const tripData = getRecordsWithUniqueKey(processedJourneyData, "busTripNo");
+    console.log(tripData);
+    // * todo: unomment once full data out
+    // setJourneyBefore(processedJourneyData);
+    // setJourneyAfter(processedJourneyData);
+
+    // * todo: unomment once full data out
+    // let tmpPolyPath = [];
+    // for (const r of processedJourneyData) {
+    //   if (r.lat !== undefined && r.lng !== undefined) {
+    //     tmpPolyPath.push({ lat: r.lat, lng: r.lng });
+    //   }
+    // }
+    // setPolyPath(tmpPolyPath);
+    // console.log(tmpPolyPath);
+  }, [allJourneyData]);
 
   return (
     <div>
@@ -98,6 +81,7 @@ const MapsPage = ({
             setCenter={setCenter}
             ended={ended}
             setEnded={setEnded}
+            // * todo: unomment once full data out
             // polyPath={polyPath}
           />
         </div>
@@ -118,6 +102,7 @@ const MapsPage = ({
             setCenter={setCenter}
             ended={ended}
             setEnded={setEnded}
+            // * todo: unomment once full data out
             // polyPath={polyPath}
           />
         </div>
@@ -143,6 +128,7 @@ MapsPage.propTypes = {
   setZoom: PropTypes.func,
   zoom: PropTypes.number,
   center: PropTypes.object,
+  allJourneyData: PropTypes.array,
 };
 
 export default MapsPage;

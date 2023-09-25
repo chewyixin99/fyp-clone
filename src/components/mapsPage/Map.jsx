@@ -31,6 +31,7 @@ const Map = ({
   setCenter,
   ended,
   setEnded,
+  // * todo: unomment once full data out
   // polyPath,
 }) => {
   // map states
@@ -38,6 +39,7 @@ const Map = ({
   const MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY;
   const [map, setMap] = useState(null);
   // polypath
+  // * todo: delete once full data out
   const [polyPath, setPolyPath] = useState([]);
 
   const onLoad = useCallback(
@@ -63,6 +65,7 @@ const Map = ({
     for (const point of stops) {
       tmpPolyPath.push({ lat: point.lat, lng: point.lng });
     }
+    // * todo: delete once full data out
     setPolyPath(tmpPolyPath);
   }, [stops]);
 
@@ -246,6 +249,8 @@ Map.propTypes = {
   setCenter: PropTypes.func,
   ended: PropTypes.bool,
   setEnded: PropTypes.func,
+  // * todo: unomment once full data out
+  // polyPath: PropTypes.array,
 };
 
 export default Map;

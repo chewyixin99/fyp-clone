@@ -21,3 +21,27 @@ export const resetOpacity = (objsArr) => {
     obj.opacity = 0;
   }
 };
+
+// return all unique values present within the array
+export const getAllUniqueValues = (objsArr, keyName) => {
+  const resValues = [];
+  for (const obj of objsArr) {
+    if (!resValues.includes(obj[keyName])) {
+      resValues.push(obj[keyName]);
+    }
+  }
+  return resValues;
+};
+
+// separate original array by key
+export const getRecordsWithUniqueKey = (objsArr, keyName) => {
+  const uniqueValues = getAllUniqueValues(objsArr, keyName);
+  let resValues = {};
+  for (const val of uniqueValues) {
+    const recordsWithVal = objsArr.filter((r) => {
+      return r[keyName] === val;
+    });
+    resValues[val - 1] = recordsWithVal;
+  }
+  return resValues;
+};
