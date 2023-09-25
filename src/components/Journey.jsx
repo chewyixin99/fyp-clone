@@ -3,19 +3,67 @@
 import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
-import { mockJson, stopObjsAfter } from "../data/constants";
 import Papa from "papaparse";
+import PropTypes from "prop-types";
 
-const Journey = () => {
+const Journey = ({ start, paused, ended }) => {
   const [data, setData] = useState([]);
   const [totalDistance, setTotalDistance] = useState(3100);
-  const route_bar_width = 1600; //  simulator route bar width in pixels
+  const route_bar_width = 1600;
   const [relativeStopDistance, setRelativeStopDistance] = useState([]);
   const [numOfTrips, setNumOfTrips] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [triggerStart, setTriggerStart] = useState(false);
+  const [triggerStop, setTriggerStop] = useState(false);
+  const [saveLocalCount, setSaveLocalCount] = useState(0);
+  const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
+  const [runRefState, setRunRefState] = useState(null);
 
   var runRef = null;
+  var localCount = 0;
+
+  const fetchData = async () => {
+    Papa.parse("./v1.1_output.csv", {
+      // options
+      download: true,
+      complete: (res) => {
+        const tmpJourneyData = [];
+        const data = res.data.slice(1);
+        for (let i = 0; i < data.length; i++) {
+          const rowData = data[i];
+          tmpJourneyData.push({
+            timestamp: parseFloat(rowData[0]),
+            lat: parseFloat(rowData[4]),
+            lng: parseFloat(rowData[5]),
+            opacity: 0,
+            stopId: "to be filled",
+            stopName: "to be filled",
+            busStopNo: parseInt(rowData[3]),
+            currentStatus: rowData[2],
+            busTripNo: parseInt(rowData[1]),
+            distance: parseFloat(rowData[6]),
+          });
+        }
+        setData(tmpJourneyData);
+      },
+    });
+  };
+
+  const extractData = (data) => {
+    let stopDistance = data.filter((item) => {
+      return (
+        (item.currentStatus == "STOPPED_AT" ||
+          item.currentStatus == "DISPATCHED_FROM") &&
+        item.busTripNo == 1
+      );
+    });
+    let numberOfBusTrips = data.filter((item) => {
+      return item.currentStatus == "DISPATCHED_FROM";
+    });
+    setRelativeStopDistance(stopDistance);
+    setTotalDistance(stopDistance[stopDistance.length - 1]?.distance);
+    setNumOfTrips(numberOfBusTrips.length);
+  };
 
   const loadBusStops = () => {
     var busStopHTML = ``;
@@ -62,75 +110,9 @@ const Journey = () => {
     return min + "m " + sec + "s";
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    extractData(data);
-  }, [data]);
-
-  useEffect(() => {
-    loadBusStops();
-
-  }, [relativeStopDistance, totalDistance, numOfTrips]);
-
-  const fetchData = async () => {
-    Papa.parse("./v1.1_output.csv", {
-      // options
-      download: true,
-      complete: (res) => {
-        const tmpJourneyData = [];
-        const data = res.data.slice(1);
-        for (let i = 0; i < data.length; i++) {
-          const rowData = data[i];
-          tmpJourneyData.push({
-            timestamp: parseFloat(rowData[0]),
-            lat: parseFloat(rowData[4]),
-            lng: parseFloat(rowData[5]),
-            opacity: 0,
-            stopId: "to be filled",
-            stopName: "to be filled",
-            busStopNo: parseInt(rowData[3]),
-            currentStatus: rowData[2],
-            busTripNo: parseInt(rowData[1]),
-            distance: parseFloat(rowData[6]),
-          });
-        }
-        setData(tmpJourneyData);
-      },
-    });
-  };
-
-  const extractData = (data) => {
-    let stopDistance = data.filter((item) => {
-      return (
-        (item.currentStatus == "STOPPED_AT" ||
-          item.currentStatus == "DISPATCHED_FROM") &&
-        item.busTripNo == 1
-      );
-    });
-    let numberOfBusTrips = data.filter((item) => {
-      return item.currentStatus == "DISPATCHED_FROM";
-    });
-    setRelativeStopDistance(stopDistance);
-    setTotalDistance(stopDistance[stopDistance.length - 1]?.distance);
-    setNumOfTrips(numberOfBusTrips.length);
-  };
-
-  const [saveLocalCount, setSaveLocalCount] = useState(0);
-  const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
-
-  useEffect(() => {
-    if (isRunning) {
-      runFunction(data);
-    }
-  }, [saveLocalCount, isRunning]);
-
-  var localCount = 0;
   const runFunction = (data) => {
     localCount = saveLocalCount;
-
+    // console.log("runfunction", saveLocalCount);
     if (data.length < 0) {
       alert("Data error. Please try again.");
       return;
@@ -174,7 +156,10 @@ const Journey = () => {
       }
 
       localCount++;
+      setSaveLocalCount(localCount);
     }, 10);
+
+    setRunRefState(runRef);
   };
 
   const add_travel_distance = (newDistance, tripNo, timestamp) => {
@@ -198,51 +183,104 @@ const Journey = () => {
       "%";
 
     let elapsedSeconds = timestamp - busDispatchTimestamps[tripNo];
-
     progressTipContentElapsedTime.innerHTML =
       convert_seconds_to_time(elapsedSeconds);
+
   };
 
   const startRun = () => {
-    var pause_btn = document.querySelector(`.pause_simulation`);
-    var run_btn = document.querySelector(`.run_simulation`);
-    var stop_btn = document.querySelector(`.stop_simulation`);
-    pause_btn.classList.remove("hidden");
-    run_btn.classList.add("hidden");
-    stop_btn.classList.remove("hidden");
+    // var pause_btn = document.querySelector(`.pause_simulation`);
+    // var run_btn = document.querySelector(`.run_simulation`);
+    // var stop_btn = document.querySelector(`.stop_simulation`);
+    // pause_btn.classList.remove("hidden");
+    // run_btn.classList.add("hidden");
+    // stop_btn.classList.remove("hidden");
+    // console.log("start run");
     setIsRunning(true);
     setTriggerStart(true);
+    setTriggerStop(false);
   };
 
   const pause = () => {
     if (isRunning) {
-      setIsRunning(false);
+      // console.log("paused triggered");
+      runRef = runRefState;
       clearInterval(runRef);
-      setSaveLocalCount(localCount);
+      setIsRunning(false);
     } else {
-      setIsRunning(true);
+      // console.log("paused untriggered");
+      if (triggerStart) {
+        setIsRunning(true);
+      }
     }
   };
 
   const stop = () => {
-    var pause_btn = document.querySelector(`.pause_simulation`);
-    var run_btn = document.querySelector(`.run_simulation`);
-    var stop_btn = document.querySelector(`.stop_simulation`);
-
+    // var pause_btn = document.querySelector(`.pause_simulation`);
+    // var run_btn = document.querySelector(`.run_simulation`);
+    // var stop_btn = document.querySelector(`.stop_simulation`);
+    runRef = runRefState;
+    // console.log(runRef);
     clearInterval(runRef);
     setIsRunning(false);
-    add_travel_distance(data[0].distance, data[0].busTripNo, data[0].timestamp);
+    setTriggerStart(false);
+    setTriggerStop(true);
     setSaveLocalCount(0);
+    add_travel_distance(data[0].distance, data[0].busTripNo, data[0].timestamp);
 
-    pause_btn.classList.add("hidden");
-    run_btn.classList.remove("hidden");
-    stop_btn.classList.add("hidden");
+
+
+    // pause_btn.classList.add("hidden");
+    // run_btn.classList.remove("hidden");
+    // stop_btn.classList.add("hidden");
   };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    extractData(data);
+  }, [data]);
+
+  useEffect(() => {
+    loadBusStops();
+  }, [relativeStopDistance, totalDistance, numOfTrips]);
+
+  useEffect(() => {
+    // console.log("isrunning", isRunning);
+    if (isRunning) {
+      runFunction(data);
+    }
+  }, [isRunning]);
+
+  useEffect(() => {
+    // console.log("start");
+    if (start) {
+      startRun();
+    }
+  }, [start]);
+
+  useEffect(() => {
+    pause();
+  }, [paused]);
+
+  useEffect(() => {
+    // console.log(saveLocalCount);
+  }, [saveLocalCount]);
+
+  useEffect(() => {
+    // console.log("ended");
+    if (ended) {
+      setTriggerStop(true);
+      stop();
+    }
+  }, [ended]);
+
   return (
-    <div>
+    <div className="mx-auto">
       <div className="control-panel">
-        <div className="sm:flex gap-2 justify-center">
+        {/* <div className="sm:flex gap-2 justify-center">
           <button
             onClick={startRun}
             id={`run_simulation`}
@@ -307,7 +345,7 @@ const Journey = () => {
               </svg>
             )}
           </button>
-        </div>
+        </div> */}
       </div>
       <div className="route-container">
         <div className="route-bar">
@@ -327,9 +365,9 @@ const Journey = () => {
                 className={`progress-tip-content-ref-${
                   i + 1
                 } progress-tip-content`}
-                style={{ left: "-2.7%"}}
+                style={{ left: "-2.7%" }}
               >
-                Trip No.: {triggerStart ? `${i+1}` : "-"}
+                Trip No.: {triggerStart ? triggerStop ? "-" : `${i + 1}` : "-"}
                 <p
                   className={`progress-tip-content-trip-no-ref-${
                     i + 1
@@ -342,12 +380,13 @@ const Journey = () => {
                 >
                   Dist.: 0m / 0%
                 </p>
-                Elapsed: {triggerStart ? "" : "0m 0s"}
+                
+                Elapsed: {" "}
                 <span
                   className={`progress-tip-content-elapsed-time-ref-${
                     i + 1
                   } progress-tip-dist progress-tip-content-elapsed-time-ref`}
-                ></span>
+                >{triggerStart ? triggerStop ? "" : "" : "0m 0s"}</span>
               </div>
             </div>
           ))}
@@ -358,6 +397,12 @@ const Journey = () => {
       </div>
     </div>
   );
+};
+
+Journey.propTypes = {
+  paused: PropTypes.bool,
+  ended: PropTypes.bool,
+  start: PropTypes.bool,
 };
 
 export default Journey;

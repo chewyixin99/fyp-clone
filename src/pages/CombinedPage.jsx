@@ -7,6 +7,7 @@ import {
 } from "../data/constants";
 import { busesCurrentlyInJourney, isBusInJourney } from "../util/mapHelper";
 import MapsPage from "./MapsPage";
+import Journey from "../components/Journey";
 
 const CombinedPage = () => {
   // yixin states
@@ -19,6 +20,10 @@ const CombinedPage = () => {
   // end of yixin states
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
+  
+  // jianlin states
+  const [start, setStart] = useState(false);
+  // end of jianlin states
 
   const onStartClick = () => {
     // yixin logic
@@ -46,6 +51,10 @@ const CombinedPage = () => {
       }
     }
     // end of yixin logic
+
+    // jianlin logic
+    setStart(true);
+    // end of jianlin logic
   };
 
   const onPauseClick = () => {
@@ -93,6 +102,10 @@ const CombinedPage = () => {
       setEnded(true);
     }
     // end of yixin logic
+
+    // start of jianlin logic
+    setStart(false);
+    // end of jianlin logic
   };
 
   const onResetZoomAndCenterClick = () => {
@@ -142,7 +155,13 @@ const CombinedPage = () => {
         </button>
       </div>
       {/* JianLin's component */}
-      <div className=""></div>
+      <div className="">
+        <Journey
+          paused={paused}
+          ended={ended}
+          start={start}
+        />
+      </div>
       {/* Yixin's component */}
       <div className="">
         <MapsPage
