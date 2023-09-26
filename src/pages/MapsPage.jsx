@@ -22,15 +22,20 @@ const MapsPage = ({
   center,
   setCenter,
   allJourneyData,
+  defaultIntervalTime,
+  defaultInactiveOpacity,
+  defaultActiveOpacity,
 }) => {
+  // used for polyLine and stop markers, static
   const stopsBefore = stopObjs.before;
   const stopsAfter = stopObjs.after;
 
+  // used to display bus journey
   const journeyBefore = journeyMarkers.before;
   const journeyAfter = journeyMarkers.after;
   // * todo: unomment once full data out
-  // const [journeyBefore, setJourneyBefore] = useState([]);
-  // const [journeyAfter, setJourneyAfter] = useState([]);
+  const [journeyBeforeNew, setJourneyBeforeNew] = useState([]);
+  const [journeyAfterNew, setJourneyAfterNew] = useState([]);
 
   // * todo: unomment once full data out
   // const [polyPath, setPolyPath] = useState();
@@ -42,12 +47,11 @@ const MapsPage = ({
     for (let i = 0; i < allJourneyData.length; i += 20) {
       processedJourneyData.push(allJourneyData[i]);
     }
-
     const tripData = getRecordsWithUniqueKey(processedJourneyData, "busTripNo");
-    console.log(tripData);
+    // console.log(tripData);
     // * todo: unomment once full data out
-    // setJourneyBefore(processedJourneyData);
-    // setJourneyAfter(processedJourneyData);
+    setJourneyBeforeNew(tripData);
+    setJourneyAfterNew(tripData);
 
     // * todo: unomment once full data out
     // let tmpPolyPath = [];
@@ -73,6 +77,8 @@ const MapsPage = ({
             isOptimized={false}
             stops={stopsBefore}
             journey={journeyBefore}
+            // * todo: replace once full data in, for now its just to test
+            journeyNew={journeyBeforeNew}
             paused={paused}
             setPaused={setPaused}
             zoom={zoom}
@@ -81,6 +87,9 @@ const MapsPage = ({
             setCenter={setCenter}
             ended={ended}
             setEnded={setEnded}
+            defaultIntervalTime={defaultIntervalTime}
+            defaultInactiveOpacity={defaultInactiveOpacity}
+            defaultActiveOpacity={defaultActiveOpacity}
             // * todo: unomment once full data out
             // polyPath={polyPath}
           />
@@ -94,6 +103,8 @@ const MapsPage = ({
             isOptimized={true}
             stops={stopsAfter}
             journey={journeyAfter}
+            // * todo: replace once full data in, for now its just to test
+            journeyNew={journeyAfterNew}
             paused={paused}
             setPaused={setPaused}
             zoom={zoom}
@@ -102,6 +113,9 @@ const MapsPage = ({
             setCenter={setCenter}
             ended={ended}
             setEnded={setEnded}
+            defaultIntervalTime={defaultIntervalTime}
+            defaultInactiveOpacity={defaultInactiveOpacity}
+            defaultActiveOpacity={defaultActiveOpacity}
             // * todo: unomment once full data out
             // polyPath={polyPath}
           />
@@ -129,6 +143,9 @@ MapsPage.propTypes = {
   zoom: PropTypes.number,
   center: PropTypes.object,
   allJourneyData: PropTypes.array,
+  defaultIntervalTime: PropTypes.number,
+  defaultInactiveOpacity: PropTypes.number,
+  defaultActiveOpacity: PropTypes.number,
 };
 
 export default MapsPage;

@@ -10,6 +10,10 @@ import MapsPage from "./MapsPage";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
 
+const defaultIntervalTime = 200;
+const defaultInactiveOpacity = 0;
+const defaultActiveOpacity = 1;
+
 const CombinedPage = () => {
   // yixin states
   const [zoom, setZoom] = useState(defaultZoom);
@@ -218,6 +222,9 @@ const CombinedPage = () => {
           setNumBusCurrBefore={setNumBusCurrBefore}
           setNumBusCurrAfter={setNumBusCurrAfter}
           allJourneyData={journeyData}
+          defaultIntervalTime={defaultIntervalTime}
+          defaultInactiveOpacity={defaultInactiveOpacity}
+          defaultActiveOpacity={defaultActiveOpacity}
         />
       </div>
     </div>

@@ -11,14 +11,12 @@ const containerStyle = {
   height: "30vw",
 };
 
-const defaultIntervalTime = 200;
-const defaultInactiveOpacity = 0;
-const defaultActiveOpacity = 1;
-
 const Map = ({
   isOptimized,
   stops,
   journey,
+  // * todo: replace once full data in, for now its just to test
+  journeyNew,
   busIndex,
   setBusIndex,
   numBusCurr,
@@ -31,6 +29,9 @@ const Map = ({
   setCenter,
   ended,
   setEnded,
+  defaultIntervalTime,
+  defaultInactiveOpacity,
+  defaultActiveOpacity,
   // * todo: unomment once full data out
   // polyPath,
 }) => {
@@ -237,6 +238,8 @@ Map.propTypes = {
   isOptimized: PropTypes.bool,
   stops: PropTypes.array,
   journey: PropTypes.array,
+  // * todo: replace once full data in, for now its just to test
+  journeyNew: PropTypes.object,
   busIndex: PropTypes.object,
   setBusIndex: PropTypes.func,
   numBusCurr: PropTypes.number,
@@ -249,6 +252,9 @@ Map.propTypes = {
   setCenter: PropTypes.func,
   ended: PropTypes.bool,
   setEnded: PropTypes.func,
+  defaultIntervalTime: PropTypes.number,
+  defaultInactiveOpacity: PropTypes.number,
+  defaultActiveOpacity: PropTypes.number,
   // * todo: unomment once full data out
   // polyPath: PropTypes.array,
 };
