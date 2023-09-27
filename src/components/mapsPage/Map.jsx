@@ -4,7 +4,11 @@ import PropTypes from "prop-types";
 // custom imports
 import MarkerWithInfoWindow from "./MarkerWithInfoWindow";
 import BusStatus from "./BusStatus";
-import { resetOpacity, updateBusCurrStop } from "../../util/mapHelper";
+import {
+  resetOpacity,
+  startBusIfTime,
+  updateBusCurrStop,
+} from "../../util/mapHelper";
 
 const containerStyle = {
   width: "40vw",
@@ -12,6 +16,7 @@ const containerStyle = {
 };
 
 const Map = ({
+  started,
   isOptimized,
   stops,
   journey,
@@ -32,7 +37,7 @@ const Map = ({
   defaultIntervalTime,
   defaultInactiveOpacity,
   defaultActiveOpacity,
-  // * todo: unomment once full data out
+  // * todo: uncomment once full data out
   // polyPath,
 }) => {
   // map states
@@ -42,6 +47,12 @@ const Map = ({
   // polypath
   // * todo: delete once full data out
   const [polyPath, setPolyPath] = useState([]);
+  // to keep track of global time so that bus can be automatically dispatched
+  const startTime =
+    Object.keys(journeyNew).length === 0 ? 0 : journeyNew[0][0].timestamp; // hardcoded
+  const [globalTime, setGlobalTime] = useState(0);
+  // keep track total number of buses dispatched
+  const [numBusDispatched, setNumBusDispatched] = useState(1);
 
   const onLoad = useCallback(
     (map) => {
@@ -60,44 +71,67 @@ const Map = ({
     setZoom(null);
   }, [setCenter, setZoom]);
 
-  // calculate polyline path once on initial render
+  // initial render data
   useEffect(() => {
+    // calculate polyline path once on
     let tmpPolyPath = [];
     for (const point of stops) {
       tmpPolyPath.push({ lat: point.lat, lng: point.lng });
     }
     // * todo: delete once full data out
     setPolyPath(tmpPolyPath);
-  }, [stops]);
+    setGlobalTime(startTime);
+  }, [stops, journeyNew]);
 
   // bus update logic
   // TODO: listen for bus location and do some action
   useEffect(() => {
     // only enter code if there is
     // 1. at least 1 bus running 2. not paused 3. not ended
-    if (numBusCurr !== 0 && !paused && !ended) {
+    if (
+      // numBusCurr !== 0 &&
+      started &&
+      !paused &&
+      !ended
+    ) {
       // create a copy and update before setting the new state
       let busIndexCopy = JSON.parse(JSON.stringify(busIndex));
       const interval = setInterval(() => {
         for (const bus in busIndexCopy) {
+          const busJourney = journeyNew[bus];
+          console.log(
+            `globalTime is ${globalTime}, numBusDispatched is ${numBusDispatched}`
+          );
+          const toStartBus = startBusIfTime(busJourney, globalTime);
           // only update if a journey is started and index is <= total num stops
-          if (updateBusCurrStop(busIndexCopy[bus], journey.length)) {
+          if (updateBusCurrStop(busIndexCopy[bus], busJourney.length)) {
             busIndexCopy[bus].currStop += 1;
+          } else if (
+            toStartBus &&
+            Object.keys(busIndex).length > numBusDispatched
+          ) {
+            busIndexCopy[bus].currStop += 1;
+            setNumBusCurr(numBusCurr + 1);
+            setNumBusDispatched(numBusDispatched + 1);
           }
         }
         // set stops to updated stopMarkers
         setBusIndex({ ...busIndexCopy });
+        // update global time
+        // ! todo: arbitrarily set for now
+        setGlobalTime(globalTime + defaultIntervalTime / 20);
       }, defaultIntervalTime);
       // loop through every bus to check if there is a need to update markers
       for (const bus in busIndex) {
         // find the curr stop that this bus is at
         const currStop = busIndex[bus].currStop;
+        const busJourney = journeyNew[bus];
         // only update buses who is currently out i.e., currStop !== -1
         if (currStop !== -1) {
           // condition not in use for now, but have to take note of currStop === 0 case
           if (currStop === 0) {
-            journey[journey.length - 1].opacity = defaultInactiveOpacity;
-          } else if (currStop === journey.length) {
+            busJourney[busJourney.length - 1].opacity = defaultInactiveOpacity;
+          } else if (currStop === busJourney.length) {
             // check if this bus is on its last stop, set to -1 to stop the journey
             setBusIndex({
               ...busIndex,
@@ -109,39 +143,53 @@ const Map = ({
             console.log(
               `remove 1 bus from loop: numBuses now = ${numBusCurr - 1}`
             );
-            resetOpacity(journey);
+            resetOpacity(busJourney);
+            // * todo: new
+            resetOpacity(busJourney);
             // reset opacity after last station
-            journey[currStop - 1].opacity = defaultInactiveOpacity;
+            busJourney[currStop - 1].opacity = defaultInactiveOpacity;
             // use this to signify that all buses have concluded their journey
             if (numBusCurr - 1 === 0) {
               console.log("ending journey...");
-              setEnded(false);
+              // reset numBusDispatched
+              setNumBusDispatched(0);
+              setGlobalTime(startTime);
+              setEnded(true);
             }
             // keep track of buses that are still in journey
             setNumBusCurr(numBusCurr - 1);
             return () => clearInterval(interval);
           } else {
             // reset prev stop's opacity
-            journey[currStop - 1].opacity = defaultInactiveOpacity;
+            busJourney[currStop - 1].opacity = defaultInactiveOpacity;
             // set curr stop's opacity
-            journey[currStop].opacity = defaultActiveOpacity;
+            busJourney[currStop].opacity = defaultActiveOpacity;
           }
         }
       }
       return () => clearInterval(interval);
     } else if (ended) {
       console.log("journey ended");
-      for (const point of journey) {
-        point.opacity = defaultInactiveOpacity;
-      }
+      // reset globalTime
+      setGlobalTime(startTime);
       // reset buses
       setNumBusCurr(0);
+      // reset numBusDispatched
+      setNumBusDispatched(0);
       // reset pause state
       setPaused(false);
+      for (const bus in journeyNew) {
+        for (const point of journeyNew[bus]) {
+          point.opacity = defaultInactiveOpacity;
+        }
+      }
     }
-  }, [busIndex, journey, numBusCurr, paused, ended]);
+  }, [busIndex, journeyNew, numBusCurr, started, paused, ended]);
 
   const renderMap = () => {
+    if (Object.keys(journeyNew).length === 0 || journeyNew === undefined) {
+      return;
+    }
     return (
       <div>
         <LoadScript googleMapsApiKey={MAPS_API_KEY}>
@@ -181,14 +229,79 @@ const Map = ({
               // store marker for manipulation later
               return markerWithInfoWindow;
             })}
-            {journey.map((point, index) => {
+            {/* * todo: change journey to journeyNew */}
+            {journeyNew[0].map((point, index) => {
               if (point === null) {
                 return;
               }
               const markerWithInfoWindow = (
                 <MarkerWithInfoWindow
                   key={index}
-                  data={journey}
+                  data={journeyNew[0]}
+                  index={index}
+                  stop={point}
+                  map={map}
+                />
+              );
+              // store marker for manipulation later
+              return markerWithInfoWindow;
+            })}
+            {journeyNew[1].map((point, index) => {
+              if (point === null) {
+                return;
+              }
+              const markerWithInfoWindow = (
+                <MarkerWithInfoWindow
+                  key={index}
+                  data={journeyNew[1]}
+                  index={index}
+                  stop={point}
+                  map={map}
+                />
+              );
+              // store marker for manipulation later
+              return markerWithInfoWindow;
+            })}
+            {journeyNew[2].map((point, index) => {
+              if (point === null) {
+                return;
+              }
+              const markerWithInfoWindow = (
+                <MarkerWithInfoWindow
+                  key={index}
+                  data={journeyNew[2]}
+                  index={index}
+                  stop={point}
+                  map={map}
+                />
+              );
+              // store marker for manipulation later
+              return markerWithInfoWindow;
+            })}
+            {journeyNew[3].map((point, index) => {
+              if (point === null) {
+                return;
+              }
+              const markerWithInfoWindow = (
+                <MarkerWithInfoWindow
+                  key={index}
+                  data={journeyNew[3]}
+                  index={index}
+                  stop={point}
+                  map={map}
+                />
+              );
+              // store marker for manipulation later
+              return markerWithInfoWindow;
+            })}
+            {journeyNew[4].map((point, index) => {
+              if (point === null) {
+                return;
+              }
+              const markerWithInfoWindow = (
+                <MarkerWithInfoWindow
+                  key={index}
+                  data={journeyNew[4]}
                   index={index}
                   stop={point}
                   map={map}
@@ -225,7 +338,7 @@ const Map = ({
               key={bus}
               busNum={bus}
               busDetails={busIndex[bus]}
-              currStopDetails={journey[busIndex[bus].currStop - 1]}
+              currStopDetails={journeyNew[bus][busIndex[bus].currStop - 1]}
             />
           );
         })}
@@ -235,6 +348,7 @@ const Map = ({
 };
 
 Map.propTypes = {
+  started: PropTypes.bool,
   isOptimized: PropTypes.bool,
   stops: PropTypes.array,
   journey: PropTypes.array,
@@ -255,7 +369,7 @@ Map.propTypes = {
   defaultIntervalTime: PropTypes.number,
   defaultInactiveOpacity: PropTypes.number,
   defaultActiveOpacity: PropTypes.number,
-  // * todo: unomment once full data out
+  // * todo: uncomment once full data out
   // polyPath: PropTypes.array,
 };
 

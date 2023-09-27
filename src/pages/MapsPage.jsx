@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import Map from "../components/mapsPage/Map";
 import { stopObjs, journeyMarkers } from "../data/constants";
-import { getRecordsWithUniqueKey } from "../util/mapHelper";
+import { getAllUniqueValues, getRecordsWithUniqueKey } from "../util/mapHelper";
 
 const MapsPage = ({
+  started,
   paused,
   ended,
   setPaused,
@@ -33,27 +34,40 @@ const MapsPage = ({
   // used to display bus journey
   const journeyBefore = journeyMarkers.before;
   const journeyAfter = journeyMarkers.after;
-  // * todo: unomment once full data out
-  const [journeyBeforeNew, setJourneyBeforeNew] = useState([]);
-  const [journeyAfterNew, setJourneyAfterNew] = useState([]);
+  // * todo: uncomment once full data out
+  const [journeyBeforeNew, setJourneyBeforeNew] = useState({});
+  const [journeyAfterNew, setJourneyAfterNew] = useState({});
 
-  // * todo: unomment once full data out
+  // * todo: uncomment once full data out
   // const [polyPath, setPolyPath] = useState();
 
   // process journey data
   useEffect(() => {
     // todo: uncomment below once full data in
     let processedJourneyData = [];
-    for (let i = 0; i < allJourneyData.length; i += 20) {
+    for (let i = 0; i < allJourneyData.length; i += 10) {
       processedJourneyData.push(allJourneyData[i]);
     }
     const tripData = getRecordsWithUniqueKey(processedJourneyData, "busTripNo");
-    // console.log(tripData);
-    // * todo: unomment once full data out
+    console.log(tripData);
+    // * todo: uncomment once full data out
     setJourneyBeforeNew(tripData);
     setJourneyAfterNew(tripData);
 
-    // * todo: unomment once full data out
+    // initialize bus index dynamically
+    let tmpBusIndexBefore = {};
+    let tmpBusIndexAfter = {};
+    for (const busIndex of getAllUniqueValues(
+      processedJourneyData,
+      "busTripNo"
+    )) {
+      tmpBusIndexBefore[busIndex - 1] = { currStop: -1 };
+      tmpBusIndexAfter[busIndex - 1] = { currStop: -1 };
+    }
+    setBusIndexBefore(tmpBusIndexBefore);
+    setBusIndexAfter(tmpBusIndexAfter);
+
+    // * todo: uncomment once full data out
     // let tmpPolyPath = [];
     // for (const r of processedJourneyData) {
     //   if (r.lat !== undefined && r.lng !== undefined) {
@@ -70,6 +84,7 @@ const MapsPage = ({
       <div className="flex justify-evenly my-10">
         <div className="w-[40vw] border">
           <Map
+            started={started}
             busIndex={busIndexBefore}
             setBusIndex={setBusIndexBefore}
             numBusCurr={numBusCurrBefore}
@@ -90,12 +105,13 @@ const MapsPage = ({
             defaultIntervalTime={defaultIntervalTime}
             defaultInactiveOpacity={defaultInactiveOpacity}
             defaultActiveOpacity={defaultActiveOpacity}
-            // * todo: unomment once full data out
+            // * todo: uncomment once full data out
             // polyPath={polyPath}
           />
         </div>
         <div className="w-[40vw] border">
           <Map
+            started={started}
             busIndex={busIndexAfter}
             setBusIndex={setBusIndexAfter}
             numBusCurr={numBusCurrAfter}
@@ -116,7 +132,7 @@ const MapsPage = ({
             defaultIntervalTime={defaultIntervalTime}
             defaultInactiveOpacity={defaultInactiveOpacity}
             defaultActiveOpacity={defaultActiveOpacity}
-            // * todo: unomment once full data out
+            // * todo: uncomment once full data out
             // polyPath={polyPath}
           />
         </div>
@@ -126,6 +142,7 @@ const MapsPage = ({
 };
 
 MapsPage.propTypes = {
+  started: PropTypes.bool,
   paused: PropTypes.bool,
   ended: PropTypes.bool,
   setPaused: PropTypes.func,

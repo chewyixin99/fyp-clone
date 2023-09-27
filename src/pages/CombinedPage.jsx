@@ -18,8 +18,8 @@ const CombinedPage = () => {
   // yixin states
   const [zoom, setZoom] = useState(defaultZoom);
   const [center, setCenter] = useState(defaultCenter);
-  const [busIndexBefore, setBusIndexBefore] = useState(defaultBusIndexBefore);
-  const [busIndexAfter, setBusIndexAfter] = useState(defaultBusIndexAfter);
+  const [busIndexBefore, setBusIndexBefore] = useState({});
+  const [busIndexAfter, setBusIndexAfter] = useState({});
   const [numBusCurrBefore, setNumBusCurrBefore] = useState(0);
   const [numBusCurrAfter, setNumBusCurrAfter] = useState(0);
   // end of yixin states
@@ -205,6 +205,7 @@ const CombinedPage = () => {
       {/* Yixin's component */}
       <div className="">
         <MapsPage
+          started={start}
           paused={paused}
           ended={ended}
           setPaused={setPaused}

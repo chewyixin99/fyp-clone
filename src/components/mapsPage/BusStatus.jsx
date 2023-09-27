@@ -14,7 +14,7 @@ const BusStatus = ({ busNum, busDetails, currStopDetails }) => {
           <div>
             Bus {parseInt(busNum) + 1} status: {currStopDetails.currentStatus}
           </div>
-          <div>stop sequence {currStopDetails.stopSequence}</div>
+          <div>stop no {currStopDetails.busStopNo}</div>
         </div>
       )}
       <div className="border p-3 my-2">

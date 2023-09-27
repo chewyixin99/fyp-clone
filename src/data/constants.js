@@ -3,7 +3,7 @@ export const defaultCenter = {
   lng: -122.399686,
 };
 
-export const defaultZoom = 14;
+export const defaultZoom = 13;
 
 export const stopObjsBefore = [
   {

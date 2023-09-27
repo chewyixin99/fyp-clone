@@ -130,7 +130,8 @@ const Journey = ({ start, paused, ended, data }) => {
         localCount++;
         setSaveLocalCount(localCount);
       }
-      console.log("running in runRef in {Journey.jsx}");
+      // !
+      // console.log("running in runRef in {Journey.jsx}");
     }, 10);
 
     setRunRefState(runRef);
