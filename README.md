@@ -26,7 +26,7 @@ Star Command is the backend server that helps integrate our data as calls for ou
 ```
 
 # Project Structure
-This structure takes it's form from FastAPI's recommendations [here](https://fastapi.tiangolo.com/tutorial/bigger-applications/).
+Our project structure lends it's form from FastAPI's recommendations [here](https://fastapi.tiangolo.com/tutorial/bigger-applications/).
 
 ```
 .
