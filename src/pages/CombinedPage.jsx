@@ -1,27 +1,19 @@
 import { useState, useEffect } from "react";
-import {
-  defaultBusIndexAfter,
-  defaultBusIndexBefore,
-  defaultCenter,
-  defaultZoom,
-} from "../data/constants";
-import { busesCurrentlyInJourney, isBusInJourney } from "../util/mapHelper";
-import MapsPage from "./MapsPage";
+import { defaultCenter, defaultZoom, stopObjsBefore } from "../data/constants";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
+import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 
 const defaultIntervalTime = 200;
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 
+const stops = stopObjsBefore;
+
 const CombinedPage = () => {
   // yixin states
   const [zoom, setZoom] = useState(defaultZoom);
   const [center, setCenter] = useState(defaultCenter);
-  const [busIndexBefore, setBusIndexBefore] = useState({});
-  const [busIndexAfter, setBusIndexAfter] = useState({});
-  const [numBusCurrBefore, setNumBusCurrBefore] = useState(0);
-  const [numBusCurrAfter, setNumBusCurrAfter] = useState(0);
   // end of yixin states
 
   // jianlin states
@@ -65,30 +57,9 @@ const CombinedPage = () => {
   }, []);
 
   const onStartClick = () => {
-    // yixin logic
+    console.log("start clicked");
     setEnded(false);
-    let busIndexBeforeCopy = JSON.parse(JSON.stringify(busIndexBefore));
-    for (const bus in busIndexBeforeCopy) {
-      if (busIndexBeforeCopy[bus].currStop === -1) {
-        busIndexBeforeCopy[bus].currStop = 0;
-        console.log(
-          `add 1 bus to loop: numBuses now = ${numBusCurrBefore + 1}`
-        );
-        setNumBusCurrBefore(numBusCurrBefore + 1);
-        setBusIndexBefore(busIndexBeforeCopy);
-        break;
-      }
-    }
-    let busIndexAfterCopy = JSON.parse(JSON.stringify(busIndexAfter));
-    for (const bus in busIndexAfterCopy) {
-      if (busIndexAfterCopy[bus].currStop === -1) {
-        busIndexAfterCopy[bus].currStop = 0;
-        console.log(`add 1 bus to loop: numBuses now = ${numBusCurrAfter + 1}`);
-        setNumBusCurrAfter(numBusCurrAfter + 1);
-        setBusIndexAfter(busIndexAfterCopy);
-        break;
-      }
-    }
+    // yixin logic
     // end of yixin logic
 
     // jianlin logic
@@ -98,52 +69,18 @@ const CombinedPage = () => {
 
   const onPauseClick = () => {
     // start of yixin logic
-    if (busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])) {
-      if (!paused) {
-        // Before
-        let tmpBusIndexBefore = JSON.parse(JSON.stringify(busIndexBefore));
-        for (const bus in tmpBusIndexBefore) {
-          if (isBusInJourney(tmpBusIndexBefore[bus])) {
-            tmpBusIndexBefore[bus].currStop += 1;
-          }
-        }
-        setBusIndexBefore(tmpBusIndexBefore);
-        // After
-        let tmpBusIndexAfter = JSON.parse(JSON.stringify(busIndexAfter));
-        for (const bus in tmpBusIndexAfter) {
-          if (isBusInJourney(tmpBusIndexAfter[bus])) {
-            tmpBusIndexAfter[bus].currStop += 1;
-          }
-        }
-        setBusIndexAfter(tmpBusIndexAfter);
-      }
-      setPaused(!paused);
-    }
+    setPaused(!paused);
     // end of yixin logic
   };
 
   const onEndClick = () => {
     // start of yixin logic
-    if (busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])) {
-      // update all buses to -1, to signify that all has ended their journey
-      // before
-      let tmpBusIndexCopyBefore = JSON.parse(JSON.stringify(busIndexBefore));
-      for (const bus in tmpBusIndexCopyBefore) {
-        tmpBusIndexCopyBefore[bus].currStop = -1;
-      }
-      setBusIndexBefore(tmpBusIndexCopyBefore);
-      // after
-      let tmpBusIndexCopyAfter = JSON.parse(JSON.stringify(busIndexAfter));
-      for (const bus in tmpBusIndexCopyAfter) {
-        tmpBusIndexCopyAfter[bus].currStop = -1;
-      }
-      setBusIndexAfter(tmpBusIndexCopyAfter);
-      setEnded(true);
-    }
     // end of yixin logic
 
     // start of jianlin logic
     setStart(false);
+    setEnded(true);
+    setPaused(false);
     // end of jianlin logic
   };
 
@@ -160,29 +97,18 @@ const CombinedPage = () => {
           onClick={onStartClick}
           type="button"
           className={paused ? "control-button-disabled" : "control-button"}
+          disabled={paused}
         >
           start
         </button>
         <button
           onClick={onPauseClick}
           type="button"
-          className={
-            !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
-              ? `control-button-disabled`
-              : `control-button`
-          }
+          className={ended ? `control-button-disabled` : `control-button`}
         >
           {paused ? "resume" : "pause"}
         </button>
-        <button
-          onClick={onEndClick}
-          type="button"
-          className={
-            !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
-              ? `control-button-disabled`
-              : `control-button`
-          }
-        >
+        <button onClick={onEndClick} type="button" className={`control-button`}>
           end
         </button>
         <button
@@ -203,29 +129,21 @@ const CombinedPage = () => {
         />
       </div>
       {/* Yixin's component */}
-      <div className="">
-        <MapsPage
+      <div className="m-10">
+        <MapsPageRewrite
+          zoom={zoom}
+          center={center}
+          setZoom={setZoom}
+          setCenter={setCenter}
+          defaultActiveOpacity={defaultActiveOpacity}
+          defaultInactiveOpacity={defaultInactiveOpacity}
+          stops={stops}
+          defaultIntervalTime={defaultIntervalTime}
+          journeyData={journeyData}
           started={start}
+          setEnded={setEnded}
           paused={paused}
           ended={ended}
-          setPaused={setPaused}
-          setEnded={setEnded}
-          zoom={zoom}
-          setZoom={setZoom}
-          center={center}
-          setCenter={setCenter}
-          busIndexBefore={busIndexBefore}
-          setBusIndexBefore={setBusIndexBefore}
-          busIndexAfter={busIndexAfter}
-          setBusIndexAfter={setBusIndexAfter}
-          numBusCurrBefore={numBusCurrBefore}
-          numBusCurrAfter={numBusCurrAfter}
-          setNumBusCurrBefore={setNumBusCurrBefore}
-          setNumBusCurrAfter={setNumBusCurrAfter}
-          allJourneyData={journeyData}
-          defaultIntervalTime={defaultIntervalTime}
-          defaultInactiveOpacity={defaultInactiveOpacity}
-          defaultActiveOpacity={defaultActiveOpacity}
         />
       </div>
     </div>
