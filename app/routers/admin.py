@@ -1,14 +1,22 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from ..response.standard import APIResponse
+from http import HTTPStatus
 
 router = APIRouter(
   prefix="/admin",
-  responses={404: {"message": "Not found"}}
+  responses={404: {"model": APIResponse}}
 )
 
 @router.get(
   "/healthcheck",
-  description="Provides the status of the server.",
-  tags=["admin"]
+  tags=["Admin"],
 )
-def healthcheck():
-  return {"data": "Status OK"}
+def check_health():
+  '''
+    Provides a response indicating the status of the server.
+  '''
+  return APIResponse(
+    status=HTTPStatus.OK, 
+    status_text=HTTPStatus.OK.phrase,
+    data=":D"
+  )
