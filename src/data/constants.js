@@ -1,10 +1,3 @@
-export const defaultCenter = {
-  lat: 45.488184,
-  lng: -122.399686,
-};
-
-export const defaultZoom = 13;
-
 export const stopObjsBefore = [
   {
     opacity: 0.8,

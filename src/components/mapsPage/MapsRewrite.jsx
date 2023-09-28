@@ -102,7 +102,6 @@ const MapsRewrite = ({
             numBusCurr - 1 === 0 &&
             numBusDispatched >= Object.keys(journeyState).length
           ) {
-            console.log(`set start false`);
             setEnded(true);
           }
           setNumBusCurr(numBusCurr - 1);
@@ -118,7 +117,7 @@ const MapsRewrite = ({
       const interval = setInterval(() => {
         // set stops to updated stopMarkers
         setBusesPos(tmpBusesPos);
-        setCurrTime(currTime + defaultIntervalTime / 9);
+        setCurrTime(currTime + defaultIntervalTime / 10);
       }, defaultIntervalTime);
       return () => clearInterval(interval);
     } else if (ended) {

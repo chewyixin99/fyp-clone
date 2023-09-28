@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
-import { defaultCenter, defaultZoom, stopObjsBefore } from "../data/constants";
+import { stopObjsBefore } from "../data/constants";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 
-const defaultIntervalTime = 200;
+const defaultIntervalTime = 100;
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
+const defaultCenter = {
+  lat: 45.488184,
+  lng: -122.399686,
+};
+const defaultZoom = 13;
 
 const stops = stopObjsBefore;
 
