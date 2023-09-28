@@ -129,28 +129,28 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
                             model.max(boarding_duration * willing_board[1,s],
                             alighting_duration * alighting_percentage[s] * busload[1,s]))
         
-    # Equation 9, Constraint 27 modified according to Confluence v2.0
-    if is_first_trip:
-        model.add_constraint(willing_board[1,s] == initial_passengers[s])
-    else:
-        model.add_constraint(willing_board[1,s] ==
-                            (1 + arrival_rate[s] * boarding_duration)
-                            * arrival_rate[s]
-                            * (headway[j,s] - prev_dwell[s]))
+        # Equation 9, Constraint 27 modified according to Confluence v2.0
+        if is_first_trip:
+            model.add_constraint(willing_board[1,s] == initial_passengers[s])
+        else:
+            model.add_constraint(willing_board[1,s] ==
+                                (1 + arrival_rate[s] * boarding_duration)
+                                * arrival_rate[s]
+                                * (headway[j,s] - prev_dwell[s]))
 
         
     # Equation 10, Constraint 28
-        for j in range(2, num_trips+1):
-            for s in range(2, num_stops):
-                model.add_constraint(dwell[j,s] ==
-                                    model.max(boarding_duration * willing_board[j,s],
-                                    alighting_duration * alighting_percentage[s] * busload[j,s]))
-                
-                # Equation 11, Constraint 29
-                model.add_constraint(willing_board[j,s] ==
-                            (1 + arrival_rate[s] * boarding_duration)
-                            * (arrival_rate[s]
-                            * (headway[j,s] - dwell[j-1,s])) + stranded[j,s])
+    for j in range(2, num_trips+1):
+        for s in range(2, num_stops):
+            model.add_constraint(dwell[j,s] ==
+                                model.max(boarding_duration * willing_board[j,s],
+                                alighting_duration * alighting_percentage[s] * busload[j,s]))
+            
+            # Equation 11, Constraint 29
+            model.add_constraint(willing_board[j,s] ==
+                        (1 + arrival_rate[s] * boarding_duration)
+                        * (arrival_rate[s]
+                        * (headway[j,s] - dwell[j-1,s])) + stranded[j,s])
                 
     # Equation 12, Constraint 30 modified according to Confluence v2.0
     if is_first_trip:
@@ -214,9 +214,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
         for s in range(3, num_stops+1):
             model.add_constraint(stranded[j,s] ==
                             model.max(
-                            (busload[j,s-1]
-                            + willing_board[j,s-1]
-                            - alighting_percentage[s-1] * busload[j,s-1] - capacity), 0))
+                            (busload[j,s]
+                            + willing_board[j,s]
+                            - alighting_percentage[s] * busload[j,s] - capacity), 0))
 
     # model.add_constraint(dispatch_offset[3] == -1) # TODO look into why no negatives
 
@@ -267,6 +267,11 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
         for s in range(2, num_stops+1):
             headway_dict[f"{j},{s}"] = round(headway[j,s].solution_value)
 
+    stranded_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(1, num_stops+1):
+            stranded_dict[f"{j},{s}"] = round(stranded[j,s].solution_value)
+
     dispatch_dict = {}
     for j in range(1, num_trips+1):
         dispatch_dict[f"{j}"] = round(original_dispatch[j] + dispatch_offset[j].solution_value)
@@ -276,6 +281,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
         "busload_dict": busload_dict,
         "arrival_dict": arrival_dict,
         "headway_dict": headway_dict,
+        "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
     }
             

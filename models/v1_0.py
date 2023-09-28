@@ -117,17 +117,17 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
                             * (headway[j,s] - prev_dwell[s]))
         
     # Equation 10, Constraint 28
-        for j in range(2, num_trips+1):
-            for s in range(2, num_stops):
-                model.add_constraint(dwell[j,s] ==
-                                    boarding_duration * willing_board[j,s]
-                                    + alighting_duration * alighting_percentage[s] * busload[j,s])
-                
-                # Equation 11, Constraint 29
-                model.add_constraint(willing_board[j,s] ==
-                            (1 + arrival_rate[s] * boarding_duration)
-                            * arrival_rate[s]
-                            * (headway[j,s] - dwell[j-1,s]))
+    for j in range(2, num_trips+1):
+        for s in range(2, num_stops):
+            model.add_constraint(dwell[j,s] ==
+                                boarding_duration * willing_board[j,s]
+                                + alighting_duration * alighting_percentage[s] * busload[j,s])
+            
+            # Equation 11, Constraint 29
+            model.add_constraint(willing_board[j,s] ==
+                        (1 + arrival_rate[s] * boarding_duration)
+                        * arrival_rate[s]
+                        * (headway[j,s] - dwell[j-1,s]))
                 
     # Equation 12, Constraint 30
     model.add_constraint(busload[1,2] ==
