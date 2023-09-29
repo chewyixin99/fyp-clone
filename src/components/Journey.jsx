@@ -236,7 +236,7 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
   const newRunFunction = (dataObj, localCount) => {
     
     var data = dataObj;
-    localCount += saveNewLocalCount;
+    // localCount += saveNewLocalCount;
     // console.log(localCount);
 
     for (var i = 0; i < data[localCount].length; i++) {

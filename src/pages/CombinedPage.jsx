@@ -85,7 +85,7 @@ const CombinedPage = () => {
         setStopObjs(tmpStopObjs);
         setJourneyData(tmpJourneyData);
         if (tmpJourneyData.length > 0) {
-          // setGlobalTime(tmpJourneyData[0].timestamp);
+          setGlobalTime(tmpJourneyData[0].timestamp);
           setMapsGlobalTime(tmpJourneyData[0].timestamp);
         }
       },
