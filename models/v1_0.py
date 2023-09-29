@@ -36,7 +36,7 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
         to the bus dispatch scheduling problem.
     """
 
-    model = Model(name="bus_dispatch")
+    model = Model(name="bus_dispatch", log_output=not silent)
 
     num_trips = data["num_trips"]
     num_stops = data["num_stops"]
@@ -58,12 +58,13 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
 
 
     # DECISION VARIABLES
-    dispatch_offset = model.continuous_var_dict(range(1,num_trips+1), name="dispatch_offset")
+    dispatch_offset = model.continuous_var_dict(range(1,num_trips+1), lb=-10000, ub=10000, name="dispatch_offset")
     headway = model.continuous_var_matrix(range(1,num_trips+1), range(1,num_stops+1), name="headway")
     arrival = model.continuous_var_matrix(range(1,num_trips+1), range(1,num_stops+1), name="arrival")
     dwell = model.continuous_var_matrix(range(1,num_trips+1), range(1,num_stops+1), name="dwell")
     willing_board = model.continuous_var_matrix(range(1,num_trips+1), range(1,num_stops+1), name="willing_board")
     busload = model.continuous_var_matrix(range(1,num_trips+1), range(1,num_stops+1), name="busload")
+    stranded = model.continuous_var_matrix(range(1,num_trips+1), range(1,num_stops+1), name="stranded")
     slack = model.continuous_var(name="slack")
 
     # CONSTRAINTS
@@ -71,83 +72,83 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
     model.add_constraint(headway[1,2] ==
                         (original_dispatch[1] + dispatch_offset[1])
                         + interstation_travel[(1,1)]
-                        - prev_arrival[2])
+                        - prev_arrival[2], "Eq1")
 
     # Equation 2, Constraint 6
     for s in range(3, num_stops+1):
         model.add_constraint(headway[1,s] ==
                             headway[1,s-1]
                             + (dwell[1,s-1] + interstation_travel[(1,s-1)])
-                            - (prev_arrival[s] - prev_arrival[s-1]))
+                            - (prev_arrival[s] - prev_arrival[s-1]), "Eq2")
         
     # Equation 3, Constraint 7
     for j in range(2, num_trips+1):
         model.add_constraint(headway[j,2] ==
                             ((original_dispatch[j] + dispatch_offset[j]) + interstation_travel[(j,1)])
-                            - ((original_dispatch[j-1] + dispatch_offset[j-1]) + interstation_travel[(j-1,1)]))
+                            - ((original_dispatch[j-1] + dispatch_offset[j-1]) + interstation_travel[(j-1,1)]), "Eq3")
         
         # Equation 4, Constraint 7
         for s in range(3, num_stops+1):
             model.add_constraint(headway[j,s] ==
                                 headway[j,s-1]
                                 + (dwell[j,s-1] + interstation_travel[j,s-1])
-                                - (dwell[j-1,s-1] + interstation_travel[j-1,s-1]))
+                                - (dwell[j-1,s-1] + interstation_travel[j-1,s-1]), "Eq4")
 
     # Equation 5, Constraint 20
     beta = 1 / (num_trips * sum(weights))
     f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips))
                         for s in range(2, num_stops))
     # Equation 6, Constraint 20
-    model.add_constraint(beta > 0)
+    model.add_constraint(beta > 0, "Eq6")
 
     # Equation 7, Constraint 23
     for j in range(1, num_trips+1):
-        model.add_constraint(original_dispatch[j] + dispatch_offset[j] >= bus_availability[j])
+        model.add_constraint(original_dispatch[j] + dispatch_offset[j] >= bus_availability[j], "Eq7")
         
     # Equation 8, Constraint 26
     for s in range(2, num_stops):
         model.add_constraint(dwell[1,s] ==
                             boarding_duration * willing_board[1,s]
-                            + alighting_duration * alighting_percentage[s] * busload[1,s])
+                            + alighting_duration * alighting_percentage[s] * busload[1,s], "Eq8")
         
     # Equation 9, Constraint 27
         model.add_constraint(willing_board[1,s] ==
                             (1 + arrival_rate[s] * boarding_duration)
                             * arrival_rate[s]
-                            * (headway[j,s] - prev_dwell[s]))
+                            * (headway[j,s] - prev_dwell[s]), "Eq9")
         
     # Equation 10, Constraint 28
     for j in range(2, num_trips+1):
         for s in range(2, num_stops):
             model.add_constraint(dwell[j,s] ==
                                 boarding_duration * willing_board[j,s]
-                                + alighting_duration * alighting_percentage[s] * busload[j,s])
+                                + alighting_duration * alighting_percentage[s] * busload[j,s], "Eq10")
             
             # Equation 11, Constraint 29
             model.add_constraint(willing_board[j,s] ==
                         (1 + arrival_rate[s] * boarding_duration)
                         * arrival_rate[s]
-                        * (headway[j,s] - dwell[j-1,s]))
+                        * (headway[j,s] - dwell[j-1,s]), "Eq11")
                 
     # Equation 12, Constraint 30
     model.add_constraint(busload[1,2] ==
                         (1 + arrival_rate[1] * boarding_duration)
                         * arrival_rate[1]
-                        * (original_dispatch[1] + dispatch_offset[1] - prev_arrival[1] - prev_dwell[1]))
+                        * (original_dispatch[1] + dispatch_offset[1] - prev_arrival[1] - prev_dwell[1]), "Eq12")
 
     # Equation 13, Constraint 31
     for s in range(3, num_stops+1):
         model.add_constraint(busload[1,s] ==
                             busload[1,s-1]
                             + willing_board[1,s-1]
-                            - alighting_percentage[s-1] * busload[1,s-1])
+                            - alighting_percentage[s-1] * busload[1,s-1], "Eq13")
         
     # Equation 14, Constraint 32
     for j in range(2, num_trips+1):
         model.add_constraint(busload[j,2] ==
                         (1 + arrival_rate[1] * boarding_duration)
                         * arrival_rate[1]
-                        * (original_dispatch[j] + dispatch_offset[j] - original_dispatch[j-1] - dispatch_offset[j-1]))
+                        * (original_dispatch[j] + dispatch_offset[j] - original_dispatch[j-1] - dispatch_offset[j-1]), "Eq14")
 
     # Equation 15, Constraint 33
     for j in range(2, num_trips+1):
@@ -155,14 +156,14 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
             model.add_constraint(busload[j,s] ==
                             busload[j,s-1]
                             + willing_board[j,s-1]
-                            - alighting_percentage[s-1] * busload[j,s-1])
+                            - alighting_percentage[s-1] * busload[j,s-1], "Eq15")
             
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
     for j in range(1, num_trips+1):
         #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
-        model.add_constraint(slack >= (dispatch_offset[j] - max_allowed_deviation))
+        model.add_constraint(slack >= (dispatch_offset[j] - max_allowed_deviation), "Eq16")
     # Equation 17, Constraint 35
-    model.add_constraint(slack >= 0)
+    model.add_constraint(slack >= 0, "Eq17")
 
     # Additional bookkeeping constraints to output arrival_matrix NOTE: TESTING
     # Equation 18
@@ -170,7 +171,7 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
         model.add_constraint(arrival[j, 2] ==
                             original_dispatch[j]
                             + dispatch_offset[j]
-                            + interstation_travel[j, 1])
+                            + interstation_travel[j, 1], "Eq18")
 
     # Equation 19
     for j in range(1, num_trips+1):
@@ -178,7 +179,7 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
             model.add_constraint(arrival[j,s] ==
                                 arrival[j,s-1]
                                 + dwell[j,s-1]
-                                + interstation_travel[j,s-1])
+                                + interstation_travel[j,s-1], "Eq19")
 
     # model.add_constraint(dispatch_offset[3] == -1) # TODO look into why no negatives
 
@@ -225,6 +226,11 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
         for s in range(2, num_stops+1):
             headway_dict[f"{j},{s}"] = round(headway[j,s].solution_value)
 
+    stranded_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(1, num_stops+1):
+            stranded_dict[f"{j},{s}"] = round(stranded[j,s].solution_value)
+
     dispatch_dict = {}
     for j in range(1, num_trips+1):
         dispatch_dict[f"{j}"] = round(original_dispatch[j] + dispatch_offset[j].solution_value)
@@ -234,6 +240,7 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
         "busload_dict": busload_dict,
         "arrival_dict": arrival_dict,
         "headway_dict": headway_dict,
+        "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
     }
             
