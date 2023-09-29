@@ -12,6 +12,11 @@ const defaultCenter = {
   lng: -122.553584,
 };
 const defaultZoom = 13;
+const mapContainerStyle = {
+  width: "90vw",
+  height: "20vw",
+  maxWidth: "90vw",
+};
 
 const CombinedPage = () => {
   // yixin states
@@ -194,6 +199,7 @@ const CombinedPage = () => {
           paused={paused}
           ended={ended}
           globalTime={mapsGlobalTime}
+          mapContainerStyle={mapContainerStyle}
         />
       </div>
     </div>

@@ -5,12 +5,6 @@ import { resetOpacity } from "../../util/mapHelper";
 import PropTypes from "prop-types";
 import BusStatus from "./BusStatus";
 
-const containerStyle = {
-  width: "90vw",
-  height: "30vw",
-  maxWidth: "90vw",
-};
-
 const MapsRewrite = React.memo(
   ({
     title,
@@ -28,6 +22,7 @@ const MapsRewrite = React.memo(
     ended,
     setEnded,
     globalTime,
+    mapContainerStyle,
   }) => {
     // create an env variable with name 'VITE_MAPS_API_KEY' in your .env file to load this
     const MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY;
@@ -187,7 +182,7 @@ const MapsRewrite = React.memo(
         <div>
           <LoadScript googleMapsApiKey={MAPS_API_KEY}>
             <GoogleMap
-              mapContainerStyle={containerStyle}
+              mapContainerStyle={mapContainerStyle}
               zoom={zoom}
               center={center}
               onLoad={onLoad}
@@ -233,6 +228,7 @@ const MapsRewrite = React.memo(
     return (
       <div className="border rounded-md">
         <div className="my-3 px-5">{title}</div>
+        <hr />
         <div className="my-3 px-5 flex items-center justify-between">
           <div className="flex items-center">
             <div className="mr-3">Dispatched</div>
@@ -279,6 +275,7 @@ MapsRewrite.propTypes = {
   defaultActiveOpacity: PropTypes.number,
   title: PropTypes.string,
   globalTime: PropTypes.number,
+  mapContainerStyle: PropTypes.object,
 };
 
 MapsRewrite.displayName = "MapsRewrite";
