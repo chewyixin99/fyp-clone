@@ -137,9 +137,22 @@
     color: white;
     font-size: 10px;
     width: 100%;
+    z-index: 100;
 }
 
 .progress-tip-dist {
     left: -2.7%;
     width: 100%;
 }
+
+/* .progress-tip-content:nth-child(2) { */
+    /* left: -10px; 
+    top: -6px; */
+ 
+/* } */
+
+/* .progress-tip:nth-child(2) {
+    left: -10px; 
+    top: -6px;
+ 
+} */
