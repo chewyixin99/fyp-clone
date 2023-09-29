@@ -3,8 +3,8 @@ import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 
-const defaultIntervalTime = 500;
-const defaultStepInterval = defaultIntervalTime / 10;
+const defaultIntervalTime = 600;
+const defaultStepInterval = defaultIntervalTime / 15;
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 const defaultCenter = {
@@ -37,7 +37,7 @@ const CombinedPage = () => {
   const [globalTime, setGlobalTime] = useState(0);
 
   const fetchData = async () => {
-    Papa.parse("./v1_4_poll1_feed.csv", {
+    Papa.parse("./v1_4_poll1_feed_v2.csv", {
       // options
       download: true,
       complete: (res) => {
@@ -58,8 +58,8 @@ const CombinedPage = () => {
           ] = rowData;
           tmpJourneyData.push({
             timestamp: parseInt(timestamp),
-            lat: parseFloat(parseFloat(latitude).toFixed(4)),
-            lng: parseFloat(parseFloat(longitude).toFixed(4)),
+            lat: parseFloat(parseFloat(latitude).toFixed(6)),
+            lng: parseFloat(parseFloat(longitude).toFixed(6)),
             opacity: 0,
             stopId: stop_id,
             stopName: stop_name,
@@ -82,6 +82,7 @@ const CombinedPage = () => {
         tmpStopObjs.sort((a, b) =>
           a.timestamp < b.timestamp ? 1 : b.timestamp > a.timestamp ? -1 : 0
         );
+        console.log(tmpStopObjs);
         setStopObjs(tmpStopObjs);
         setJourneyData(tmpJourneyData);
         if (tmpJourneyData.length > 0) {
