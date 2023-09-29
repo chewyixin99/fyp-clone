@@ -5,7 +5,7 @@ import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
-const Journey = ({ start, paused, ended, data, globalTime }) => {
+const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
   const [relativeStopDistance, setRelativeStopDistance] = useState([]);
@@ -74,8 +74,8 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
       </div>`;
     }
 
-    document.querySelector(`.bus-stop-ref`).innerHTML += busStopHTML;
-    document.querySelector(`.bus-stop-dot-ref`).innerHTML += busStopDotHTML;
+    document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
+    document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML += busStopDotHTML;
   };
 
   const formatDistance = (data) => {
@@ -172,140 +172,138 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
 
   // };
 
-    const runFunction = (dataObj, count) => {
-    localCount = count;
-    var data = dataObj;
+  //   const runFunction = (dataObj, count) => {
+  //   localCount = count;
+  //   var data = dataObj;
 
-    runRef = setInterval(() => {
+  //   runRef = setInterval(() => {
 
-        for (var i = 0; i < data[localCount].length; i++) {
+  //       for (var i = 0; i < data[localCount].length; i++) {
 
-          if (data[localCount][i].currentStatus == "TRANSIT_TO") {
-            if (formatDistance(data[localCount][i].distance) == 100) {
-              alert("hi");
-            }
-            add_travel_distance(
-              data[localCount][i].distance,
-              data[localCount][i].busTripNo,
-              data[localCount][i].timestamp
-            );
-          } else if (
-            data[localCount][i].currentStatus == "STOPPED_AT" &&
-            formatDistance(data[localCount][i].distance) == 100
-          ) {
-            add_travel_distance(
-              totalDistance,
-              data[localCount][i].busTripNo,
-              data[localCount][i].timestamp
-            );
-          } else if (data[localCount][i].currentStatus == "DWELL_AT") {
-            add_travel_distance(
-              data[localCount][i].distance,
-              data[localCount][i].busTripNo,
-              data[localCount][i].timestamp
-            );
-          } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
-            let currentObj = busDispatchTimestamps;
-            currentObj[data[localCount][i].busTripNo] = data[localCount][i].timestamp;
-            setBusDispatchTimestamps(currentObj);
+  //         if (data[localCount][i].currentStatus == "TRANSIT_TO") {
+  //           if (formatDistance(data[localCount][i].distance) == 100) {
+  //             alert("hi");
+  //           }
+  //           add_travel_distance(
+  //             data[localCount][i].distance,
+  //             data[localCount][i].busTripNo,
+  //             data[localCount][i].timestamp
+  //           );
+  //         } else if (
+  //           data[localCount][i].currentStatus == "STOPPED_AT" &&
+  //           formatDistance(data[localCount][i].distance) == 100
+  //         ) {
+  //           add_travel_distance(
+  //             totalDistance,
+  //             data[localCount][i].busTripNo,
+  //             data[localCount][i].timestamp
+  //           );
+  //         } else if (data[localCount][i].currentStatus == "DWELL_AT") {
+  //           add_travel_distance(
+  //             data[localCount][i].distance,
+  //             data[localCount][i].busTripNo,
+  //             data[localCount][i].timestamp
+  //           );
+  //         } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
+  //           let currentObj = busDispatchTimestamps;
+  //           currentObj[data[localCount][i].busTripNo] = data[localCount][i].timestamp;
+  //           setBusDispatchTimestamps(currentObj);
   
-            add_travel_distance(
-              data[localCount][i].distance,
-              data[localCount][i].busTripNo,
-              data[localCount][i].timestamp
-            );
-          }
-        }
+  //           add_travel_distance(
+  //             data[localCount][i].distance,
+  //             data[localCount][i].busTripNo,
+  //             data[localCount][i].timestamp
+  //           );
+  //         }
+  //       }
        
 
-        localCount++;
-        setSaveLocalCount(localCount);
+  //       localCount++;
+  //       setSaveLocalCount(localCount);
 
-        if (data[localCount] == undefined) {
-          clearInterval(runRef);
-          setIsRunning(false);
-        }
+  //       if (data[localCount] == undefined) {
+  //         clearInterval(runRef);
+  //         setIsRunning(false);
+  //       }
 
-    }, 10);
+  //   }, 10);
 
-    setRunRefState(runRef);
+  //   setRunRefState(runRef);
 
-  };
+  // };
 
   const newRunFunction = (dataObj, localCount) => {
     
     var data = dataObj;
+    // console.log(data[localCount]);
+
+    // console.log(data);
+    // console.log(localCount, id);
     // localCount += saveNewLocalCount;
     // console.log(localCount);
+    // console.log(localCount, data[localCount], id);
+    if (data[localCount] != undefined){
+      for (var i = 0; i < data[localCount].length; i++) {
 
-    for (var i = 0; i < data[localCount].length; i++) {
-
-      if (data[localCount][i].currentStatus == "TRANSIT_TO") {
-        // if (formatDistance(data[localCount][i].distance) == 100) {
-        //   alert("hi");
-        // }
-        add_travel_distance(
-          data[localCount][i].distance,
-          data[localCount][i].busTripNo,
-          data[localCount][i].timestamp
-        );
-      } else if (
-        data[localCount][i].currentStatus == "STOPPED_AT" &&
-        formatDistance(data[localCount][i].distance) == 100
-      ) {
-        add_travel_distance(
-          totalDistance,
-          data[localCount][i].busTripNo,
-          data[localCount][i].timestamp
-        );
-      } else if (data[localCount][i].currentStatus == "DWELL_AT") {
-        add_travel_distance(
-          data[localCount][i].distance,
-          data[localCount][i].busTripNo,
-          data[localCount][i].timestamp
-        );
-      } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
-        let currentObj = busDispatchTimestamps;
-        currentObj[data[localCount][i].busTripNo] = data[localCount][i].timestamp;
-        setBusDispatchTimestamps(currentObj);
-
-        add_travel_distance(
-          data[localCount][i].distance,
-          data[localCount][i].busTripNo,
-          data[localCount][i].timestamp
-        );
-
-        var temp = deployedTrips;
-        temp.push(data[localCount][i].busTripNo)
-        setDeployedTrips(temp);
-        console.log(temp);
+        if (data[localCount][i].currentStatus == "TRANSIT_TO") {
+          // if (formatDistance(data[localCount][i].distance) == 100) {
+          //   alert("hi");
+          // }
+          add_travel_distance(
+            data[localCount][i].distance,
+            data[localCount][i].busTripNo,
+            data[localCount][i].timestamp
+          );
+        } else if (
+          data[localCount][i].currentStatus == "STOPPED_AT" &&
+          formatDistance(data[localCount][i].distance) == 100
+        ) {
+          add_travel_distance(
+            totalDistance,
+            data[localCount][i].busTripNo,
+            data[localCount][i].timestamp
+          );
+        } else if (data[localCount][i].currentStatus == "DWELL_AT") {
+          add_travel_distance(
+            data[localCount][i].distance,
+            data[localCount][i].busTripNo,
+            data[localCount][i].timestamp
+          );
+        } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
+          let currentObj = busDispatchTimestamps;
+          currentObj[data[localCount][i].busTripNo] = data[localCount][i].timestamp;
+          setBusDispatchTimestamps(currentObj);
+  
+          add_travel_distance(
+            data[localCount][i].distance,
+            data[localCount][i].busTripNo,
+            data[localCount][i].timestamp
+          );
+  
+          var temp = deployedTrips;
+          temp.push(data[localCount][i].busTripNo)
+          setDeployedTrips(temp);
+          console.log(temp);
+        }
       }
     }
-    
 
+    
     localCount++;
     setSaveLocalCount(localCount);
-
-    if (data[localCount] == undefined) {
-      clearInterval(runRef);
-      setIsRunning(false);
-    }
-
-
-    setRunRefState(runRef);
 
   };
 
   const add_travel_distance = (newDistance, tripNo, timestamp) => {
-    var progressTip = document.querySelector(`.progress-tip-ref-${tripNo}`);
+    var progressTip = document.querySelector(`.progress-tip-ref-${id}-${tripNo}`);
     var progressTipContent = document.querySelector(
-      `.progress-tip-content-ref-${tripNo}`
+      `.progress-tip-content-ref-${id}-${tripNo}`
     );
     var progressTipContentDist = document.querySelector(
-      `.progress-tip-content-dist-ref-${tripNo}`
+      `.progress-tip-content-dist-ref-${id}-${tripNo}`
     );
     var progressTipContentElapsedTime = document.querySelector(
-      `.progress-tip-content-elapsed-time-ref-${tripNo}`
+      `.progress-tip-content-elapsed-time-ref-${id}-${tripNo}`
     );
     progressTip.style.left = formatDistance(newDistance) + "%";
     progressTipContent.style.left = formatDistance(newDistance) - 2.7 + "%";
@@ -378,17 +376,17 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
     loadBusStops();
   }, [relativeStopDistance, totalDistance, numOfTrips]);
 
-  useEffect(() => {
-    // console.log("isrunning", isRunning);
-    // console.log(dataObj);
-    if (isRunning) {
-      // runFunction(data);
-      // runFunction(dataObj,saveNewLocalCount);
-    }
-  }, [isRunning, dataObj, saveNewLocalCount]);
+  // useEffect(() => {
+  //   // console.log("isrunning", isRunning);
+  //   // console.log(dataObj);
+  //   if (isRunning) {
+  //     // runFunction(data);
+  //     // runFunction(dataObj,saveNewLocalCount);
+  //   }
+  // }, [isRunning, dataObj, saveNewLocalCount]);
 
   useEffect(() => {
-    // console.log("start");
+    
     if (start) {
       startRun();
     }
@@ -398,9 +396,9 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
     pause();
   }, [paused]);
 
-  useEffect(() => {
-    // console.log(saveLocalCount);
-  }, [saveLocalCount]);
+  // useEffect(() => {
+  //   // console.log(saveLocalCount);
+  // }, [saveLocalCount]);
 
   useEffect(() => {
     console.log("ended");
@@ -413,10 +411,12 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
 
 
   useEffect(()=>{
-    // console.log(globalTime);
+    console.log(globalTime);
+    console.log(isRunning);
     if (isRunning) {
       // runFunction(data);
       // runFunction(dataObj,saveNewLocalCount);
+      console.log("yes");
       newRunFunction(dataObj, globalTime);
     }
     
@@ -504,11 +504,11 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
             // style={{visibility: deployedTrips.includes(i) ? "" : `hidden`}}
             <div key={[...Array(numOfTrips)].length - i} >
               <div
-                className={`progress-tip-ref-${[...Array(numOfTrips)].length - i} progress-tip`}
+                className={`progress-tip-ref-${id}-${[...Array(numOfTrips)].length - i} progress-tip`}
                 style={{ left: "0%" }}
               ></div>
               <div
-                className={`progress-tip-content-ref-${
+                className={`progress-tip-content-ref-${id}-${
                   [...Array(numOfTrips)].length - i
                 } progress-tip-content`}
                 style={{ left: "-2.7%" }}
@@ -516,12 +516,12 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
                 Trip No.:{" "}
                 {triggerStart ? (triggerStop ? "-" : `${[...Array(numOfTrips)].length - i}`) : "-"}
                 <p
-                  className={`progress-tip-content-trip-no-ref-${
+                  className={`progress-tip-content-trip-no-ref-${id}-${
                     [...Array(numOfTrips)].length - i
                   } progress-tip-dist`}
                 ></p>
                 <p
-                  className={`progress-tip-content-dist-ref-${
+                  className={`progress-tip-content-dist-ref-${id}-${
                     [...Array(numOfTrips)].length - i
                   } progress-tip-dist`}
                 >
@@ -529,9 +529,9 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
                 </p>
                 Elapsed:{" "}
                 <span
-                  className={`progress-tip-content-elapsed-time-ref-${
+                  className={`progress-tip-content-elapsed-time-ref-${id}-${
                     [...Array(numOfTrips)].length - i
-                  } progress-tip-dist progress-tip-content-elapsed-time-ref`}
+                  } progress-tip-dist`}
                 >
                   {triggerStart ? (triggerStop ? "" : "") : "0m 0s"}
                 </span>
@@ -539,8 +539,8 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
             </div>
           ))}
 
-          <div className={`bus-stop-ref`}></div>
-          <div className={`bus-stop-dot-ref`}></div>
+          <div className={`bus-stop-ref-${id}`}></div>
+          <div className={`bus-stop-dot-ref-${id}`}></div>
         </div>
       </div>
     </div>

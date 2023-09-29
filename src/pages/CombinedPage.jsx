@@ -209,21 +209,24 @@ const CombinedPage = () => {
         </button>
       </div>
       {/* JianLin's component */}
-      <div className="mb-10">
-        <Journey
-          paused={paused}
-          ended={ended}
-          start={start}
-          data={journeyData}
-          globalTime={globalTime}
-        />
-      </div>
       <div className="">
         <Journey
+          id={'1'}
           paused={paused}
           ended={ended}
           start={start}
           data={journeyDataUnoptimized}
+          globalTime={globalTime}
+        />
+      </div>
+      <div className="mb-10">
+        <Journey
+          id={'2'}
+          key={'optimized'}
+          paused={paused}
+          ended={ended}
+          start={start}
+          data={journeyData}
           globalTime={globalTime}
         />
       </div>
