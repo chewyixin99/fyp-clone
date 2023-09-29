@@ -46,6 +46,7 @@ const MapsRewrite = React.memo(
         initBusesPos[bus] = -1;
       }
       setBusesPos(initBusesPos);
+      console.log(journeyData);
       setJourneyState(journeyData);
     }, [journeyData]);
 

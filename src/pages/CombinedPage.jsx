@@ -141,7 +141,13 @@ const CombinedPage = () => {
       </div>
       {/* JianLin's component */}
       <div className="">
-        <Journey paused={paused} ended={ended} start={start} data={journeyData} />
+        <Journey 
+        paused={paused}
+        ended={ended}
+        start={start}
+        data={journeyData}
+        globalTime={globalTime}
+         />
       </div>
       {/* Yixin's component */}
       <div className="m-10">

@@ -4,8 +4,9 @@ import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { Data } from "@react-google-maps/api";
 
-const Journey = ({ start, paused, ended, data }) => {
+const Journey = ({ start, paused, ended, data, globalTime }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
   const [relativeStopDistance, setRelativeStopDistance] = useState([]);
@@ -16,9 +17,13 @@ const Journey = ({ start, paused, ended, data }) => {
   const [saveLocalCount, setSaveLocalCount] = useState(0);
   const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
   const [runRefState, setRunRefState] = useState(null);
+  const [dataObj, setDataObj] = useState({});
+
+  const [saveNewLocalCount, setSaveNewLocalCount] = useState(0);
 
   var runRef = null;
   var localCount = 0;
+
 
   const extractData = (data) => {
     let stopDistance = data.filter((item) => {
@@ -34,6 +39,7 @@ const Journey = ({ start, paused, ended, data }) => {
     setRelativeStopDistance(stopDistance);
     setTotalDistance(stopDistance[stopDistance.length - 1]?.distance);
     setNumOfTrips(numberOfBusTrips.length);
+    setSaveNewLocalCount(data[0]?.timestamp)
   };
 
   const loadBusStops = () => {
@@ -81,6 +87,32 @@ const Journey = ({ start, paused, ended, data }) => {
     return min + "m " + sec + "s";
   };
 
+  const convertArrayToObject = (array, key) => {
+    const initialValue = {};
+    return array.reduce((obj, item) => {
+      return {
+        ...obj,
+        [item[key]]: item,
+      };
+    }, initialValue);
+  };
+
+  const createDataObj = (data) => {
+    var dataObj = {};
+    data.map((item) => {
+      if (item.timestamp in dataObj) {
+        dataObj[item.timestamp].push(item);
+      }
+      else {
+        dataObj[item.timestamp] = [item];
+      }
+    })
+
+    return dataObj;
+   
+  }
+
+  // old function
   const runFunction = (data) => {
     localCount = saveLocalCount;
     // console.log("runfunction", saveLocalCount);
@@ -129,12 +161,74 @@ const Journey = ({ start, paused, ended, data }) => {
 
         localCount++;
         setSaveLocalCount(localCount);
+        // console.log(localCount);
       }
       // !
       // console.log("running in runRef in {Journey.jsx}");
     }, 10);
 
     setRunRefState(runRef);
+
+  };
+
+  const newRunFunction = (dataObj, count) => {
+    localCount = count;
+    var data = dataObj;
+
+    runRef = setInterval(() => {
+
+        for (var i = 0; i < data[localCount].length; i++) {
+
+          if (data[localCount][i].currentStatus == "TRANSIT_TO") {
+            if (formatDistance(data[localCount][i].distance) == 100) {
+              alert("hi");
+            }
+            add_travel_distance(
+              data[localCount][i].distance,
+              data[localCount][i].busTripNo,
+              data[localCount][i].timestamp
+            );
+          } else if (
+            data[localCount][i].currentStatus == "STOPPED_AT" &&
+            formatDistance(data[localCount][i].distance) == 100
+          ) {
+            add_travel_distance(
+              totalDistance,
+              data[localCount][i].busTripNo,
+              data[localCount][i].timestamp
+            );
+          } else if (data[localCount][i].currentStatus == "DWELL_AT") {
+            add_travel_distance(
+              data[localCount][i].distance,
+              data[localCount][i].busTripNo,
+              data[localCount][i].timestamp
+            );
+          } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
+            let currentObj = busDispatchTimestamps;
+            currentObj[data[localCount][i].busTripNo] = data[localCount][i].timestamp;
+            setBusDispatchTimestamps(currentObj);
+  
+            add_travel_distance(
+              data[localCount][i].distance,
+              data[localCount][i].busTripNo,
+              data[localCount][i].timestamp
+            );
+          }
+        }
+       
+
+        localCount++;
+        setSaveLocalCount(localCount);
+
+        if (data[localCount] == undefined) {
+          clearInterval(runRef);
+          setIsRunning(false);
+        }
+
+    }, 10);
+
+    setRunRefState(runRef);
+
   };
 
   const add_travel_distance = (newDistance, tripNo, timestamp) => {
@@ -209,7 +303,9 @@ const Journey = ({ start, paused, ended, data }) => {
 
   useEffect(() => {
     extractData(data);
+    setDataObj(createDataObj(data))
   }, [data]);
+
 
   useEffect(() => {
     loadBusStops();
@@ -217,10 +313,12 @@ const Journey = ({ start, paused, ended, data }) => {
 
   useEffect(() => {
     // console.log("isrunning", isRunning);
+    // console.log(dataObj);
     if (isRunning) {
-      runFunction(data);
+      // runFunction(data);
+      newRunFunction(dataObj,saveNewLocalCount);
     }
-  }, [isRunning]);
+  }, [isRunning, dataObj, saveNewLocalCount]);
 
   useEffect(() => {
     // console.log("start");
@@ -244,6 +342,12 @@ const Journey = ({ start, paused, ended, data }) => {
       stop();
     }
   }, [ended]);
+
+
+
+  useEffect(()=>{
+    console.log(globalTime);
+  }, [globalTime])
 
   return (
     <div className="mx-auto">
