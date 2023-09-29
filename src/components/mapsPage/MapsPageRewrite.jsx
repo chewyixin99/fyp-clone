@@ -89,25 +89,25 @@ const MapsPageRewrite = React.memo(
             globalTime={globalTime}
             mapContainerStyle={mapContainerStyle}
           /> */}
-          <MapsRewrite
-            title={"Relative position on map"}
-            zoom={zoom}
-            center={center}
-            setCenter={setCenter}
-            setZoom={setZoom}
-            defaultActiveOpacity={defaultActiveOpacity}
-            defaultInactiveOpacity={defaultInactiveOpacity}
-            stops={stops}
-            defaultIntervalTime={defaultIntervalTime}
-            journeyData={processedJourneyData}
-            started={started}
-            setEnded={setEnded}
-            paused={paused}
-            ended={ended}
-            globalTime={globalTime}
-            mapContainerStyle={mapContainerStyle}
-          />
         </div>
+        <MapsRewrite
+          title={"Relative position on map"}
+          zoom={zoom}
+          center={center}
+          setCenter={setCenter}
+          setZoom={setZoom}
+          defaultActiveOpacity={defaultActiveOpacity}
+          defaultInactiveOpacity={defaultInactiveOpacity}
+          stops={stops}
+          defaultIntervalTime={defaultIntervalTime}
+          journeyData={processedJourneyData}
+          started={started}
+          setEnded={setEnded}
+          paused={paused}
+          ended={ended}
+          globalTime={globalTime}
+          mapContainerStyle={mapContainerStyle}
+        />
       </div>
     );
   }

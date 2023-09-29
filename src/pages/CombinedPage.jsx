@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 
 const defaultIntervalTime = 600;
-const defaultStepInterval = defaultIntervalTime / 15;
+const defaultStepInterval = Math.floor(defaultIntervalTime / 15);
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 const defaultCenter = {
@@ -13,9 +13,9 @@ const defaultCenter = {
 };
 const defaultZoom = 13;
 const mapContainerStyle = {
-  width: "90vw",
+  width: "100%",
   height: "20vw",
-  maxWidth: "90vw",
+  maxWidth: "100%",
 };
 
 const CombinedPage = () => {
@@ -34,10 +34,11 @@ const CombinedPage = () => {
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
   const [journeyData, setJourneyData] = useState([]);
+  const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
   const [globalTime, setGlobalTime] = useState(0);
 
   const fetchData = async () => {
-    Papa.parse("./v1_4_poll1_feed_v2.csv", {
+    Papa.parse("./v1_4_poll1_feed.csv", {
       // options
       download: true,
       complete: (res) => {
@@ -82,13 +83,48 @@ const CombinedPage = () => {
         tmpStopObjs.sort((a, b) =>
           a.timestamp < b.timestamp ? 1 : b.timestamp > a.timestamp ? -1 : 0
         );
-        console.log(tmpStopObjs);
         setStopObjs(tmpStopObjs);
         setJourneyData(tmpJourneyData);
         if (tmpJourneyData.length > 0) {
           setGlobalTime(tmpJourneyData[0].timestamp);
           setMapsGlobalTime(tmpJourneyData[0].timestamp);
         }
+      },
+    });
+
+    Papa.parse("./v1_4_poll1_unoptimised_feed.csv", {
+      // options
+      download: true,
+      complete: (res) => {
+        const tmpJourneyDataUnoptimized = [];
+        const data = res.data.slice(1);
+        for (let i = 0; i < data.length; i++) {
+          const rowData = data[i];
+          const [
+            timestamp,
+            bus_trip_no,
+            status,
+            bus_stop_no,
+            stop_id,
+            stop_name,
+            latitude,
+            longitude,
+            distance,
+          ] = rowData;
+          tmpJourneyDataUnoptimized.push({
+            timestamp: parseInt(timestamp),
+            lat: parseFloat(parseFloat(latitude).toFixed(6)),
+            lng: parseFloat(parseFloat(longitude).toFixed(6)),
+            opacity: 0,
+            stopId: stop_id,
+            stopName: stop_name,
+            busStopNo: parseInt(bus_stop_no),
+            currentStatus: status,
+            busTripNo: parseInt(bus_trip_no),
+            distance: parseFloat(distance),
+          });
+        }
+        setJourneyDataUnoptimized(tmpJourneyDataUnoptimized);
       },
     });
   };
@@ -173,12 +209,21 @@ const CombinedPage = () => {
         </button>
       </div>
       {/* JianLin's component */}
-      <div className="">
+      <div className="mb-10">
         <Journey
           paused={paused}
           ended={ended}
           start={start}
           data={journeyData}
+          globalTime={globalTime}
+        />
+      </div>
+      <div className="">
+        <Journey
+          paused={paused}
+          ended={ended}
+          start={start}
+          data={journeyDataUnoptimized}
           globalTime={globalTime}
         />
       </div>

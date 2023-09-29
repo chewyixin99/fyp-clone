@@ -4,7 +4,6 @@ import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Data } from "@react-google-maps/api";
 
 const Journey = ({ start, paused, ended, data, globalTime }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
