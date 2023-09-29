@@ -23,34 +23,55 @@ def viewOneTrip(tripID):
     result = orig_df2[orig_df2["tripId"] == tripID].sort_values(by=['vehicleTimestamp', 'vehicleStopSequence'])
     return result[["tripId","vehicleTimestamp","vehicleCurrentStatus", "vehicleStopSequence", "vehicleStopID"]]
 
+def num_stops_function(df, directionId):
+    df = df.loc[df["tripDirectionId"] == directionId]
+    stop_seq = df["vehicleStopSequence"].unique()
+
+    min_stop_seq = min(stop_seq)
+
+    if min_stop_seq >1:
+        num_stops = max(stop_seq) - min_stop_seq +1
+    else:
+        num_stops = max(stop_seq)
+    
+    if 0 in stop_seq:
+        num_stops = num_stops - 1
+
+    return int(num_stops)
+
 def getStopInfo(df, stopsTxt, directionId):
     bus_stops = df["vehicleStopID"].loc[df["tripDirectionId"] == directionId].unique().astype(int).astype(str)
-
+    stop_to_ignore = ["9302"]
     coordinates_list = []
     stop_ids_list = []
     stop_names_list = []
 
-    for i in range(len(stopsTxt)):
-        row = stopsTxt["stop_id,stop_code,stop_name,tts_stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station,direction,position"][i]
-        one_stop = row.split(",")
+    for i in range(num_stops):
+        coordinates_list.append([])
 
-        stop_id = str(one_stop[0])
-        stop_name = str(one_stop[2])
+    for idx, each_stop in enumerate(bus_stops): 
+        # if (stop_id in bus_stops) and (stop_id not in stop_to_ignore):
+        for i in range(len(stopsTxt)):
+            row = stopsTxt["stop_id,stop_code,stop_name,tts_stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station,direction,position"][i]
+            one_stop = row.split(",")
+            stop_id = str(one_stop[0])
+            stop_name = str(one_stop[2])
 
-        if stop_id in bus_stops:
-            try:
-                stop_location_lat = float(one_stop[5])
-                stop_location_long = float(one_stop[6])
+            if stop_id in bus_stops and stop_id not in stop_to_ignore and each_stop == stop_id: 
+                try:
+                    stop_location_lat = float(one_stop[5])
+                    stop_location_long = float(one_stop[6])
 
-            except ValueError:
-                stop_location_lat = float(one_stop[6])
-                stop_location_long = float(one_stop[7])
+                except ValueError:
+                    stop_location_lat = float(one_stop[6])
+                    stop_location_long = float(one_stop[7])
 
+                coordinates_list[idx].append(stop_location_lat)
+                coordinates_list[idx].append(stop_location_long)
+                stop_ids_list.append(stop_id)
+                stop_names_list.append(stop_name)
 
-            coordinates_list.append([stop_location_lat,stop_location_long])
-            stop_ids_list.append(stop_id)
-            stop_names_list.append(stop_name)
-
+    # print(stop_names_list)
     return coordinates_list, stop_ids_list, stop_names_list
 
 def get_timings(tripID, expectedNumSequence):
@@ -250,25 +271,6 @@ def getHeadway(tripsTimings):
             result[i].append(int(headway))
     return result
 
-# Generate a random set of Target Headways [Each stop, between trips]
-# def generateTargetHeadways(tripsHeadways,expectedNumSequence):
-#     result = [[]]
-#     maxDeviation = 300
-#     for e in range(expectedNumSequence-1):
-#         result[0].append(0)
-
-#     for i in range(len(tripsHeadways)):
-#         result.append([])
-#         currentHeadwayList = tripsHeadways[i]
-#         for j in range(len(currentHeadwayList)):
-#             if j == 0:
-#                 continue
-#             else:
-#                 currentHeadway = currentHeadwayList[j]
-#                 result[i+1].append(random.randint(currentHeadway-maxDeviation, currentHeadway))
-
-#     return result
-
 def generateTargetHeadways(tripsHeadways, targetHeadway, expectedNumSequence):
     result = [[]]
     for e in range(expectedNumSequence-1):
@@ -394,24 +396,25 @@ def generateAlightingPercentage(df, num_stops, input_key_stops, directionId):
         if i <(num_stops//2):
             a += round(random.uniform(0, 0.6),3)
         else:
-            a += round(random.uniform(0, 1),3)
+            a += round(random.uniform(0, 0.97),3)
             
         alighting_percentage_list.append(a)
     return alighting_percentage_list
 
 def getNumStops(df, directionId):
-    stop_seq = df["vehicleStopSequence"].unique()
     df = df.loc[df["tripDirectionId"] == directionId]
+    stop_seq = df["vehicleStopSequence"].unique()
+    min_stop_seq = min(stop_seq)
 
-    if 0 in stop_seq:
-        num_stops = max(stop_seq) - 1
+    if min_stop_seq >1:
+        num_stops = max(stop_seq) - min_stop_seq +1
     else:
         num_stops = max(stop_seq)
+    
+    if 0 in stop_seq:
+        num_stops = num_stops - 1
 
-    return num_stops
-
-
-
+    return int(num_stops)
 
 
 def output(allDirectedTripTimings, allDirectedTripIds):
@@ -474,19 +477,21 @@ numStops1 = getNumStops(orig_df2, 1)
 
 # Subset Trips [MidTerm]
 subsetTripIds = [12748581, 12748582, 12748583, 12748584]
+subsetTripDf = orig_df2[orig_df2["tripId"].isin(subsetTripIds)]
 subsetTimings = getTripTimingsByDirection(subsetTripIds, expectedNumSequence)
 
 # Current Headways
 tripHeadways = getHeadway(subsetTimings)
 targetHeadway = 720
 
-
 # Setting some JSON Values # 
-num_trips = 4 #orig_df2["tripId"].nunique()
-num_stops = 42 #orig_df2["vehicleStopSequence"].nunique()
+num_trips =  subsetTripDf["tripId"].nunique()
+num_stops = num_stops_function(subsetTripDf,1)
 bus_capacity = 100 #SET
-original_dispatch_list = [72420, 73200, 73920, 74640] #Manual via TriMet website #!!! Change to 77420, 79200, 80920, 81640 or any other timing
-coordinates_list = getStopInfo(orig_df2, stopsTxt, 1)
+original_dispatch_list = [73200, 73920, 74640, 75360] #Exlcude 72420 since it's trip 0 timing #Manual via TriMet website #!!! Change to 77420, 79200, 80920, 81640 or any other timing
+coordinates_list = getStopInfo(subsetTripDf, stopsTxt, 1)[0]
+stop_ids_list = getStopInfo(subsetTripDf, stopsTxt, 1)[1]
+stop_names_list = getStopInfo(subsetTripDf, stopsTxt, 1)[2]
 prev_arrival_list = getArrivals(subsetTimings,date)[0] #Change to 1d
 prev_dwell_list = getDwellings(subsetTimings)[0] #Change to 1d
 arrival_rate_list = generateArrivalRate(orig_df2, numStops1, input_key_stops) #[0.045, 0.029, 0.026, 0.096, 0.066, 0.095, 0.081, 0.02, 0.039, 0.018, 0.003, 0.076, 0.059, 0.024, 0.068, 0.075, 0.073, 0.027, 0.019, 0.05, 0.062, 0.063, 0.084, 0.086, 0.052, 0.00, 0.021, 0.002, 0.074, 0.095, 0.059, 0.012, 0.056, 0.011, 0.043, 0.026, 0.092, 0.009, 0.055, 0.01, 0.03, 0]
@@ -496,21 +501,21 @@ alighting_duration = 2 #SET
 weights_list = generateWeights(orig_df2, numStops1, input_key_stops) #[0.7, 0.75, 0.55, 0.55, 0.5, 0.55, 0.55, 0.55, 0.5, 0.75, 0.55, 0.6000000000000001, 0.55, 0.55, 0.55, 0.8, 0.6000000000000001, 0.5, 0.5, 0.55, 0.5, 0.75, 0.6000000000000001, 0.55, 0.55, 0.55, 0.55, 0.7, 0.5, 0.5, 0.55, 0.55, 0.5, 0.55, 0.8000000000000003, 0.55, 0.55, 0.6000000000000001, 0.8500000000000001, 0.55, 0.6000000000000001]
 bus_availability_list = [72000, 72000, 72000, 72000]  #getBusAvailability(subsetTimings,date)
 initial_passengers_list = generateInitialPassengers(orig_df2, numStops1, input_key_stops) #[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-max_allowed_deviation = 30 #SET
+max_allowed_deviation = 600 #SET
 target_headway_2dlist = generateTargetHeadways(tripHeadways, targetHeadway, expectedNumSequence) #SET
 interstation_travel_2dlist = getInterstation(subsetTimings)
 
 
-
-
 # ONE LAST HURRAH
-def jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coordinates_list, prev_arrival_list, prev_dwell_list, arrival_rate_list, alighting_percentage_list, boarding_duration, alighting_duration, weights_list, bus_availability_list, initial_passengers_list, max_allowed_deviation, target_headway_2dlist, interstation_travel_2dlist):
+def jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coordinates_list, stop_ids_list, stop_names_list, prev_arrival_list, prev_dwell_list, arrival_rate_list, alighting_percentage_list, boarding_duration, alighting_duration, weights_list, bus_availability_list, initial_passengers_list, max_allowed_deviation, target_headway_2dlist, interstation_travel_2dlist):
     output = {
         "num_trips": num_trips,
         "num_stops": num_stops,
         "bus_capacity": bus_capacity,
         "original_dispatch_list": original_dispatch_list,
         "coordinates_list": coordinates_list,
+        "stop_ids_list": stop_ids_list,
+        "stop_names_list": stop_names_list,
         "prev_arrival_list": prev_arrival_list,
         "prev_dwell_list": prev_dwell_list,
         "arrival_rate_list": arrival_rate_list,
@@ -532,4 +537,4 @@ def jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coord
     with open("input.json", "w") as outfile:
         outfile.write(json_object)
 
-jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coordinates_list, prev_arrival_list, prev_dwell_list, arrival_rate_list, alighting_percentage_list, boarding_duration, alighting_duration, weights_list, bus_availability_list, initial_passengers_list, max_allowed_deviation, target_headway_2dlist, interstation_travel_2dlist)
+jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coordinates_list, stop_ids_list, stop_names_list, prev_arrival_list, prev_dwell_list, arrival_rate_list, alighting_percentage_list, boarding_duration, alighting_duration, weights_list, bus_availability_list, initial_passengers_list, max_allowed_deviation, target_headway_2dlist, interstation_travel_2dlist)
