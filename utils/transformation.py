@@ -314,7 +314,7 @@ def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int =
     num_trips = data["num_trips"]
     num_stops = data["num_stops"]
 
-    coordinates = {f"{i+1}": (data["coordinates_list"][i][0], data["coordinates_list"][i][1]) for i in range(num_trips)}
+    coordinates = {f"{i+1}": (data["coordinates_list"][i][0], data["coordinates_list"][i][1]) for i in range(num_stops)}
 
     cumulative_distances = {
         "1": 0
