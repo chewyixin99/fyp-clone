@@ -20,6 +20,7 @@ const MapsPageRewrite = React.memo(
     paused,
     ended,
     globalTime,
+    mapContainerStyle,
   }) => {
     const [processedJourneyData, setProcessedJourneyData] = useState({});
 
@@ -68,6 +69,7 @@ const MapsPageRewrite = React.memo(
             paused={paused}
             ended={ended}
             globalTime={globalTime}
+            mapContainerStyle={mapContainerStyle}
           />
           <MapsRewrite
             title={"After optimization"}
@@ -85,6 +87,7 @@ const MapsPageRewrite = React.memo(
             paused={paused}
             ended={ended}
             globalTime={globalTime}
+            mapContainerStyle={mapContainerStyle}
           /> */}
           <MapsRewrite
             title={"Relative position on map"}
@@ -102,6 +105,7 @@ const MapsPageRewrite = React.memo(
             paused={paused}
             ended={ended}
             globalTime={globalTime}
+            mapContainerStyle={mapContainerStyle}
           />
         </div>
       </div>
@@ -125,6 +129,7 @@ MapsPageRewrite.propTypes = {
   defaultActiveOpacity: PropTypes.number,
   globalTime: PropTypes.number,
   defaultStepInterval: PropTypes.number,
+  mapContainerStyle: PropTypes.object,
 };
 
 MapsPageRewrite.displayName = "MapsPageRewrite";

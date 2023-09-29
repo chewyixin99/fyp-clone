@@ -17,11 +17,11 @@ const BusStatus = ({ busNum, busDetails, currStopDetails }) => {
           <div>stop no {currStopDetails.busStopNo}</div>
         </div>
       )}
-      <div className="border p-3 my-2">
+      <div className="border p-3 my-2 max-w-[30vw]">
         {!inJourney ? (
           <div>Bus is currently not dispatched</div>
         ) : (
-          <div>
+          <div className="">
             <div className="flex justify-between">
               <div>{currStopDetails.stopId}</div>
               <div>{currStopDetails.lat}</div>

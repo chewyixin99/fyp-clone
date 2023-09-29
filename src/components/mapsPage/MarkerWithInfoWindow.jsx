@@ -2,18 +2,28 @@ import { useState } from "react";
 import { Marker, InfoWindow } from "@react-google-maps/api";
 import PropTypes from "prop-types";
 import busStopPng from "../../assets/busStopPng.png";
-import busFaceRight from "../../assets/busFaceRight.png";
-import busFaceLeft from "../../assets/busFaceLeft.png";
 import bus1 from "../../assets/num1.png";
 import bus2 from "../../assets/num2.png";
 import bus3 from "../../assets/num3.png";
 import bus4 from "../../assets/num4.png";
+import bus5 from "../../assets/num5.png";
+import bus6 from "../../assets/num6.png";
+import bus7 from "../../assets/num7.png";
+import bus8 from "../../assets/num8.png";
+import bus9 from "../../assets/num9.png";
+import bus10 from "../../assets/num10.png";
 
 const iconMap = {
   0: bus1,
   1: bus2,
   2: bus3,
   3: bus4,
+  4: bus5,
+  5: bus6,
+  6: bus7,
+  7: bus8,
+  8: bus9,
+  9: bus10,
 };
 
 const MarkerWithInfoWindow = ({ stop, map, data, index, busNum = -1 }) => {
