@@ -13,17 +13,9 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [triggerStart, setTriggerStart] = useState(false);
   const [triggerStop, setTriggerStop] = useState(false);
-  const [saveLocalCount, setSaveLocalCount] = useState(0);
   const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
-  const [runRefState, setRunRefState] = useState(null);
   const [dataObj, setDataObj] = useState({});
-
-  const [saveNewLocalCount, setSaveNewLocalCount] = useState(0);
-
   const [deployedTrips, setDeployedTrips] = useState([]);
-
-  var runRef = null;
-  var localCount = 0;
 
 
   const extractData = (data) => {
@@ -40,7 +32,6 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
     setRelativeStopDistance(stopDistance);
     setTotalDistance(stopDistance[stopDistance.length - 1]?.distance);
     setNumOfTrips(numberOfBusTrips.length);
-    setSaveNewLocalCount(data[0]?.timestamp)
   };
 
   const loadBusStops = () => {
@@ -75,7 +66,8 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
     }
 
     document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
-    document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML += busStopDotHTML;
+    document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML +=
+      busStopDotHTML;
   };
 
   const formatDistance = (data) => {
@@ -88,167 +80,25 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
     return min + "m " + sec + "s";
   };
 
-  const convertArrayToObject = (array, key) => {
-    const initialValue = {};
-    return array.reduce((obj, item) => {
-      return {
-        ...obj,
-        [item[key]]: item,
-      };
-    }, initialValue);
-  };
-
   const createDataObj = (data) => {
     var dataObj = {};
     data.map((item) => {
       if (item.timestamp in dataObj) {
         dataObj[item.timestamp].push(item);
-      }
-      else {
+      } else {
         dataObj[item.timestamp] = [item];
       }
-    })
+    });
 
     return dataObj;
-   
-  }
-
-  // old function
-  // const runFunction = (data) => {
-  //   localCount = saveLocalCount;
-  //   // console.log("runfunction", saveLocalCount);
-  //   if (data.length < 0) {
-  //     alert("Data error. Please try again.");
-  //     return;
-  //   }
-
-  //   runRef = setInterval(() => {
-  //     if (data[localCount].currentStatus !== undefined) {
-  //       if (data[localCount].currentStatus == "TRANSIT_TO") {
-  //         if (formatDistance(data[localCount].distance) == 100) {
-  //           alert("hi");
-  //         }
-  //         add_travel_distance(
-  //           data[localCount].distance,
-  //           data[localCount].busTripNo,
-  //           data[localCount].timestamp
-  //         );
-  //       } else if (
-  //         data[localCount].currentStatus == "STOPPED_AT" &&
-  //         formatDistance(data[localCount].distance) == 100
-  //       ) {
-  //         add_travel_distance(
-  //           totalDistance,
-  //           data[localCount].busTripNo,
-  //           data[localCount].timestamp
-  //         );
-  //       } else if (data[localCount].currentStatus == "DWELL_AT") {
-  //         add_travel_distance(
-  //           data[localCount].distance,
-  //           data[localCount].busTripNo,
-  //           data[localCount].timestamp
-  //         );
-  //       } else if (data[localCount].currentStatus == "DISPATCHED_FROM") {
-  //         let currentObj = busDispatchTimestamps;
-  //         currentObj[data[localCount].busTripNo] = data[localCount].timestamp;
-  //         setBusDispatchTimestamps(currentObj);
-
-  //         add_travel_distance(
-  //           data[localCount].distance,
-  //           data[localCount].busTripNo,
-  //           data[localCount].timestamp
-  //         );
-  //       }
-
-  //       localCount++;
-  //       setSaveLocalCount(localCount);
-  //       // console.log(localCount);
-  //     }
-  //     // !
-  //     // console.log("running in runRef in {Journey.jsx}");
-  //   }, 10);
-
-  //   setRunRefState(runRef);
-
-  // };
-
-  //   const runFunction = (dataObj, count) => {
-  //   localCount = count;
-  //   var data = dataObj;
-
-  //   runRef = setInterval(() => {
-
-  //       for (var i = 0; i < data[localCount].length; i++) {
-
-  //         if (data[localCount][i].currentStatus == "TRANSIT_TO") {
-  //           if (formatDistance(data[localCount][i].distance) == 100) {
-  //             alert("hi");
-  //           }
-  //           add_travel_distance(
-  //             data[localCount][i].distance,
-  //             data[localCount][i].busTripNo,
-  //             data[localCount][i].timestamp
-  //           );
-  //         } else if (
-  //           data[localCount][i].currentStatus == "STOPPED_AT" &&
-  //           formatDistance(data[localCount][i].distance) == 100
-  //         ) {
-  //           add_travel_distance(
-  //             totalDistance,
-  //             data[localCount][i].busTripNo,
-  //             data[localCount][i].timestamp
-  //           );
-  //         } else if (data[localCount][i].currentStatus == "DWELL_AT") {
-  //           add_travel_distance(
-  //             data[localCount][i].distance,
-  //             data[localCount][i].busTripNo,
-  //             data[localCount][i].timestamp
-  //           );
-  //         } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
-  //           let currentObj = busDispatchTimestamps;
-  //           currentObj[data[localCount][i].busTripNo] = data[localCount][i].timestamp;
-  //           setBusDispatchTimestamps(currentObj);
-  
-  //           add_travel_distance(
-  //             data[localCount][i].distance,
-  //             data[localCount][i].busTripNo,
-  //             data[localCount][i].timestamp
-  //           );
-  //         }
-  //       }
-       
-
-  //       localCount++;
-  //       setSaveLocalCount(localCount);
-
-  //       if (data[localCount] == undefined) {
-  //         clearInterval(runRef);
-  //         setIsRunning(false);
-  //       }
-
-  //   }, 10);
-
-  //   setRunRefState(runRef);
-
-  // };
+  };
 
   const newRunFunction = (dataObj, localCount) => {
-    
     var data = dataObj;
-    // console.log(data[localCount]);
 
-    // console.log(data);
-    // console.log(localCount, id);
-    // localCount += saveNewLocalCount;
-    // console.log(localCount);
-    // console.log(localCount, data[localCount], id);
-    if (data[localCount] != undefined){
+    if (data[localCount] != undefined) {
       for (var i = 0; i < data[localCount].length; i++) {
-
         if (data[localCount][i].currentStatus == "TRANSIT_TO") {
-          // if (formatDistance(data[localCount][i].distance) == 100) {
-          //   alert("hi");
-          // }
           add_travel_distance(
             data[localCount][i].distance,
             data[localCount][i].busTripNo,
@@ -271,31 +121,28 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
           );
         } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
           let currentObj = busDispatchTimestamps;
-          currentObj[data[localCount][i].busTripNo] = data[localCount][i].timestamp;
+          currentObj[data[localCount][i].busTripNo] =
+            data[localCount][i].timestamp;
           setBusDispatchTimestamps(currentObj);
-  
+
           add_travel_distance(
             data[localCount][i].distance,
             data[localCount][i].busTripNo,
             data[localCount][i].timestamp
           );
-  
+
           var temp = deployedTrips;
-          temp.push(data[localCount][i].busTripNo)
+          temp.push(data[localCount][i].busTripNo);
           setDeployedTrips(temp);
-          console.log(temp);
         }
       }
     }
-
-    
-    localCount++;
-    setSaveLocalCount(localCount);
-
   };
 
   const add_travel_distance = (newDistance, tripNo, timestamp) => {
-    var progressTip = document.querySelector(`.progress-tip-ref-${id}-${tripNo}`);
+    var progressTip = document.querySelector(
+      `.progress-tip-ref-${id}-${tripNo}`
+    );
     var progressTipContent = document.querySelector(
       `.progress-tip-content-ref-${id}-${tripNo}`
     );
@@ -320,13 +167,6 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   };
 
   const startRun = () => {
-    // var pause_btn = document.querySelector(`.pause_simulation`);
-    // var run_btn = document.querySelector(`.run_simulation`);
-    // var stop_btn = document.querySelector(`.stop_simulation`);
-    // pause_btn.classList.remove("hidden");
-    // run_btn.classList.add("hidden");
-    // stop_btn.classList.remove("hidden");
-    // console.log("start run");
     setIsRunning(true);
     setTriggerStart(true);
     setTriggerStop(false);
@@ -334,12 +174,8 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
 
   const pause = () => {
     if (isRunning) {
-      // console.log("paused triggered");
-      runRef = runRefState;
-      clearInterval(runRef);
       setIsRunning(false);
     } else {
-      // console.log("paused untriggered");
       if (triggerStart) {
         setIsRunning(true);
       }
@@ -347,46 +183,24 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   };
 
   const stop = () => {
-    // var pause_btn = document.querySelector(`.pause_simulation`);
-    // var run_btn = document.querySelector(`.run_simulation`);
-    // var stop_btn = document.querySelector(`.stop_simulation`);
-    runRef = runRefState;
-    // console.log(runRef);
-    clearInterval(runRef);
     setIsRunning(false);
     setTriggerStart(false);
     setTriggerStop(true);
-    setSaveLocalCount(0);
     for (var i = 1; i <= numOfTrips; i++) {
       add_travel_distance(0, i, busDispatchTimestamps[i]);
     }
-    // busDispatchTimestamps[tripNo];
-    // pause_btn.classList.add("hidden");
-    // run_btn.classList.remove("hidden");
-    // stop_btn.classList.add("hidden");
   };
 
   useEffect(() => {
     extractData(data);
-    setDataObj(createDataObj(data))
+    setDataObj(createDataObj(data));
   }, [data]);
-
 
   useEffect(() => {
     loadBusStops();
   }, [relativeStopDistance, totalDistance, numOfTrips]);
 
-  // useEffect(() => {
-  //   // console.log("isrunning", isRunning);
-  //   // console.log(dataObj);
-  //   if (isRunning) {
-  //     // runFunction(data);
-  //     // runFunction(dataObj,saveNewLocalCount);
-  //   }
-  // }, [isRunning, dataObj, saveNewLocalCount]);
-
   useEffect(() => {
-    
     if (start) {
       startRun();
     }
@@ -396,31 +210,18 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
     pause();
   }, [paused]);
 
-  // useEffect(() => {
-  //   // console.log(saveLocalCount);
-  // }, [saveLocalCount]);
-
   useEffect(() => {
-    console.log("ended");
     if (ended) {
       setTriggerStop(true);
       stop();
     }
   }, [ended]);
 
-
-
-  useEffect(()=>{
-    console.log(globalTime);
-    console.log(isRunning);
+  useEffect(() => {
     if (isRunning) {
-      // runFunction(data);
-      // runFunction(dataObj,saveNewLocalCount);
-      console.log("yes");
       newRunFunction(dataObj, globalTime);
     }
-    
-  }, [globalTime,dataObj,isRunning])
+  }, [globalTime, dataObj, isRunning]);
 
   return (
     <div className="mx-auto">
@@ -501,10 +302,11 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
             &nbsp;
           </div>
           {[...Array(numOfTrips)].map((x, i) => (
-            // style={{visibility: deployedTrips.includes(i) ? "" : `hidden`}}
-            <div key={[...Array(numOfTrips)].length - i} >
+            <div key={[...Array(numOfTrips)].length - i}>
               <div
-                className={`progress-tip-ref-${id}-${[...Array(numOfTrips)].length - i} progress-tip`}
+                className={`progress-tip-ref-${id}-${
+                  [...Array(numOfTrips)].length - i
+                } progress-tip`}
                 style={{ left: "0%" }}
               ></div>
               <div
@@ -514,7 +316,11 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
                 style={{ left: "-2.7%" }}
               >
                 Trip No.:{" "}
-                {triggerStart ? (triggerStop ? "-" : `${[...Array(numOfTrips)].length - i}`) : "-"}
+                {triggerStart
+                  ? triggerStop
+                    ? "-"
+                    : `${[...Array(numOfTrips)].length - i}`
+                  : "-"}
                 <p
                   className={`progress-tip-content-trip-no-ref-${id}-${
                     [...Array(numOfTrips)].length - i

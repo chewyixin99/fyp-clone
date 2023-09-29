@@ -210,8 +210,11 @@ const CombinedPage = () => {
       </div>
       {/* JianLin's component */}
       <div className="">
+        <h1 className="ms-24 mb-8 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
+          Baseline Model
+        </h1>
         <Journey
-          id={'1'}
+          id={"1"}
           paused={paused}
           ended={ended}
           start={start}
@@ -219,10 +222,15 @@ const CombinedPage = () => {
           globalTime={globalTime}
         />
       </div>
-      <div className="mb-10">
+      <div className="divider"></div>
+      <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
+        Optimized Model
+      </h1>
+
+      <div className="mt-10">
         <Journey
-          id={'2'}
-          key={'optimized'}
+          id={"2"}
+          key={"optimized"}
           paused={paused}
           ended={ended}
           start={start}
@@ -231,7 +239,7 @@ const CombinedPage = () => {
         />
       </div>
       {/* Yixin's component */}
-      <div className="m-10">
+      <div className="m-10 mt-0">
         <MapsPageRewrite
           zoom={zoom}
           center={center}
