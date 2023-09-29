@@ -8,6 +8,7 @@ import BusStatus from "./BusStatus";
 const containerStyle = {
   width: "40vw",
   height: "30vw",
+  maxWidth: "40vw",
 };
 
 const MapsRewrite = React.memo(
@@ -46,7 +47,6 @@ const MapsRewrite = React.memo(
         initBusesPos[bus] = -1;
       }
       setBusesPos(initBusesPos);
-      console.log(journeyData);
       setJourneyState(journeyData);
     }, [journeyData]);
 
@@ -75,7 +75,9 @@ const MapsRewrite = React.memo(
               // continue next loop if don't satisfy
               continue;
             }
-            console.log(`bus dispatch for bus ${bus}, numBusCurr ${numBusCurr + 1}`);
+            console.log(
+              `bus dispatch for bus ${bus}, numBusCurr ${numBusCurr + 1}`
+            );
             tmpBusesPos[bus] += 1;
             setNumBusCurr(numBusCurr + 1);
             setNumBusDispatched(numBusDispatched + 1);
@@ -91,11 +93,16 @@ const MapsRewrite = React.memo(
             journeyState[bus][currBusStop].opacity = defaultActiveOpacity;
             tmpBusesPos[bus] += 1;
           } else if (currBusStop >= currBusJourney.length) {
-            console.log(`bus ${bus} ending journey... num bus curr ${numBusCurr - 1}`);
+            console.log(
+              `bus ${bus} ending journey... num bus curr ${numBusCurr - 1}`
+            );
             journeyState[bus][currBusStop - 1].opacity = defaultInactiveOpacity;
             tmpBusesPos[bus] = -2;
             // end once last bus reach end
-            if (numBusCurr - 1 === 0 && numBusDispatched >= Object.keys(journeyState).length) {
+            if (
+              numBusCurr - 1 === 0 &&
+              numBusDispatched >= Object.keys(journeyState).length
+            ) {
               setEnded(true);
             }
             setNumBusCurr(numBusCurr - 1);
@@ -228,9 +235,13 @@ const MapsRewrite = React.memo(
         <div className="my-3 px-5 flex items-center justify-between">
           <div className="flex items-center">
             <div className="mr-3">Dispatched</div>
-            <div className="px-3 py-1 border rounded-md mr-5 font-bold">{numBusDispatched}</div>
+            <div className="px-3 py-1 border rounded-md mr-5 font-bold">
+              {numBusDispatched}
+            </div>
             <div className="mr-3">In journey</div>
-            <div className="px-3 py-1 border rounded-md mr-5 font-bold">{numBusCurr}</div>
+            <div className="px-3 py-1 border rounded-md mr-5 font-bold">
+              {numBusCurr}
+            </div>
           </div>
           <div>{/* RHS */}</div>
         </div>
@@ -238,7 +249,11 @@ const MapsRewrite = React.memo(
         <div className="grid grid-cols-3 max-w-[100%] mx-auto">
           {Object.keys(busesPos).map((b) => {
             return (
-              <BusStatus key={b} busNum={b} currStopDetails={journeyState[b][busesPos[b] - 1]} />
+              <BusStatus
+                key={b}
+                busNum={b}
+                currStopDetails={journeyState[b][busesPos[b] - 1]}
+              />
             );
           })}
         </div>

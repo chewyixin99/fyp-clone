@@ -23,7 +23,7 @@ const MarkerWithInfoWindow = ({ stop, map, data, index }) => {
     anchorValue = new window.google.maps.Point(15, 30);
     scaledSizeValue = new window.google.maps.Size(30, 30);
   } else if (stop.opacity === 1) {
-    iconUrl = index < data.length / 2 ? busFaceRight : busFaceLeft;
+    iconUrl = index < data.length / 2 ? busFaceLeft : busFaceRight;
     anchorValue = new window.google.maps.Point(25, 50);
     scaledSizeValue = new window.google.maps.Size(50, 50);
   }

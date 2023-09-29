@@ -1,26 +1,24 @@
 import { useState, useEffect } from "react";
-import { stopObjsBefore } from "../data/constants";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 
 const defaultIntervalTime = 100;
+const defaultStepInterval = defaultIntervalTime / 10;
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
 const defaultCenter = {
-  lat: 45.488184,
-  lng: -122.399686,
+  lat: 45.511046,
+  lng: -122.553584,
 };
-const defaultZoom = 13;
-const defaultStepInterval = defaultIntervalTime / 10;
-
-const stops = stopObjsBefore;
+const defaultZoom = 12;
 
 const CombinedPage = () => {
   // yixin states
   const [zoom, setZoom] = useState(defaultZoom);
   const [center, setCenter] = useState(defaultCenter);
   const [mapsGlobalTime, setMapsGlobalTime] = useState(0);
+  const [stopObjs, setStopObjs] = useState([]);
   // end of yixin states
 
   // jianlin states
@@ -34,7 +32,7 @@ const CombinedPage = () => {
   const [globalTime, setGlobalTime] = useState(0);
 
   const fetchData = async () => {
-    Papa.parse("./v1.1_output.csv", {
+    Papa.parse("./v1_4_poll1_feed.csv", {
       // options
       download: true,
       complete: (res) => {
@@ -42,19 +40,44 @@ const CombinedPage = () => {
         const data = res.data.slice(1);
         for (let i = 0; i < data.length; i++) {
           const rowData = data[i];
+          const [
+            timestamp,
+            bus_trip_no,
+            status,
+            bus_stop_no,
+            stop_id,
+            stop_name,
+            latitude,
+            longitude,
+            distance,
+          ] = rowData;
           tmpJourneyData.push({
-            timestamp: parseFloat(rowData[0]),
-            lat: parseFloat(rowData[4]),
-            lng: parseFloat(rowData[5]),
+            timestamp: parseInt(timestamp),
+            lat: parseFloat(parseFloat(latitude).toFixed(4)),
+            lng: parseFloat(parseFloat(longitude).toFixed(4)),
             opacity: 0,
-            stopId: "to be filled",
-            stopName: "to be filled",
-            busStopNo: parseInt(rowData[3]),
-            currentStatus: rowData[2],
-            busTripNo: parseInt(rowData[1]),
-            distance: parseFloat(rowData[6]),
+            stopId: stop_id,
+            stopName: stop_name,
+            busStopNo: parseInt(bus_stop_no),
+            currentStatus: status,
+            busTripNo: parseInt(bus_trip_no),
+            distance: parseFloat(distance),
           });
         }
+        const tmpStopObjs = tmpJourneyData.filter((r) => {
+          return (
+            r.busTripNo == 1 &&
+            (r.currentStatus === "STOPPED_AT" ||
+              r.currentStatus === "DISPATCHED_FROM")
+          );
+        });
+        for (const row of tmpStopObjs) {
+          row.opacity = 0.8;
+        }
+        tmpStopObjs.sort((a, b) =>
+          a.timestamp < b.timestamp ? 1 : b.timestamp > a.timestamp ? -1 : 0
+        );
+        setStopObjs(tmpStopObjs);
         setJourneyData(tmpJourneyData);
         if (tmpJourneyData.length > 0) {
           setGlobalTime(tmpJourneyData[0].timestamp);
@@ -135,19 +158,23 @@ const CombinedPage = () => {
         <button onClick={onEndClick} type="button" className={`control-button`}>
           end
         </button>
-        <button onClick={onResetZoomAndCenterClick} type="button" className="control-button">
+        <button
+          onClick={onResetZoomAndCenterClick}
+          type="button"
+          className="control-button"
+        >
           reset zoom and center map
         </button>
       </div>
       {/* JianLin's component */}
       <div className="">
-        <Journey 
-        paused={paused}
-        ended={ended}
-        start={start}
-        data={journeyData}
-        globalTime={globalTime}
-         />
+        <Journey
+          paused={paused}
+          ended={ended}
+          start={start}
+          data={journeyData}
+          globalTime={globalTime}
+        />
       </div>
       {/* Yixin's component */}
       <div className="m-10">
@@ -158,8 +185,9 @@ const CombinedPage = () => {
           setCenter={setCenter}
           defaultActiveOpacity={defaultActiveOpacity}
           defaultInactiveOpacity={defaultInactiveOpacity}
-          stops={stops}
+          stops={stopObjs}
           defaultIntervalTime={defaultIntervalTime}
+          defaultStepInterval={defaultStepInterval}
           journeyData={journeyData}
           started={start}
           setEnded={setEnded}
