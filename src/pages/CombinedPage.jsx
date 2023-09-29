@@ -12,6 +12,7 @@ const defaultCenter = {
   lng: -122.399686,
 };
 const defaultZoom = 13;
+const defaultStepInterval = defaultIntervalTime / 10;
 
 const stops = stopObjsBefore;
 
@@ -19,6 +20,7 @@ const CombinedPage = () => {
   // yixin states
   const [zoom, setZoom] = useState(defaultZoom);
   const [center, setCenter] = useState(defaultCenter);
+  const [mapsGlobalTime, setMapsGlobalTime] = useState(0);
   // end of yixin states
 
   // jianlin states
@@ -29,6 +31,7 @@ const CombinedPage = () => {
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
   const [journeyData, setJourneyData] = useState([]);
+  const [globalTime, setGlobalTime] = useState(0);
 
   const fetchData = async () => {
     Papa.parse("./v1.1_output.csv", {
@@ -53,6 +56,10 @@ const CombinedPage = () => {
           });
         }
         setJourneyData(tmpJourneyData);
+        if (tmpJourneyData.length > 0) {
+          setGlobalTime(tmpJourneyData[0].timestamp);
+          setMapsGlobalTime(tmpJourneyData[0].timestamp);
+        }
       },
     });
   };
@@ -64,35 +71,47 @@ const CombinedPage = () => {
   const onStartClick = () => {
     console.log("start clicked");
     setEnded(false);
-    // yixin logic
-    // end of yixin logic
-
-    // jianlin logic
     setStart(true);
-    // end of jianlin logic
   };
 
   const onPauseClick = () => {
-    // start of yixin logic
     setPaused(!paused);
-    // end of yixin logic
   };
 
   const onEndClick = () => {
-    // start of yixin logic
-    // end of yixin logic
-
-    // start of jianlin logic
     setStart(false);
     setEnded(true);
     setPaused(false);
-    // end of jianlin logic
   };
 
   const onResetZoomAndCenterClick = () => {
     setCenter(defaultCenter);
     setZoom(defaultZoom);
   };
+
+  // global time to sync between both maps and line component
+  useEffect(() => {
+    if (start && !paused && !ended) {
+      // iterate time
+      const interval = setInterval(() => {
+        if ((globalTime + 1 - mapsGlobalTime) % defaultStepInterval === 0) {
+          // pass
+          setMapsGlobalTime(globalTime + 1);
+          // console.log(`update, currTime is ${globalTime + 1}`);
+        }
+        setGlobalTime(globalTime + 1);
+        // console.log(`currTime is ${globalTime + 1}`);
+      }, 10);
+      return () => clearInterval(interval);
+    } else if (paused) {
+      // pass
+      console.log("paused");
+    } else if (ended) {
+      // reset to the start time of the first bus
+      setGlobalTime(journeyData[0].timestamp);
+      console.log("ended");
+    }
+  }, [start, paused, ended, globalTime]);
 
   return (
     <div>
@@ -116,22 +135,13 @@ const CombinedPage = () => {
         <button onClick={onEndClick} type="button" className={`control-button`}>
           end
         </button>
-        <button
-          onClick={onResetZoomAndCenterClick}
-          type="button"
-          className="control-button"
-        >
+        <button onClick={onResetZoomAndCenterClick} type="button" className="control-button">
           reset zoom and center map
         </button>
       </div>
       {/* JianLin's component */}
       <div className="">
-        <Journey
-          paused={paused}
-          ended={ended}
-          start={start}
-          data={journeyData}
-        />
+        <Journey paused={paused} ended={ended} start={start} data={journeyData} />
       </div>
       {/* Yixin's component */}
       <div className="m-10">
@@ -149,6 +159,7 @@ const CombinedPage = () => {
           setEnded={setEnded}
           paused={paused}
           ended={ended}
+          globalTime={mapsGlobalTime}
         />
       </div>
     </div>
