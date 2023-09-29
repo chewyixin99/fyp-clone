@@ -346,7 +346,7 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
 
 
   useEffect(()=>{
-    console.log(globalTime);
+    // console.log(globalTime);
   }, [globalTime])
 
   return (

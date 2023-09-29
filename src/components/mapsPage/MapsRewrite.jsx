@@ -6,9 +6,9 @@ import PropTypes from "prop-types";
 import BusStatus from "./BusStatus";
 
 const containerStyle = {
-  width: "40vw",
+  width: "90vw",
   height: "30vw",
-  maxWidth: "40vw",
+  maxWidth: "90vw",
 };
 
 const MapsRewrite = React.memo(
@@ -172,6 +172,7 @@ const MapsRewrite = React.memo(
                 index={index}
                 stop={point}
                 map={map}
+                busNum={parseInt(bus)}
               />
             );
             allJourneyMarkers.push(markerWithInfoWindow);

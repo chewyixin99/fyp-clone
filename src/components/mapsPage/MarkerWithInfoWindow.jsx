@@ -4,8 +4,19 @@ import PropTypes from "prop-types";
 import busStopPng from "../../assets/busStopPng.png";
 import busFaceRight from "../../assets/busFaceRight.png";
 import busFaceLeft from "../../assets/busFaceLeft.png";
+import bus1 from "../../assets/num1.png";
+import bus2 from "../../assets/num2.png";
+import bus3 from "../../assets/num3.png";
+import bus4 from "../../assets/num4.png";
 
-const MarkerWithInfoWindow = ({ stop, map, data, index }) => {
+const iconMap = {
+  0: bus1,
+  1: bus2,
+  2: bus3,
+  3: bus4,
+};
+
+const MarkerWithInfoWindow = ({ stop, map, data, index, busNum = -1 }) => {
   const [infoOpen, setInfoOpen] = useState(false);
   const onMarkerClick = () => {
     setInfoOpen(true);
@@ -23,7 +34,9 @@ const MarkerWithInfoWindow = ({ stop, map, data, index }) => {
     anchorValue = new window.google.maps.Point(15, 30);
     scaledSizeValue = new window.google.maps.Size(30, 30);
   } else if (stop.opacity === 1) {
-    iconUrl = index < data.length / 2 ? busFaceLeft : busFaceRight;
+    if (busNum !== -1) {
+      iconUrl = iconMap[busNum];
+    }
     anchorValue = new window.google.maps.Point(25, 50);
     scaledSizeValue = new window.google.maps.Size(50, 50);
   }
@@ -71,6 +84,7 @@ MarkerWithInfoWindow.propTypes = {
   map: PropTypes.object,
   data: PropTypes.array,
   index: PropTypes.number,
+  busNum: PropTypes.number,
 };
 
 export default MarkerWithInfoWindow;

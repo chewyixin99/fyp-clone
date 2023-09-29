@@ -3,7 +3,7 @@ import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 
-const defaultIntervalTime = 100;
+const defaultIntervalTime = 500;
 const defaultStepInterval = defaultIntervalTime / 10;
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
@@ -11,7 +11,7 @@ const defaultCenter = {
   lat: 45.511046,
   lng: -122.553584,
 };
-const defaultZoom = 12;
+const defaultZoom = 13;
 
 const CombinedPage = () => {
   // yixin states

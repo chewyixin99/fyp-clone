@@ -52,7 +52,7 @@ const MapsPageRewrite = React.memo(
       <div>
         <div className="flex justify-center mb-5">{/* for future */}</div>
         <div className="flex justify-evenly">
-          <MapsRewrite
+          {/* <MapsRewrite
             title={"Before optimization"}
             zoom={zoom}
             center={center}
@@ -71,6 +71,23 @@ const MapsPageRewrite = React.memo(
           />
           <MapsRewrite
             title={"After optimization"}
+            zoom={zoom}
+            center={center}
+            setCenter={setCenter}
+            setZoom={setZoom}
+            defaultActiveOpacity={defaultActiveOpacity}
+            defaultInactiveOpacity={defaultInactiveOpacity}
+            stops={stops}
+            defaultIntervalTime={defaultIntervalTime}
+            journeyData={processedJourneyData}
+            started={started}
+            setEnded={setEnded}
+            paused={paused}
+            ended={ended}
+            globalTime={globalTime}
+          /> */}
+          <MapsRewrite
+            title={"Relative position on map"}
             zoom={zoom}
             center={center}
             setCenter={setCenter}
