@@ -242,9 +242,9 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
     for (var i = 0; i < data[localCount].length; i++) {
 
       if (data[localCount][i].currentStatus == "TRANSIT_TO") {
-        if (formatDistance(data[localCount][i].distance) == 100) {
-          alert("hi");
-        }
+        // if (formatDistance(data[localCount][i].distance) == 100) {
+        //   alert("hi");
+        // }
         add_travel_distance(
           data[localCount][i].distance,
           data[localCount][i].busTripNo,
@@ -360,8 +360,10 @@ const Journey = ({ start, paused, ended, data, globalTime }) => {
     setTriggerStart(false);
     setTriggerStop(true);
     setSaveLocalCount(0);
-    add_travel_distance(data[0].distance, data[0].busTripNo, data[0].timestamp);
-
+    for (var i = 1; i <= numOfTrips; i++) {
+      add_travel_distance(0, i, busDispatchTimestamps[i]);
+    }
+    // busDispatchTimestamps[tripNo];
     // pause_btn.classList.add("hidden");
     // run_btn.classList.remove("hidden");
     // stop_btn.classList.add("hidden");
