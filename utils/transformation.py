@@ -194,6 +194,8 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
     bus_trip_nos = []
     statuses = []
     bus_stop_nos = []
+    stop_ids = []
+    stop_names = []
     latitudes = []
     longitudes = []
     distances = []
@@ -203,6 +205,8 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
     bus_trip_nos.append(current_trip)
     statuses.append("DISPATCHED_FROM")
     bus_stop_nos.append(1)
+    stop_ids.append(data["stop_ids_list"][0])
+    stop_names.append(data["stop_names_list"][0])
     latitudes.append(coordinates[f"1"][0])
     longitudes.append(coordinates[f"1"][1])
     distances.append(0)
@@ -221,6 +225,8 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
             bus_trip_nos.append(trip_no)
             statuses.append("STOPPED_AT")
             bus_stop_nos.append(stop_no)
+            stop_ids.append(data["stop_ids_list"][stop_no-1])
+            stop_names.append(data["stop_names_list"][stop_no-1])
             latitudes.append(coordinates[f"{stop_no}"][0])
             longitudes.append(coordinates[f"{stop_no}"][1])
             distances.append(cumulative_distances[f"{stop_no}"])
@@ -251,6 +257,8 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
                     latitudes.append(coordinates[f"{i+1}"][0])
                     longitudes.append(coordinates[f"{i+1}"][1])
                     bus_stop_nos.append(i+1)
+                    stop_ids.append(data["stop_ids_list"][i])
+                    stop_names.append(data["stop_names_list"][i])
                     distances.append(cumulative_distances[f"{i+1}"])
                 dwell_count += 1
 
@@ -262,6 +270,8 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
                     latitudes.append(segments[segment_count][0])
                     longitudes.append(segments[segment_count][1])
                     bus_stop_nos.append(i+2)
+                    stop_ids.append(data["stop_ids_list"][i+1])
+                    stop_names.append(data["stop_names_list"][i+1])
                     covered_distance = cumulative_distances[f"{i+1}"] + distance_per_timestep * (segment_count+1)
                     distances.append(covered_distance)
                 segment_count += 1
@@ -272,6 +282,8 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
         "bus_trip_no": bus_trip_nos,
         "status": statuses,
         "bus_stop_no": bus_stop_nos,
+        "stop_id": stop_ids,
+        "stop_name": stop_names,
         "latitude": latitudes,
         "longitude": longitudes,
         "distance": distances

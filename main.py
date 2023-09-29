@@ -6,7 +6,7 @@ from utils.transformation import convert_json_to_dict, write_data_to_json, json_
 if __name__ == "__main__":
 
     model = "v1_4" # NOTE: to change to other models (not frequent)
-    polling_rate = 15
+    polling_rate = 30
     is_first_trip = False
     silent = False
 
@@ -30,6 +30,8 @@ if __name__ == "__main__":
         bus_capacity=input_data["bus_capacity"],
         original_dispatch_list=input_data["original_dispatch_list"],
         coordinates_list=input_data["coordinates_list"],
+        stop_ids_list=input_data["stop_ids_list"],
+        stop_names_list=input_data["stop_names_list"],
         dwell_matrix=output_data["dwell_dict"],
         busload_matrix=output_data["busload_dict"],
         arrival_matrix=output_data["arrival_dict"],
