@@ -45,3 +45,14 @@ export const getRecordsWithUniqueKey = (objsArr, keyName) => {
   }
   return resValues;
 };
+
+// check if time exceeds, if yes, return indexes that are required to start
+export const startBusIfTime = (busJourney, currTime) => {
+  if (busJourney.length !== 0) {
+    const firstRecordTime = busJourney[0].timestamp;
+    if (currTime >= firstRecordTime) {
+      return true;
+    }
+  }
+  return false;
+};

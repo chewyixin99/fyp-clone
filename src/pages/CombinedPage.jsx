@@ -1,27 +1,29 @@
 import { useState, useEffect } from "react";
-import {
-  defaultBusIndexAfter,
-  defaultBusIndexBefore,
-  defaultCenter,
-  defaultZoom,
-} from "../data/constants";
-import { busesCurrentlyInJourney, isBusInJourney } from "../util/mapHelper";
-import MapsPage from "./MapsPage";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
+import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 
-const defaultIntervalTime = 200;
+const defaultIntervalTime = 600;
+const defaultStepInterval = Math.floor(defaultIntervalTime / 15);
 const defaultInactiveOpacity = 0;
 const defaultActiveOpacity = 1;
+const defaultCenter = {
+  lat: 45.511046,
+  lng: -122.553584,
+};
+const defaultZoom = 13;
+const mapContainerStyle = {
+  width: "100%",
+  height: "20vw",
+  maxWidth: "100%",
+};
 
 const CombinedPage = () => {
   // yixin states
   const [zoom, setZoom] = useState(defaultZoom);
   const [center, setCenter] = useState(defaultCenter);
-  const [busIndexBefore, setBusIndexBefore] = useState(defaultBusIndexBefore);
-  const [busIndexAfter, setBusIndexAfter] = useState(defaultBusIndexAfter);
-  const [numBusCurrBefore, setNumBusCurrBefore] = useState(0);
-  const [numBusCurrAfter, setNumBusCurrAfter] = useState(0);
+  const [mapsGlobalTime, setMapsGlobalTime] = useState(0);
+  const [stopObjs, setStopObjs] = useState([]);
   // end of yixin states
 
   // jianlin states
@@ -32,9 +34,11 @@ const CombinedPage = () => {
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
   const [journeyData, setJourneyData] = useState([]);
+  const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
+  const [globalTime, setGlobalTime] = useState(0);
 
   const fetchData = async () => {
-    Papa.parse("./v1.1_output.csv", {
+    Papa.parse("./v1_4_poll1_feed.csv", {
       // options
       download: true,
       complete: (res) => {
@@ -42,20 +46,85 @@ const CombinedPage = () => {
         const data = res.data.slice(1);
         for (let i = 0; i < data.length; i++) {
           const rowData = data[i];
+          const [
+            timestamp,
+            bus_trip_no,
+            status,
+            bus_stop_no,
+            stop_id,
+            stop_name,
+            latitude,
+            longitude,
+            distance,
+          ] = rowData;
           tmpJourneyData.push({
-            timestamp: parseFloat(rowData[0]),
-            lat: parseFloat(rowData[4]),
-            lng: parseFloat(rowData[5]),
+            timestamp: parseInt(timestamp),
+            lat: parseFloat(parseFloat(latitude).toFixed(6)),
+            lng: parseFloat(parseFloat(longitude).toFixed(6)),
             opacity: 0,
-            stopId: "to be filled",
-            stopName: "to be filled",
-            busStopNo: parseInt(rowData[3]),
-            currentStatus: rowData[2],
-            busTripNo: parseInt(rowData[1]),
-            distance: parseFloat(rowData[6]),
+            stopId: stop_id,
+            stopName: stop_name,
+            busStopNo: parseInt(bus_stop_no),
+            currentStatus: status,
+            busTripNo: parseInt(bus_trip_no),
+            distance: parseFloat(distance),
           });
         }
+        const tmpStopObjs = tmpJourneyData.filter((r) => {
+          return (
+            r.busTripNo == 1 &&
+            (r.currentStatus === "STOPPED_AT" ||
+              r.currentStatus === "DISPATCHED_FROM")
+          );
+        });
+        for (const row of tmpStopObjs) {
+          row.opacity = 0.8;
+        }
+        tmpStopObjs.sort((a, b) =>
+          a.timestamp < b.timestamp ? 1 : b.timestamp > a.timestamp ? -1 : 0
+        );
+        setStopObjs(tmpStopObjs);
         setJourneyData(tmpJourneyData);
+        if (tmpJourneyData.length > 0) {
+          setGlobalTime(tmpJourneyData[0].timestamp);
+          setMapsGlobalTime(tmpJourneyData[0].timestamp);
+        }
+      },
+    });
+
+    Papa.parse("./v1_4_poll1_unoptimised_feed.csv", {
+      // options
+      download: true,
+      complete: (res) => {
+        const tmpJourneyDataUnoptimized = [];
+        const data = res.data.slice(1);
+        for (let i = 0; i < data.length; i++) {
+          const rowData = data[i];
+          const [
+            timestamp,
+            bus_trip_no,
+            status,
+            bus_stop_no,
+            stop_id,
+            stop_name,
+            latitude,
+            longitude,
+            distance,
+          ] = rowData;
+          tmpJourneyDataUnoptimized.push({
+            timestamp: parseInt(timestamp),
+            lat: parseFloat(parseFloat(latitude).toFixed(6)),
+            lng: parseFloat(parseFloat(longitude).toFixed(6)),
+            opacity: 0,
+            stopId: stop_id,
+            stopName: stop_name,
+            busStopNo: parseInt(bus_stop_no),
+            currentStatus: status,
+            busTripNo: parseInt(bus_trip_no),
+            distance: parseFloat(distance),
+          });
+        }
+        setJourneyDataUnoptimized(tmpJourneyDataUnoptimized);
       },
     });
   };
@@ -65,92 +134,49 @@ const CombinedPage = () => {
   }, []);
 
   const onStartClick = () => {
-    // yixin logic
+    console.log("start clicked");
     setEnded(false);
-    let busIndexBeforeCopy = JSON.parse(JSON.stringify(busIndexBefore));
-    for (const bus in busIndexBeforeCopy) {
-      if (busIndexBeforeCopy[bus].currStop === -1) {
-        busIndexBeforeCopy[bus].currStop = 0;
-        console.log(
-          `add 1 bus to loop: numBuses now = ${numBusCurrBefore + 1}`
-        );
-        setNumBusCurrBefore(numBusCurrBefore + 1);
-        setBusIndexBefore(busIndexBeforeCopy);
-        break;
-      }
-    }
-    let busIndexAfterCopy = JSON.parse(JSON.stringify(busIndexAfter));
-    for (const bus in busIndexAfterCopy) {
-      if (busIndexAfterCopy[bus].currStop === -1) {
-        busIndexAfterCopy[bus].currStop = 0;
-        console.log(`add 1 bus to loop: numBuses now = ${numBusCurrAfter + 1}`);
-        setNumBusCurrAfter(numBusCurrAfter + 1);
-        setBusIndexAfter(busIndexAfterCopy);
-        break;
-      }
-    }
-    // end of yixin logic
-
-    // jianlin logic
     setStart(true);
-    // end of jianlin logic
   };
 
   const onPauseClick = () => {
-    // start of yixin logic
-    if (busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])) {
-      if (!paused) {
-        // Before
-        let tmpBusIndexBefore = JSON.parse(JSON.stringify(busIndexBefore));
-        for (const bus in tmpBusIndexBefore) {
-          if (isBusInJourney(tmpBusIndexBefore[bus])) {
-            tmpBusIndexBefore[bus].currStop += 1;
-          }
-        }
-        setBusIndexBefore(tmpBusIndexBefore);
-        // After
-        let tmpBusIndexAfter = JSON.parse(JSON.stringify(busIndexAfter));
-        for (const bus in tmpBusIndexAfter) {
-          if (isBusInJourney(tmpBusIndexAfter[bus])) {
-            tmpBusIndexAfter[bus].currStop += 1;
-          }
-        }
-        setBusIndexAfter(tmpBusIndexAfter);
-      }
-      setPaused(!paused);
-    }
-    // end of yixin logic
+    setPaused(!paused);
   };
 
   const onEndClick = () => {
-    // start of yixin logic
-    if (busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])) {
-      // update all buses to -1, to signify that all has ended their journey
-      // before
-      let tmpBusIndexCopyBefore = JSON.parse(JSON.stringify(busIndexBefore));
-      for (const bus in tmpBusIndexCopyBefore) {
-        tmpBusIndexCopyBefore[bus].currStop = -1;
-      }
-      setBusIndexBefore(tmpBusIndexCopyBefore);
-      // after
-      let tmpBusIndexCopyAfter = JSON.parse(JSON.stringify(busIndexAfter));
-      for (const bus in tmpBusIndexCopyAfter) {
-        tmpBusIndexCopyAfter[bus].currStop = -1;
-      }
-      setBusIndexAfter(tmpBusIndexCopyAfter);
-      setEnded(true);
-    }
-    // end of yixin logic
-
-    // start of jianlin logic
     setStart(false);
-    // end of jianlin logic
+    setEnded(true);
+    setPaused(false);
   };
 
   const onResetZoomAndCenterClick = () => {
     setCenter(defaultCenter);
     setZoom(defaultZoom);
   };
+
+  // global time to sync between both maps and line component
+  useEffect(() => {
+    if (start && !paused && !ended) {
+      // iterate time
+      const interval = setInterval(() => {
+        if ((globalTime + 1 - mapsGlobalTime) % defaultStepInterval === 0) {
+          // pass
+          setMapsGlobalTime(globalTime + 1);
+          // console.log(`update, currTime is ${globalTime + 1}`);
+        }
+        setGlobalTime(globalTime + 1);
+        // console.log(`currTime is ${globalTime + 1}`);
+      }, 10);
+      return () => clearInterval(interval);
+    } else if (paused) {
+      // pass
+      console.log("paused");
+    } else if (ended) {
+      // reset to the start time of the first bus
+      setGlobalTime(journeyData[0].timestamp);
+      console.log("ended");
+    }
+  }, [start, paused, ended, globalTime]);
 
   return (
     <div>
@@ -160,29 +186,18 @@ const CombinedPage = () => {
           onClick={onStartClick}
           type="button"
           className={paused ? "control-button-disabled" : "control-button"}
+          disabled={paused}
         >
           start
         </button>
         <button
           onClick={onPauseClick}
           type="button"
-          className={
-            !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
-              ? `control-button-disabled`
-              : `control-button`
-          }
+          className={ended ? `control-button-disabled` : `control-button`}
         >
           {paused ? "resume" : "pause"}
         </button>
-        <button
-          onClick={onEndClick}
-          type="button"
-          className={
-            !busesCurrentlyInJourney([numBusCurrBefore, numBusCurrAfter])
-              ? `control-button-disabled`
-              : `control-button`
-          }
-        >
+        <button onClick={onEndClick} type="button" className={`control-button`}>
           end
         </button>
         <button
@@ -195,36 +210,53 @@ const CombinedPage = () => {
       </div>
       {/* JianLin's component */}
       <div className="">
+        <h1 className="ms-24 mb-8 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
+          Baseline Model
+        </h1>
         <Journey
+          id={"1"}
+          paused={paused}
+          ended={ended}
+          start={start}
+          data={journeyDataUnoptimized}
+          globalTime={globalTime}
+        />
+      </div>
+      <div className="divider"></div>
+      <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
+        Optimized Model
+      </h1>
+
+      <div className="mt-10">
+        <Journey
+          id={"2"}
+          key={"optimized"}
           paused={paused}
           ended={ended}
           start={start}
           data={journeyData}
+          globalTime={globalTime}
         />
       </div>
       {/* Yixin's component */}
-      <div className="">
-        <MapsPage
+      <div className="m-10 mt-0">
+        <MapsPageRewrite
+          zoom={zoom}
+          center={center}
+          setZoom={setZoom}
+          setCenter={setCenter}
+          defaultActiveOpacity={defaultActiveOpacity}
+          defaultInactiveOpacity={defaultInactiveOpacity}
+          stops={stopObjs}
+          defaultIntervalTime={defaultIntervalTime}
+          defaultStepInterval={defaultStepInterval}
+          journeyData={journeyData}
+          started={start}
+          setEnded={setEnded}
           paused={paused}
           ended={ended}
-          setPaused={setPaused}
-          setEnded={setEnded}
-          zoom={zoom}
-          setZoom={setZoom}
-          center={center}
-          setCenter={setCenter}
-          busIndexBefore={busIndexBefore}
-          setBusIndexBefore={setBusIndexBefore}
-          busIndexAfter={busIndexAfter}
-          setBusIndexAfter={setBusIndexAfter}
-          numBusCurrBefore={numBusCurrBefore}
-          numBusCurrAfter={numBusCurrAfter}
-          setNumBusCurrBefore={setNumBusCurrBefore}
-          setNumBusCurrAfter={setNumBusCurrAfter}
-          allJourneyData={journeyData}
-          defaultIntervalTime={defaultIntervalTime}
-          defaultInactiveOpacity={defaultInactiveOpacity}
-          defaultActiveOpacity={defaultActiveOpacity}
+          globalTime={mapsGlobalTime}
+          mapContainerStyle={mapContainerStyle}
         />
       </div>
     </div>
