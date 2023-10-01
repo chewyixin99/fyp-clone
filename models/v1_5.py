@@ -1,14 +1,12 @@
-# v2.0 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
+# v1.5 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
 # and then changed Constraints 26 and 28 to make it max of boarding duration and alighting duration
 # and then changed Constraints 29, 31, 32, 33 and added Equation 20 to add bus capacity constraints
-
-# Constraints 6, 20, 27, 30 has been further revised to account for is_first_trip vs regular trips.
 
 from docplex.mp.model import Model
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = False) -> None:
+def run_model(data: Dict[str, Any], silent: bool = False) -> None:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -51,9 +49,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
 
     # Transformation to dictionaries to be referred to by the constraints
     original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
-    if not is_first_trip: # prev_arrival and prev_dwell only for non-first trips of the day
-        prev_arrival = convert_list_to_dict(data["prev_arrival_list"], 1, num_stops)
-        prev_dwell = convert_list_to_dict(data["prev_dwell_list"], 1, num_stops-1)
+    prev_arrival = convert_list_to_dict(data["prev_arrival_list"], 1, num_stops) # MODIFIED keep for rolling horizons
+    prev_dwell = convert_list_to_dict(data["prev_dwell_list"], 1, num_stops-1) # doesn't seem to be used
     arrival_rate = convert_list_to_dict(data["arrival_rate_list"], 1, num_stops)
     alighting_percentage = convert_list_to_dict(data["alighting_percentage_list"], 2, num_stops)
     weights = convert_list_to_dict(data["weights_list"], 2, num_stops)
@@ -75,29 +72,23 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
 
     # CONSTRAINTS
     # Equation 1, Constraint 6
-    if is_first_trip:
-        model.add_constraint(headway[1,2] == 0, "Eq1")
-    else:
-        model.add_constraint(headway[1,2] ==
-                            (original_dispatch[1] + dispatch_offset[1])
-                            + interstation_travel[(1,1)]
-                            - prev_arrival[2], "Eq1")
+    model.add_constraint(headway[1,2] ==
+                        (original_dispatch[1] + dispatch_offset[1])
+                        + interstation_travel[(1,1)]
+                        - prev_arrival[2], "Eq1")
 
     # Equation 2, Constraint 6
     for s in range(3, num_stops+1):
-        if is_first_trip:
-            model.add_constraint(headway[1,s] == 0, "Eq2")
-        else:
-            model.add_constraint(headway[1,s] ==
-                                headway[1,s-1]
-                                + (dwell[1,s-1] + interstation_travel[(1,s-1)])
-                                - (prev_arrival[s] - prev_arrival[s-1]), "Eq2")
+        model.add_constraint(headway[1,s] ==
+                            headway[1,s-1]
+                            + (dwell[1,s-1] + interstation_travel[(1,s-1)])
+                            - (prev_arrival[s] - prev_arrival[s-1]), "Eq2")
         
     # Equation 3, Constraint 7
     for j in range(2, num_trips+1):
         model.add_constraint(headway[j,2] ==
                             ((original_dispatch[j] + dispatch_offset[j]) + interstation_travel[(j,1)])
-                            - ((original_dispatch[j-1] + dispatch_offset[j-1]) + interstation_travel[(j-1,1)]), "Eq1")
+                            - ((original_dispatch[j-1] + dispatch_offset[j-1]) + interstation_travel[(j-1,1)]), "Eq3")
         
         # Equation 4, Constraint 7
         for s in range(3, num_stops+1):
@@ -108,13 +99,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
 
     # Equation 5, Constraint 20
     beta = 1 / (num_trips * sum(weights))
-    if is_first_trip:
-        f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(2, num_trips))
-                            for s in range(2, num_stops))
-    else:
-        f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips))
-                            for s in range(2, num_stops))
-
+    f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips))
+                        for s in range(2, num_stops))
     # Equation 6, Constraint 20
     model.add_constraint(beta > 0, "Eq6")
 
@@ -124,41 +110,36 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
         
     # Equation 8, Constraint 26
     for s in range(2, num_stops):
-        model.add_constraint(dwell[1,s] ==
+        model.add_constraint(dwell[1,s] >=
                             model.max(boarding_duration * willing_board[1,s],
                             alighting_duration * alighting_percentage[s] * busload[1,s]), "Eq8")
         
-        # Equation 9, Constraint 27 modified according to Confluence v2.0
-        if is_first_trip:
-            model.add_constraint(willing_board[1,s] == initial_passengers[s], "Eq9")
-        else:
-            model.add_constraint(willing_board[1,s] ==
-                                (1 + arrival_rate[s] * boarding_duration)
-                                * arrival_rate[s]
-                                * (headway[j,s] - prev_dwell[s]), "Eq9")
-
+    # Equation 9, Constraint 27 modified according to Confluence v1.1
+        model.add_constraint(willing_board[1,s] == initial_passengers[s], "Eq9")
         
     # Equation 10, Constraint 28
     for j in range(2, num_trips+1):
         for s in range(2, num_stops):
-            model.add_constraint(dwell[j,s] ==
+            model.add_constraint(dwell[j,s] >=
                                 model.max(boarding_duration * willing_board[j,s],
                                 alighting_duration * alighting_percentage[s] * busload[j,s]), "Eq10")
+
+    # Equation 10.5, Constraint 28
+    for j in range(2, num_trips+1):
+        for s in range(2, num_stops):
+            model.add_constraint(dwell[j,s] <= 300 + model.max(boarding_duration * willing_board[j,s],
+                            alighting_duration * alighting_percentage[s] * busload[j,s]), "Eq10.5")
             
             # Equation 11, Constraint 29
             model.add_constraint(willing_board[j,s] ==
-                        (1 + arrival_rate[s] * boarding_duration)
+                        model.max((1 + arrival_rate[s] * boarding_duration)
                         * (arrival_rate[s]
-                        * (headway[j,s] - dwell[j-1,s])) + stranded[j,s], "Eq11")
+                        * (headway[j,s] - dwell[j-1,s])) + stranded[j,s],
+                        (1 + arrival_rate[s] * boarding_duration)
+                        * stranded[j,s]), "Eq11")
                 
-    # Equation 12, Constraint 30 modified according to Confluence v2.0
-    if is_first_trip:
-        model.add_constraint(busload[1,2] == initial_passengers[1], "Eq12")
-    else:
-        model.add_constraint(busload[1,2] ==
-                        (1 + arrival_rate[1] * boarding_duration)
-                        * arrival_rate[1]
-                        * (original_dispatch[1] + dispatch_offset[1] - prev_arrival[1] - prev_dwell[1]), "Eq12")
+    # Equation 12, Constraint 30 modified according to Confluence v1.1
+    model.add_constraint(busload[1,2] == initial_passengers[1], "Eq12")
 
     # Equation 13, Constraint 31
     for s in range(3, num_stops+1):
@@ -217,15 +198,12 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
                             + willing_board[j,s]
                             - alighting_percentage[s] * busload[j,s] - capacity), 0), "Eq20")
 
-    # model.add_constraint(dispatch_offset[3] == -1) # TODO look into why no negatives
-
-
     # for j in range(1, num_trips+1): # to observe if dispatch optimisation was not used
     #     model.add_constraint(dispatch_offset[j] == 0)
 
     # OBJECTIVE FUNCTION
     objective_function = f_x + 1000 * slack # soft constraint using bigM = 1000 in case of infeasibility
-    # objective_function = sum(dispatch_offset) # to find smallest dispatch_offsets
+    # objective_function = sum([dispatch_offset[j]**2 for j in range(1, num_trips+1)]) # to find smallest dispatch_offsets
     model.minimize(objective_function)
 
     # Solve the model

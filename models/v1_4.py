@@ -190,7 +190,10 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
                             + willing_board[j,s]
                             - alighting_percentage[s] * busload[j,s] - capacity), 0), "Eq20")
 
-    # model.add_constraint(dispatch_offset[3] == -1) # TODO look into why no negatives
+    # model.add_constraint(dispatch_offset[1] == 574)
+    # model.add_constraint(dispatch_offset[2] == -18)
+    # model.add_constraint(dispatch_offset[3] == -1)
+    # model.add_constraint(dispatch_offset[4] == -553)
 
 
     # for j in range(1, num_trips+1): # to observe if dispatch optimisation was not used
@@ -198,7 +201,7 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
 
     # OBJECTIVE FUNCTION
     objective_function = f_x + 1000 * slack # soft constraint using bigM = 1000 in case of infeasibility
-    # objective_function = sum(dispatch_offset) # to find smallest dispatch_offsets
+    # objective_function = sum([dispatch_offset[j]**2 for j in range(1, num_trips+1)]) # to find smallest dispatch_offsets
     model.minimize(objective_function)
 
     # Solve the model
@@ -255,6 +258,7 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
         "headway_dict": headway_dict,
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
+        "objective_value": model.objective_value,
     }
             
     return variables_to_return

@@ -271,6 +271,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, is_first_trip: bool = 
         "headway_dict": headway_dict,
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
+        "objective_value": model.objective_value,
     }
             
     return variables_to_return
