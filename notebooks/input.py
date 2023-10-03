@@ -387,7 +387,7 @@ def generateAlightingPercentage(df, num_stops, input_key_stops, directionId):
 
     alighting_percentage_list.append(0)
 
-    for i in range(num_stops-2):
+    for i in range(num_stops-3):
         a = 0
 
         if stops_in_route[i] in input_key_stops:
@@ -399,6 +399,9 @@ def generateAlightingPercentage(df, num_stops, input_key_stops, directionId):
             a += round(random.uniform(0, 0.97),3)
             
         alighting_percentage_list.append(a)
+
+    alighting_percentage_list.append(1)
+
     return alighting_percentage_list
 
 def getNumStops(df, directionId):
