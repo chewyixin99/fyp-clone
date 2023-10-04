@@ -2,7 +2,7 @@ import json
 import re
 import plotly.express as px
 import pandas as pd
-from models.v1_4 import run_model # NOTE: to change to other models (not frequent)
+from models.v1_3 import run_model # NOTE: to change to other models (not frequent)
 from utils.transformation import convert_json_to_dict, write_data_to_json, json_to_feed
 
 def check_coords(input_data):
@@ -19,12 +19,12 @@ def check_coords(input_data):
 
 if __name__ == "__main__":
 
-    model = "v1_4" # NOTE: to change to other models (not frequent)
+    model = "v1_3" # NOTE: to change to other models (not frequent)
     polling_rate = 1
     is_first_trip = False
     silent = False
 
-    input_data = convert_json_to_dict("./data/inputs/actual/actual.json")
+    input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2908.json")
     # input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2908.json")
 
     # check_coords(input_data)
