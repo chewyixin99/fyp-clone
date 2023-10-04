@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 import { normalizeStartEndTimes } from "../util/mapHelper";
 
-const defaultIntervalTime = 100;
+const defaultIntervalTime = 300;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
 const defaultCenter = {
   lat: 45.515,

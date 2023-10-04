@@ -137,7 +137,7 @@ const LandingPage = () => {
       </div>
       <div className="flex justify-evenly my-3">
         {/* Background */}
-        <div className="border-l-2 p-3 my-3">
+        <div className=" p-3 my-3">
           <h4>Project background and motivation</h4>
           <p className="m-3">
             PIAPP is a{" "}
@@ -148,7 +148,7 @@ const LandingPage = () => {
             <span className="highlight-text">
               traffic congestion and environmental issues
             </span>
-            . Currently, they are looking to enhance its MaaS offerings by
+            . Currently, they are looking to enhance its MaaS offerings by{" "}
             <span className="highlight-text">
               improving their behind-the-scene algorithms
             </span>{" "}
@@ -203,7 +203,7 @@ const LandingPage = () => {
         </div>
       </div>
       {/* Methodology */}
-      <div className="border-l-2 p-3 my-3">
+      <div className=" p-3 my-3">
         <h4>Methodology</h4>
         <div className="flex justify-between">
           <div>
@@ -233,7 +233,7 @@ const LandingPage = () => {
         </div>
       </div>
       {/* Technical design */}
-      <div className="border-l-2 p-3 my-3">
+      <div className=" p-3 my-3">
         <h4>Technical design</h4>
         <p className="m-3">Here is a brief overview of our technical design.</p>
         <div className="flex justify-center">
