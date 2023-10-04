@@ -66,7 +66,7 @@ def visualise_heatmap(timings_matrix, model_name):
     fig = px.imshow(timings_matrix, 
                     labels=dict(x="Stops", y="Trips", color="Value"),
                     title=f"Computational complexity with varying stops and trips for model {model_name}",
-                    zmin=0, zmax=0.04,
+                    zmin=0, zmax=np.percentile(timings_matrix, 97),
                     color_continuous_scale="RdBu_r")
 
     fig.update_xaxes(tickvals=list(range(timings_matrix.shape[1])), ticktext=list(range(1, timings_matrix.shape[1] + 1)))
