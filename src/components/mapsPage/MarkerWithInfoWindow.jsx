@@ -26,7 +26,7 @@ const iconMap = {
   9: bus10,
 };
 
-const MarkerWithInfoWindow = ({ stop, map, data, index, busNum = -1 }) => {
+const MarkerWithInfoWindow = ({ stop, map, busNum = -1 }) => {
   const [infoOpen, setInfoOpen] = useState(false);
   const onMarkerClick = () => {
     setInfoOpen(true);
@@ -46,9 +46,13 @@ const MarkerWithInfoWindow = ({ stop, map, data, index, busNum = -1 }) => {
   } else if (stop.opacity === 1) {
     if (busNum !== -1) {
       iconUrl = iconMap[busNum];
+      anchorValue = new window.google.maps.Point(25, 50);
+      scaledSizeValue = new window.google.maps.Size(50, 50);
+    } else {
+      iconUrl = busStopPng;
+      anchorValue = new window.google.maps.Point(15, 30);
+      scaledSizeValue = new window.google.maps.Size(30, 30);
     }
-    anchorValue = new window.google.maps.Point(25, 50);
-    scaledSizeValue = new window.google.maps.Size(50, 50);
   }
 
   const infoWindow = (
@@ -92,8 +96,6 @@ const MarkerWithInfoWindow = ({ stop, map, data, index, busNum = -1 }) => {
 MarkerWithInfoWindow.propTypes = {
   stop: PropTypes.object,
   map: PropTypes.object,
-  data: PropTypes.array,
-  index: PropTypes.number,
   busNum: PropTypes.number,
 };
 

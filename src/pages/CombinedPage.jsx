@@ -2,21 +2,23 @@ import { useState, useEffect } from "react";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
+import { normalizeStartEndTimes } from "../util/mapHelper";
 
-const defaultIntervalTime = 600;
-const defaultStepInterval = Math.floor(defaultIntervalTime / 15);
-const defaultInactiveOpacity = 0;
-const defaultActiveOpacity = 1;
+const defaultIntervalTime = 100;
+const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
 const defaultCenter = {
-  lat: 45.511046,
+  lat: 45.515,
   lng: -122.553584,
 };
-const defaultZoom = 13;
+const defaultZoom = 12;
 const mapContainerStyle = {
   width: "100%",
   height: "20vw",
   maxWidth: "100%",
 };
+
+const optimizedFile = "./v1_4_poll1_feed.csv";
+const unoptimizedFile = "./v1_4_poll1_unoptimised_feed.csv";
 
 const CombinedPage = () => {
   // yixin states
@@ -38,11 +40,11 @@ const CombinedPage = () => {
   const [globalTime, setGlobalTime] = useState(0);
 
   const fetchData = async () => {
-    Papa.parse("./v1_4_poll1_feed.csv", {
+    Papa.parse(optimizedFile, {
       // options
       download: true,
       complete: (res) => {
-        const tmpJourneyData = [];
+        let tmpJourneyData = [];
         const data = res.data.slice(1);
         for (let i = 0; i < data.length; i++) {
           const rowData = data[i];
@@ -80,23 +82,18 @@ const CombinedPage = () => {
         for (const row of tmpStopObjs) {
           row.opacity = 0.8;
         }
-        tmpStopObjs.sort((a, b) =>
-          a.timestamp < b.timestamp ? 1 : b.timestamp > a.timestamp ? -1 : 0
-        );
+        tmpStopObjs.sort((a, b) => a.timestamp - b.timestamp);
         setStopObjs(tmpStopObjs);
+        tmpJourneyData = tmpJourneyData.filter((r) => !isNaN(r.timestamp));
         setJourneyData(tmpJourneyData);
-        if (tmpJourneyData.length > 0) {
-          setGlobalTime(tmpJourneyData[0].timestamp);
-          setMapsGlobalTime(tmpJourneyData[0].timestamp);
-        }
       },
     });
 
-    Papa.parse("./v1_4_poll1_unoptimised_feed.csv", {
+    Papa.parse(unoptimizedFile, {
       // options
       download: true,
       complete: (res) => {
-        const tmpJourneyDataUnoptimized = [];
+        let tmpJourneyDataUnoptimized = [];
         const data = res.data.slice(1);
         for (let i = 0; i < data.length; i++) {
           const rowData = data[i];
@@ -124,14 +121,34 @@ const CombinedPage = () => {
             distance: parseFloat(distance),
           });
         }
+        tmpJourneyDataUnoptimized = tmpJourneyDataUnoptimized.filter(
+          (r) => !isNaN(r.timestamp)
+        );
         setJourneyDataUnoptimized(tmpJourneyDataUnoptimized);
       },
     });
   };
 
+  // load initial data
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (journeyData.length !== 0 && journeyDataUnoptimized.length !== 0) {
+      // make it such that both optimized and unoptimized start and end at the same time
+      const { normalizedOptimizedData, normalizedUnoptimizedData } =
+        normalizeStartEndTimes({
+          optimizedData: journeyData,
+          unoptimizedData: journeyDataUnoptimized,
+        });
+      // set states for time and journey datas
+      setJourneyData(normalizedOptimizedData);
+      setJourneyDataUnoptimized(normalizedUnoptimizedData);
+      setGlobalTime(normalizedOptimizedData[0].timestamp);
+      setMapsGlobalTime(normalizedOptimizedData[0].timestamp);
+    }
+  }, [journeyData, journeyDataUnoptimized]);
 
   const onStartClick = () => {
     console.log("start clicked");
@@ -173,10 +190,13 @@ const CombinedPage = () => {
       console.log("paused");
     } else if (ended) {
       // reset to the start time of the first bus
-      setGlobalTime(journeyData[0].timestamp);
+      if (journeyData.length !== 0) {
+        setGlobalTime(journeyData[0].timestamp);
+        setMapsGlobalTime(journeyData[0].timestamp);
+      }
       console.log("ended");
     }
-  }, [start, paused, ended, globalTime]);
+  }, [start, paused, ended, globalTime, journeyData]);
 
   return (
     <div>
@@ -194,6 +214,7 @@ const CombinedPage = () => {
           onClick={onPauseClick}
           type="button"
           className={ended ? `control-button-disabled` : `control-button`}
+          disabled={ended}
         >
           {paused ? "resume" : "pause"}
         </button>
@@ -245,12 +266,10 @@ const CombinedPage = () => {
           center={center}
           setZoom={setZoom}
           setCenter={setCenter}
-          defaultActiveOpacity={defaultActiveOpacity}
-          defaultInactiveOpacity={defaultInactiveOpacity}
           stops={stopObjs}
-          defaultIntervalTime={defaultIntervalTime}
           defaultStepInterval={defaultStepInterval}
-          journeyData={journeyData}
+          optimizedData={journeyData}
+          unoptimizedData={journeyDataUnoptimized}
           started={start}
           setEnded={setEnded}
           paused={paused}

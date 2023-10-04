@@ -9,12 +9,10 @@ const MapsPageRewrite = React.memo(
     center,
     setCenter,
     setZoom,
-    defaultActiveOpacity,
-    defaultInactiveOpacity,
-    defaultIntervalTime,
     defaultStepInterval,
     stops,
-    journeyData,
+    optimizedData,
+    unoptimizedData,
     started,
     setEnded,
     paused,
@@ -22,113 +20,87 @@ const MapsPageRewrite = React.memo(
     globalTime,
     mapContainerStyle,
   }) => {
-    const [processedJourneyData, setProcessedJourneyData] = useState({});
+    const [optimizedProcessed, setOptimizedProcessed] = useState({});
+    const [unoptimizedProcessed, setUnoptimizedProcessed] = useState({});
 
     // console.log(`rerender MapsPage`);
 
     // process journeyData
     useEffect(() => {
-      const tmpProcessedJourneyData = {};
-      const journeyDataSeparatedByKey = getRecordsWithUniqueKey(
-        journeyData,
-        "busTripNo"
-      );
-      for (const busKey in journeyDataSeparatedByKey) {
-        if (!isNaN(busKey)) {
-          tmpProcessedJourneyData[busKey] = [];
-          const busJourneyRecords = journeyDataSeparatedByKey[busKey];
-          for (
-            let i = 0;
-            i < busJourneyRecords.length;
-            i += defaultStepInterval
-          ) {
-            tmpProcessedJourneyData[busKey].push(busJourneyRecords[i]);
-          }
-        }
+      if (optimizedData !== 0 && unoptimizedData !== 0) {
+        const optimizedSeparatedByKey = getRecordsWithUniqueKey(
+          optimizedData,
+          "timestamp",
+          defaultStepInterval
+        );
+        const unoptimizedSeparatedByKey = getRecordsWithUniqueKey(
+          unoptimizedData,
+          "timestamp",
+          defaultStepInterval
+        );
+        setOptimizedProcessed(optimizedSeparatedByKey);
+        setUnoptimizedProcessed(unoptimizedSeparatedByKey);
       }
-      setProcessedJourneyData(tmpProcessedJourneyData);
-    }, [journeyData]);
+    }, [optimizedData.length, unoptimizedData.length, defaultStepInterval]);
 
     return (
       <div>
         <div className="flex justify-center mb-5">{/* for future */}</div>
         <div className="flex justify-evenly">
-          {/* <MapsRewrite
-            title={"Before optimization"}
-            zoom={zoom}
-            center={center}
-            setCenter={setCenter}
-            setZoom={setZoom}
-            defaultActiveOpacity={defaultActiveOpacity}
-            defaultInactiveOpacity={defaultInactiveOpacity}
-            stops={stops}
-            defaultIntervalTime={defaultIntervalTime}
-            journeyData={processedJourneyData}
-            started={started}
-            setEnded={setEnded}
-            paused={paused}
-            ended={ended}
-            globalTime={globalTime}
-            mapContainerStyle={mapContainerStyle}
-          />
-          <MapsRewrite
-            title={"After optimization"}
-            zoom={zoom}
-            center={center}
-            setCenter={setCenter}
-            setZoom={setZoom}
-            defaultActiveOpacity={defaultActiveOpacity}
-            defaultInactiveOpacity={defaultInactiveOpacity}
-            stops={stops}
-            defaultIntervalTime={defaultIntervalTime}
-            journeyData={processedJourneyData}
-            started={started}
-            setEnded={setEnded}
-            paused={paused}
-            ended={ended}
-            globalTime={globalTime}
-            mapContainerStyle={mapContainerStyle}
-          /> */}
+          <div className="w-full mx-5">
+            <MapsRewrite
+              title={"Before"}
+              zoom={zoom}
+              center={center}
+              setCenter={setCenter}
+              setZoom={setZoom}
+              stops={stops}
+              journeyData={unoptimizedProcessed}
+              started={started}
+              paused={paused}
+              ended={ended}
+              setEnded={setEnded}
+              globalTime={globalTime}
+              mapContainerStyle={mapContainerStyle}
+            />
+          </div>
+          <div className="w-full mx-5">
+            <MapsRewrite
+              title={"After"}
+              zoom={zoom}
+              center={center}
+              setCenter={setCenter}
+              setZoom={setZoom}
+              stops={stops}
+              journeyData={optimizedProcessed}
+              started={started}
+              paused={paused}
+              ended={ended}
+              setEnded={setEnded}
+              globalTime={globalTime}
+              mapContainerStyle={mapContainerStyle}
+            />
+          </div>
         </div>
-        <MapsRewrite
-          title={"Relative position on map"}
-          zoom={zoom}
-          center={center}
-          setCenter={setCenter}
-          setZoom={setZoom}
-          defaultActiveOpacity={defaultActiveOpacity}
-          defaultInactiveOpacity={defaultInactiveOpacity}
-          stops={stops}
-          defaultIntervalTime={defaultIntervalTime}
-          journeyData={processedJourneyData}
-          started={started}
-          setEnded={setEnded}
-          paused={paused}
-          ended={ended}
-          globalTime={globalTime}
-          mapContainerStyle={mapContainerStyle}
-        />
       </div>
     );
   }
 );
 
 MapsPageRewrite.propTypes = {
-  started: PropTypes.bool,
-  stops: PropTypes.array,
-  journeyData: PropTypes.array,
-  paused: PropTypes.bool,
   zoom: PropTypes.number,
-  setZoom: PropTypes.func,
   center: PropTypes.object,
   setCenter: PropTypes.func,
+  setZoom: PropTypes.func,
+  defaultStepInterval: PropTypes.number,
+  stops: PropTypes.array,
+  optimizedData: PropTypes.array,
+  unoptimizedData: PropTypes.array,
+  started: PropTypes.bool,
+  paused: PropTypes.bool,
   ended: PropTypes.bool,
   setEnded: PropTypes.func,
-  defaultIntervalTime: PropTypes.number,
-  defaultInactiveOpacity: PropTypes.number,
-  defaultActiveOpacity: PropTypes.number,
   globalTime: PropTypes.number,
-  defaultStepInterval: PropTypes.number,
   mapContainerStyle: PropTypes.object,
 };
 

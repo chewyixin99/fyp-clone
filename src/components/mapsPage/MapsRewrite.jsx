@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { GoogleMap, LoadScript, Polyline } from "@react-google-maps/api";
 import MarkerWithInfoWindow from "../mapsPage/MarkerWithInfoWindow";
-import { resetOpacity } from "../../util/mapHelper";
 import PropTypes from "prop-types";
 import BusStatus from "./BusStatus";
 
@@ -12,10 +11,7 @@ const MapsRewrite = React.memo(
     center,
     setCenter,
     setZoom,
-    defaultActiveOpacity,
-    defaultInactiveOpacity,
     stops,
-    defaultIntervalTime,
     journeyData,
     started,
     paused,
@@ -28,103 +24,88 @@ const MapsRewrite = React.memo(
     const MAPS_API_KEY = import.meta.env.VITE_MAPS_API_KEY;
     const [map, setMap] = useState();
     const [polyPath, setPolyPath] = useState([]);
-    const [busesPos, setBusesPos] = useState({});
     const [numBusCurr, setNumBusCurr] = useState(0);
     const [numBusDispatched, setNumBusDispatched] = useState(0);
     const [journeyState, setJourneyState] = useState(journeyData);
 
     // console.log("rerendering Maps");
 
-    // initialize states
     useEffect(() => {
-      const initBusesPos = {};
-      for (const bus of Object.keys(journeyData)) {
-        initBusesPos[bus] = -1;
-      }
-      setBusesPos(initBusesPos);
       setJourneyState(journeyData);
     }, [journeyData]);
 
-    // reset map states
-    useEffect(() => {}, [ended]);
+    const renderJourneyMarkers = () => {
+      if (ended) {
+        return;
+      }
+      if (Object.keys(journeyState).length === 0) {
+        return;
+      }
+      if (journeyState[globalTime - 1] === undefined) {
+        return;
+      }
+      const allJourneyMarkers = [];
+      for (const rec of journeyState[globalTime - 1]) {
+        rec.opacity = 1;
+        const marker = (
+          <MarkerWithInfoWindow
+            key={rec.timestamp + rec.busTripNo}
+            stop={rec}
+            map={map}
+            busNum={parseInt(rec.busTripNo) - 1}
+          />
+        );
+        allJourneyMarkers.push(marker);
+      }
+      return allJourneyMarkers;
+    };
+
+    const renderBusStatus = () => {
+      const allBusStatus = [];
+      if (ended) {
+        return <BusStatus busNum={0} />;
+      }
+      if (Object.keys(journeyState).length === 0) {
+        return <BusStatus busNum={0} />;
+      }
+      if (journeyState[globalTime - 1] === undefined) {
+        return <BusStatus busNum={0} />;
+      }
+      const allStopDetails = journeyState[globalTime - 1];
+      allStopDetails.sort((a, b) => a.busTripNo - b.busTripNo);
+      for (const stopDetails of allStopDetails) {
+        const busStatus = (
+          <BusStatus
+            key={stopDetails.timestamp + stopDetails.busTripNo}
+            busNum={parseInt(stopDetails.busTripNo) - 1}
+            currStopDetails={stopDetails}
+          />
+        );
+        allBusStatus.push(busStatus);
+      }
+      allBusStatus.sort((a, b) => a.busTripNo - b.busTripNo);
+      return allBusStatus;
+    };
 
     useEffect(() => {
-      if (started && !paused && !ended) {
-        // create a copy and update before setting the new state
-        let tmpBusesPos = JSON.parse(JSON.stringify(busesPos));
-
-        // condition only for first bus
-        if (tmpBusesPos[0] === -1 && started && numBusCurr === 0) {
-          tmpBusesPos[0] += 1;
-          setNumBusCurr(numBusCurr + 1);
-          setNumBusDispatched(numBusDispatched + 1);
-        }
-
-        for (const bus in tmpBusesPos) {
-          let currBusStop = tmpBusesPos[bus];
-          let currBusJourney = journeyState[bus];
-
-          if (currBusStop === -1) {
-            const startTime = currBusJourney[0].timestamp;
-            if (globalTime < startTime) {
-              // continue next loop if don't satisfy
-              continue;
-            }
-            console.log(
-              `bus dispatch for bus ${bus}, numBusCurr ${numBusCurr + 1}`
-            );
-            tmpBusesPos[bus] += 1;
-            setNumBusCurr(numBusCurr + 1);
-            setNumBusDispatched(numBusDispatched + 1);
+      if (journeyState[globalTime - 1] !== undefined) {
+        if (started && !paused && !ended) {
+          // set curr opacity and prev opacity
+          const currMarkers = journeyState[globalTime - 1];
+          setNumBusCurr(currMarkers.length);
+          if (numBusDispatched < currMarkers.length) {
+            setNumBusDispatched(currMarkers.length);
           }
-
-          // bus at last stop
-          if (currBusStop < 0) {
-            // pass
-            // -2 = dispatched, started, and ended
-            // -1 = not dispatched, not started
-          } else if (currBusStop === 0) {
-            // bus at first stop
-            journeyState[bus][currBusStop].opacity = defaultActiveOpacity;
-            tmpBusesPos[bus] += 1;
-          } else if (currBusStop >= currBusJourney.length) {
-            console.log(
-              `bus ${bus} ending journey... num bus curr ${numBusCurr - 1}`
-            );
-            journeyState[bus][currBusStop - 1].opacity = defaultInactiveOpacity;
-            tmpBusesPos[bus] = -2;
-            // end once last bus reach end
-            if (
-              numBusCurr - 1 === 0 &&
-              numBusDispatched >= Object.keys(journeyState).length
-            ) {
-              setEnded(true);
-            }
-            setNumBusCurr(numBusCurr - 1);
-            resetOpacity(journeyState[bus]);
-          } else {
-            // bus in journey
-            journeyState[bus][currBusStop].opacity = defaultActiveOpacity;
-            journeyState[bus][currBusStop - 1].opacity = defaultInactiveOpacity;
-            tmpBusesPos[bus] += 1;
-          }
+        } else if (ended) {
+          console.log("reset states");
+          setNumBusCurr(0);
+          setNumBusDispatched(0);
         }
-
-        const interval = setInterval(() => {
-          // set stops to updated stopMarkers
-          setBusesPos(tmpBusesPos);
-        }, defaultIntervalTime);
-        return () => clearInterval(interval);
-      } else if (ended) {
-        console.log("reset states");
-        for (const bus in Object.keys(journeyState)) {
-          resetOpacity(journeyState[bus]);
-          busesPos[bus] = -1;
-        }
+      } else {
+        // setEnded(true);
         setNumBusCurr(0);
-        setNumBusDispatched(0);
       }
-    }, [started, paused, ended, busesPos, journeyState]);
+    }, [started, paused, ended, journeyState, globalTime]);
 
     const onLoad = useCallback(
       (map) => {
@@ -151,31 +132,6 @@ const MapsRewrite = React.memo(
       }
       setPolyPath(tmpPolyPath);
     }, [stops]);
-
-    const initJourneyMarkers = () => {
-      const allJourneyMarkers = [];
-      if (Object.keys(journeyState).length !== 0) {
-        for (const bus in journeyState) {
-          journeyState[bus].map((point, index) => {
-            if (point === null) {
-              return;
-            }
-            const markerWithInfoWindow = (
-              <MarkerWithInfoWindow
-                key={index + bus} // just to make it unique and console won't have errors
-                data={journeyState[bus]}
-                index={index}
-                stop={point}
-                map={map}
-                busNum={parseInt(bus)}
-              />
-            );
-            allJourneyMarkers.push(markerWithInfoWindow);
-          });
-        }
-      }
-      return allJourneyMarkers;
-    };
 
     const renderMap = () => {
       return (
@@ -218,7 +174,7 @@ const MapsRewrite = React.memo(
                 return markerWithInfoWindow;
               })}
               {/* journey markers */}
-              {initJourneyMarkers()}
+              {renderJourneyMarkers()}
             </GoogleMap>
           </LoadScript>
         </div>
@@ -244,15 +200,7 @@ const MapsRewrite = React.memo(
         </div>
         <div>{renderMap()}</div>
         <div className="grid grid-cols-3 max-w-[100%] mx-auto">
-          {Object.keys(busesPos).map((b) => {
-            return (
-              <BusStatus
-                key={b}
-                busNum={b}
-                currStopDetails={journeyState[b][busesPos[b] - 1]}
-              />
-            );
-          })}
+          {renderBusStatus()}
         </div>
       </div>
     );
@@ -260,20 +208,17 @@ const MapsRewrite = React.memo(
 );
 
 MapsRewrite.propTypes = {
-  started: PropTypes.bool,
-  stops: PropTypes.array,
-  journeyData: PropTypes.object,
-  paused: PropTypes.bool,
+  title: PropTypes.string,
   zoom: PropTypes.number,
-  setZoom: PropTypes.func,
   center: PropTypes.object,
   setCenter: PropTypes.func,
+  setZoom: PropTypes.func,
+  stops: PropTypes.array,
+  journeyData: PropTypes.object,
+  started: PropTypes.bool,
+  paused: PropTypes.bool,
   ended: PropTypes.bool,
   setEnded: PropTypes.func,
-  defaultIntervalTime: PropTypes.number,
-  defaultInactiveOpacity: PropTypes.number,
-  defaultActiveOpacity: PropTypes.number,
-  title: PropTypes.string,
   globalTime: PropTypes.number,
   mapContainerStyle: PropTypes.object,
 };
