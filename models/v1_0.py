@@ -4,7 +4,7 @@ from docplex.mp.model import Model
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False) -> None:
+def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: Dict[str, Any] = None) -> None:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -186,6 +186,12 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
 
     # for j in range(1, num_trips+1): # to observe if dispatch optimisation was not used
     #     model.add_constraint(dispatch_offset[j] == 0)
+
+    # to evaluate rolled horizons
+    if glued_dispatch_dict != None:
+        for j in range(1, num_trips+1):
+            model.add_constraint(original_dispatch[j] + dispatch_offset[j] ==
+                                glued_dispatch_dict[f"{j}"])
 
     # OBJECTIVE FUNCTION
     objective_function = f_x + 1000 * slack # soft constraint using bigM = 1000 in case of infeasibility

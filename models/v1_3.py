@@ -1,11 +1,11 @@
-# v1.3 is the original Q-hat proposed by K.Gkiotsalitis et al, but modified Constraints 27 and 30
+# v1.3 is the original Q-hat proposed by K.Gkiotsalitis et al,
 # and then changed Constraints 29, 31, 32, 33 and added Equation 20 to add bus capacity constraints
 
 from docplex.mp.model import Model
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False) -> None:
+def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: Dict[str, Any] = None) -> None:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -114,7 +114,10 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
                             + alighting_duration * alighting_percentage[s] * busload[1,s], "Eq8")
         
     # Equation 9, Constraint 27 modified according to Confluence v1.1
-        model.add_constraint(willing_board[1,s] == initial_passengers[s], "Eq9")
+        model.add_constraint(willing_board[1,s] ==
+                            (1 + arrival_rate[s] * boarding_duration)
+                            * arrival_rate[s]
+                            * (headway[1,s] - prev_dwell[s]) + initial_passengers[s], "Eq9")
         
     # Equation 10, Constraint 28
     for j in range(2, num_trips+1):
@@ -130,7 +133,10 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
                         * (headway[j,s] - dwell[j-1,s])) + stranded[j,s], "Eq11")
                 
     # Equation 12, Constraint 30 modified according to Confluence v1.1
-    model.add_constraint(busload[1,2] == initial_passengers[1], "Eq12")
+        model.add_constraint(busload[1,2] ==
+                        (1 + arrival_rate[1] * boarding_duration)
+                        * arrival_rate[1]
+                        * (original_dispatch[1] + dispatch_offset[1] - prev_arrival[1] - prev_dwell[1]) + initial_passengers[1], "Eq12")
 
     # Equation 13, Constraint 31
     for s in range(3, num_stops+1):
@@ -194,6 +200,13 @@ def run_model(data: Dict[str, Any], silent: bool = False) -> None:
 
     # for j in range(1, num_trips+1): # to observe if dispatch optimisation was not used
     #     model.add_constraint(dispatch_offset[j] == 0)
+
+    # to evaluate rolled horizons
+    if glued_dispatch_dict != None:
+        for j in range(1, num_trips+1):
+            model.add_constraint(original_dispatch[j] + dispatch_offset[j] ==
+                                glued_dispatch_dict[f"{j}"])
+
 
     # OBJECTIVE FUNCTION
     objective_function = f_x + 1000 * slack # soft constraint using bigM = 1000 in case of infeasibility
