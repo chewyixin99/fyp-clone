@@ -7,13 +7,17 @@ import json
 
 # Defining some helper functions #
 def get_date_concerned(file_path):
-    date_str = (file_path.split(".")[0][12:])
+    date_str = (file_path.split(".")[0][15:])
     date_format = '%d-%m-%Y'
     return datetime.strptime(date_str, date_format)
 
 def get_service_concerned(file_path):
     service_str = (file_path.split("_")[2])
     return service_str
+
+def get_poll_rate(file_path):
+    poll_rate = (file_path.split(".")[0][12:14])
+    return poll_rate
 
 def get_seconds(time_str):
     hh, mm, ss = time_str.split(':')
@@ -87,15 +91,15 @@ def get_timings(tripID, expectedNumSequence):
     for stopSequence, group in one_trip_df2:
         # This level deals with each stopSequece group as a whole. [Eg. All sequences from 1 to expectedNumSequence]
 
+        # Ignore if 0. There were some off cases where stopSequence = 0. Ignore
+        if stopSequence == 0: 
+            continue
+        
         # Add placeholder timestamps for missing sequences until counter matches the stopSequence. 
         # [Eg. Data only has stop sequence 20 to 30. This WHILE loop adds in [0,0] from 1 to 19]
         while counter < stopSequence:
-            # Ignore if 0. There were some off cases where stopSequence = 0. Ignore
-            if stopSequence == 0: 
-                continue
-            else:
-                timings.append([0, 0])
-                counter += 1
+            timings.append([0, 0])
+            counter += 1
 
         for row_index, row in group.iterrows():
             # This level deals with a individual sequenceGroup's entries. [Eg. All entries within stopSequence = 5]
