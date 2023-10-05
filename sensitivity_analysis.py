@@ -13,29 +13,30 @@ import os
 def get_input_subset(input_data, num_trips, num_stops):
     input_subset = {}
 
-    input_subset["num_trips"] = num_trips
-    input_subset["num_stops"] = num_stops
-    input_subset["bus_capacity"] = input_data["bus_capacity"]
-    input_subset["boarding_duration"] = input_data["boarding_duration"]
-    input_subset["alighting_duration"] = input_data["alighting_duration"]
-    input_subset["max_allowed_deviation"] = input_data["max_allowed_deviation"]
+    scalars = ["num_trips", "num_stops", "bus_capacity", "boarding_duration", "alighting_duration", "max_allowed_deviation"]
+    trip_vectors = ["original_dispatch_list", "bus_availability_list"]
+    stop_vectors = ["coordinates_list", "stop_ids_list", "stop_names_list", "prev_arrival_list", "prev_dwell_list", "arrival_rate_list", "alighting_percentage_list", "weights_list", "initial_passengers_list"]
+    matrices = ["target_headway_2dlist", "interstation_travel_2dlist"]
 
-    input_subset["original_dispatch_list"] = input_data["original_dispatch_list"][:num_trips]
-    input_subset["bus_availability_list"] = input_data["bus_availability_list"][:num_trips]
+    for scalar in scalars:
+        if scalar == "num_trips":
+            input_subset[scalar] = num_trips
+        elif scalar == "num_stops":
+            input_subset[scalar] = num_stops
+        else:
+            input_subset[scalar] = input_data[scalar]
 
-    input_subset["coordinates_list"] = input_data["coordinates_list"][:num_stops]
-    input_subset["stop_ids_list"] = input_data["stop_ids_list"][:num_stops]
-    input_subset["stop_names_list"] = input_data["stop_names_list"][:num_stops]
-    input_subset["prev_arrival_list"] = input_data["prev_arrival_list"][:num_stops]
-    input_subset["prev_dwell_list"] = input_data["prev_dwell_list"][:num_stops]
-    input_subset["arrival_rate_list"] = input_data["arrival_rate_list"][:num_stops]
-    input_subset["alighting_percentage_list"] = input_data["alighting_percentage_list"][:num_stops-1]
-    input_subset["weights_list"] = input_data["weights_list"][:num_stops]
-    input_subset["initial_passengers_list"] = input_data["initial_passengers_list"][:num_stops]
+    for trip_vector in trip_vectors:
+        input_subset[trip_vector] = input_data[trip_vector][:num_trips]
 
-    input_subset["target_headway_2dlist"] = [trip[:num_stops] for trip in input_data["target_headway_2dlist"][:num_trips]]
-    input_subset["target_headway_2dlist"] = [trip[:num_stops] for trip in input_data["target_headway_2dlist"][:num_trips]]
-    input_subset["interstation_travel_2dlist"] = [trip[:num_stops] for trip in input_data["interstation_travel_2dlist"][:num_trips]]
+    for stop_vector in stop_vectors:
+        if stop_vector == "alighting_percentage_list":
+            input_subset[stop_vector] = input_data[stop_vector][:num_stops-1]
+        else:
+            input_subset[stop_vector] = input_data[stop_vector][:num_stops]
+
+    for matrix in matrices:
+        input_subset[matrix] = [trip[:num_stops] for trip in input_data[matrix][:num_trips]]
 
     return input_subset
 
@@ -53,7 +54,11 @@ def get_all_timings(input_data):
             start = time.time()
             try:
                 run_model(data=input_subset, silent=True)
-                timings_matrix[j, s] = time.time() - start
+                duration_taken = time.time() - start
+                timings_matrix[j, s] = duration_taken
+                if duration_taken > 2160: # 36 mins of waiting time
+                    timings_matrix[j, s+1:].fill(duration_taken)
+                    break
             except:
                 timings_matrix[j, s] = -1.0
 
@@ -66,7 +71,7 @@ def visualise_heatmap(timings_matrix, model_name):
     fig = px.imshow(timings_matrix, 
                     labels=dict(x="Stops", y="Trips", color="Value"),
                     title=f"Computational complexity with varying stops and trips for model {model_name}",
-                    zmin=0, zmax=np.percentile(timings_matrix, 97),
+                    zmin=0, zmax=np.percentile(timings_matrix, 90),
                     color_continuous_scale="RdBu_r")
 
     fig.update_xaxes(tickvals=list(range(timings_matrix.shape[1])), ticktext=list(range(1, timings_matrix.shape[1] + 1)))
@@ -77,7 +82,10 @@ def visualise_heatmap(timings_matrix, model_name):
 
     return fig
 
-def save_figure(fig, save_fig_path):
+def calculate_growth_rate(timings_matrix):
+    pass # TODO
+
+def save_figure(fig, save_fig_path, timings_matrix, save_npy_path):
 
     directory_path = os.path.dirname(save_fig_path)
 
@@ -89,7 +97,7 @@ def save_figure(fig, save_fig_path):
     if file_type == '.html':
         # save to an HTML file
         fig.write_html(save_fig_path)
-        print(f"successfully saved as a .html file at {save_fig_path}!")
+        print(f"successfully saved figure as a .html file at {save_fig_path}!")
 
     if file_type == '.json':
         # convert the figure to a JSON format
@@ -100,19 +108,19 @@ def save_figure(fig, save_fig_path):
             json.dump(fig_json, file)
         print(f"successfully saved as a .json file at {save_fig_path}!")
 
-
-        
-
+    np.save(save_npy_path, timings_matrix)
+    print(f"successfully saved matrix as a .npy file at {save_npy_path}!")
 
 if __name__ == "__main__":
 
     model = "v1_0" # NOTE: to change to other models (not frequent)
     file_type = "html"
     save_fig_path = f"./data/sensitivity_analyses/{model}.{file_type}"
+    save_npy_path = f"./data/sensitivity_analyses/{model}.npy"
 
     input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2908.json")
     # input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2908.json")
 
     timings_matrix = get_all_timings(input_data)
     fig = visualise_heatmap(timings_matrix, model)
-    save_figure(fig, save_fig_path)
+    save_figure(fig, save_fig_path, timings_matrix, save_npy_path)
