@@ -6,7 +6,7 @@ import re
 import time
 from tqdm import tqdm
 
-if __name__ == "__main__":
+def main():
     input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2908.json")
 
     model = "v2_1"
@@ -24,3 +24,7 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(e)
+
+
+if __name__ == "__main__":
+    main()

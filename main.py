@@ -17,7 +17,7 @@ def check_coords(input_data):
 
     fig.show()
 
-if __name__ == "__main__":
+def main():
 
     model = "v1_3" # NOTE: to change to other models (not frequent)
     polling_rate = 1
@@ -69,3 +69,6 @@ if __name__ == "__main__":
     except Exception as e:
         print('json_to_feed failed')
         print(e)
+
+if __name__ == "__main__":
+    main()

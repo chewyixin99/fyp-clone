@@ -111,8 +111,7 @@ def save_figure(fig, save_fig_path, timings_matrix, save_npy_path):
     np.save(save_npy_path, timings_matrix)
     print(f"successfully saved matrix as a .npy file at {save_npy_path}!")
 
-if __name__ == "__main__":
-
+def main():
     model = "v1_0" # NOTE: to change to other models (not frequent)
     file_type = "html"
     save_fig_path = f"./data/sensitivity_analyses/{model}.{file_type}"
@@ -124,3 +123,6 @@ if __name__ == "__main__":
     timings_matrix = get_all_timings(input_data)
     fig = visualise_heatmap(timings_matrix, model)
     save_figure(fig, save_fig_path, timings_matrix, save_npy_path)
+
+if __name__ == "__main__":
+    main()

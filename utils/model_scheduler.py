@@ -95,8 +95,8 @@ if __name__ == "__main__":
     glued_dispatch_dict = glue_dispatch_timings(horizon_outputs, recalculation_interval, horizon_length)
     print(glued_dispatch_dict)
 
-    #TODO re-evaluate the efficacy of these dispatch timings
+    # re-evaluate the efficacy of these dispatch timings, similar if not the same since there is no 'uncertainty' imbued
     final_outputs = run_model(input_data, glued_dispatch_dict=glued_dispatch_dict)
 
-    #TODO interactive bus dispatch
+    #TODO interactive bus dispatch with 'real-time' input from user
 
