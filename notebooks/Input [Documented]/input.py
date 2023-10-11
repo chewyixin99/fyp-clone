@@ -24,11 +24,11 @@ def clean_data(orig_df):
 
     Returns:
         cleaned_df (pd.DataFrame): A cleaned and preprocessed DataFrame with the following modifications:
-                                    - "vehicleTimestamp" column converted to datetime format.
-                                    - Columns "pippenId," "pippenCreatedAt," "tripStartTime," and "tripStartDate" dropped.
-                                    - "tripDirectionId" column assigned based on specific vehicle labels.
-                                    - Duplicate rows removed.
-                                    - Rows sorted by "tripId" and "vehicleTimestamp."
+                                   - "vehicleTimestamp" column converted to datetime format.
+                                   - Columns "pippenId," "pippenCreatedAt," "tripStartTime," and "tripStartDate" dropped.
+                                   - "tripDirectionId" column assigned based on specific vehicle labels.
+                                   - Duplicate rows removed.
+                                   - Rows sorted by "tripId" and "vehicleTimestamp."
 
     Notes:
         - The function assumes that "vehicleTimestamp" is in Unix timestamp format (seconds since epoch) and converts it to datetime.
@@ -47,36 +47,86 @@ def clean_data(orig_df):
 
     return cleaned_df
 
-def get_service_poll_date(file_path):
-    """
-    Gets date, transport service number and poll rate of data in the file is concerned with.
 
-    Input: Filename
-    Output: Service number, Polling rate and Date
+
+def get_date_concerned(file_path):
+    """
+    Gets date of data in the file is concerned with.
+
+    This function takes the name of a file to determine the date of the data in the file is concerned with.
 
     Args:
         file_path (string): CSV file name with format "gtfs_data_BusService_PollingRate_dd_mm_yyyy.csv".
 
     Returns:
         datetime: A datetime that represents the date of the data concerned.
-        string: A string that represents the transport service number of the data concerned.
-        string: A string that represents the polling rate of Pippen of the data concerned.
     
     """
+    date_str = (file_path.split(".")[0][-10:])
+    date_format = '%d-%m-%Y'
 
-    all_info = file_path.split("_")
-    service = all_info[2]
-    poll_rate = all_info[3]
-    date = datetime.strptime(all_info[4].split(".")[0], '%d-%m-%Y')
+    return datetime.strptime(date_str, date_format)
 
-    return [service, poll_rate, date]
+
+
+def get_service_concerned(file_path):
+    """
+    Gets the transport service number that the data in the file is concerned with.
+
+    This function takes the name of a file to determine the transport service number of the data concerned in the file.
+
+    Args:
+        file_path (string): CSV file name with format "gtfs_data_BusService_PollingRate_dd_mm_yyyy.csv".
+
+    Returns:
+        string: A string that represents the transport service number of the data concerned.
+     
+    """
+
+    service_str = (file_path.split("_")[2])
+    return service_str
+
+
+# def get_poll_rate(file_path): #NOT USED
+#     """
+#     Gets the polling rate of Pippen that the data in the file is concerned with.
+
+#     This function takes the name of a file to determine the polling rate of Pippen of the data concerned in the file.
+
+#     Args:
+#         file_path (string): CSV file name with format "gtfs_data_BusService_PollingRate_dd_mm_yyyy.csv".
+
+#     Returns:
+#         string: A string that represents the polling rate of Pippen of the data concerned.
+     
+#     Note: 
+#         File name format should be with format "gtfs_data_BusService_PollingRate_dd_mm_yyyy.csv"
+#     """
+#     poll_rate = (file_path.split(".")[0][12:14])
+#     return poll_rate
+
+# def get_seconds(time_str): #NOT USED
+#     """
+#     Gets the amount of time in seconds of any given duration.
+
+#     This function takes a time period in hours or minutes and converts it to seconds.
+
+#     Args:
+#         time_str (string): Time in hh:mm:ss format.
+
+#     Returns:
+#         integer: An integer that represents the amount of time elapsed in seconds.
+    
+#     """
+#     hh, mm, ss = time_str.split(':')
+#     return int(hh) * 3600 + int(mm) * 60 + int(ss)
 
 
 ############################################
 #### Functions to determine Bus Timings ####
 ############################################
 
-def distinguish_one_trip_df(df, tripID):
+def distinguish_one_trip_data(df, tripID):
     """
     Gets data related to a particular trip based on tripID.
     This helper function provides information required by function get_timings()
@@ -98,7 +148,7 @@ def distinguish_one_trip_df(df, tripID):
 
 
 def get_timings(tripID, expectedNumSequence):
-    one_trip_df = distinguish_one_trip_df(cleaned_df, tripID)
+    one_trip_df = distinguish_one_trip_data(cleaned_df, tripID).copy()
     one_trip_df.reset_index(drop=True,inplace=True)
     one_trip_df2 = one_trip_df.groupby("vehicleStopSequence")
 
@@ -240,7 +290,7 @@ def get_num_stops(df, directionId):
     return int(num_stops)
 
 
-def get_stop_info(df, num_stops ,staticStopsFile, directionId):
+def get_stop_info(df, staticStopsFile, directionId):
     """
     Extracts information about bus stops from a DataFrame and a static stops file.
     It is used to get information to be converted into JSON format for use in the model.
@@ -268,7 +318,7 @@ def get_stop_info(df, num_stops ,staticStopsFile, directionId):
 
     Example:
         df = pd.DataFrame({"vehicleStopID": ["1001", "2002", "3003"],
-                            "tripDirectionId": [1, 2, 1]})
+                           "tripDirectionId": [1, 2, 1]})
         staticStopsFile = "static_stops.csv"
         directionId = 1
         coords, ids, names = get_stop_info(df, staticStopsFile, directionId)
@@ -307,6 +357,7 @@ def get_stop_info(df, num_stops ,staticStopsFile, directionId):
     return coordinates_list, stop_ids_list, stop_names_list
 
 
+
 def get_arrivals(tripsTimings,date): # Get Arrival Times [Each stop, per trip]
     """
     Calculate the arrival times relative to a given date for a list of trip timings.
@@ -321,19 +372,19 @@ def get_arrivals(tripsTimings,date): # Get Arrival Times [Each stop, per trip]
 
     Args:
         tripsTimings (list): A list of lists of lists containing trip timings, where each trip consists of a list of stops.
-                            Each stop should have a tuple (arrival_time, departure_time) in datetime format.
+                             Each stop should have a tuple (arrival_time, departure_time) in datetime format.
         date (datetime): The reference date to calculate arrival times relative to.
 
     Returns:
         result (list): A list of lists containing the calculated arrival times for each stop in each trip, 
-                        measured in seconds relative to the provided date.
+                      measured in seconds relative to the provided date.
 
     Notes:
         - The function calculates arrival times as the number of seconds elapsed since the provided date.
         - If a stop has both arrival and departure times, it considers the arrival time.
         - If neither arrival nor departure times are available, it assigns 0 as the arrival time.
     """
-
+  
     
     result = []
 
@@ -385,20 +436,12 @@ def get_bus_availability(tripsTimings,date):
 
     for i in range(len(tripsTimings)): # For each trip
         lastRecordIndex = len(tripsTimings[i])-1
-        lastRecord = tripsTimings[i][lastRecordIndex]
-        while True:
-            if lastRecord[1] != 0: # Last record departure is a datetime object.
-                result.append(int((lastRecord[1] - date).total_seconds()))
-                break
-            elif lastRecord[0] != 0: # Last record departure is a datetime object. Missing departure
-                result.append(int((lastRecord[0] - date).total_seconds()))
-                break
-
-            lastRecordIndex = lastRecordIndex-1
-            lastRecord = tripsTimings[i][lastRecordIndex]
-
+        lastRecordDep = tripsTimings[i][lastRecordIndex][1]
+        if lastRecordDep != 0: # Last record departure is a datetime object.
+            result.append(int((lastRecordDep - date).total_seconds()))
+        else:
+            result.append(lastRecordDep)
     return result
-
 
 # Get Trip Dwelling Times [Each stop, per trip]
 def get_dwellings(tripsTimings):
@@ -417,7 +460,7 @@ def get_dwellings(tripsTimings):
 
     Returns:
         dwellings (list): A list of lists containing dwell times for each stop in each trip. Dwell times are measured in seconds.
-                        A value of 0 represents no dwell time or the absence of arrival and departure times.
+                         A value of 0 represents no dwell time or the absence of arrival and departure times.
     """
 
     result = []
@@ -520,7 +563,7 @@ def generate_target_headways(tripsHeadways, target_headway, expectedNumSequence)
 
     Returns:
         target_headways (list): A list of lists containing target headway values for each trip and each sequence.
-                                The target headways are measured in seconds.
+                               The target headways are measured in seconds.
     """
 
     result = [[]]
@@ -576,6 +619,7 @@ def get_interstation(tripsTimings):
 
     return result
 
+
 def generate_weights(df, num_stops, input_key_stops): 
     """
     Generate weights for stops in a bus trip based on specific criteria.
@@ -612,9 +656,9 @@ def generate_weights(df, num_stops, input_key_stops):
         stop_sequence +=1
 
     return weights_list
+
 #    eda seems random
 #     in theory: less at the end of route; more at key stops 
-
 def generate_arrival_rate(df, num_stops, input_key_stops): 
     """
     Generate arrival rates of passengers arrival per second for stops in a bus route.
@@ -660,7 +704,6 @@ def generate_arrival_rate(df, num_stops, input_key_stops):
     return arrival_rate_list
 
     #less at the end of route; more at key stops 
-
 def generate_initial_passengers(df, num_stops, input_key_stops):
     """
     Generate initial passenger counts for stops in a bus route.
@@ -715,6 +758,7 @@ def generate_alighting_percentage(df, num_stops, input_key_stops, directionId):
 
     Returns:
         alighting_percentage_list (list): A list of alighting percentages for each stop in the route.
+ 
     """
 
     alighting_percentage_list = []
@@ -740,93 +784,123 @@ def generate_alighting_percentage(df, num_stops, input_key_stops, directionId):
 
     return alighting_percentage_list
 
+def getNumStops(df, directionId):
+    df = df.loc[df["tripDirectionId"] == directionId]
+    stop_seq = df["vehicleStopSequence"].unique()
+    min_stop_seq = min(stop_seq)
 
-def get_trip_ids(directionDF):
-    return directionDF["tripId"].unique()
+    if min_stop_seq >1:
+        num_stops = max(stop_seq) - min_stop_seq +1
+    else:
+        num_stops = max(stop_seq)
+    
+    if 0 in stop_seq:
+        num_stops = num_stops - 1
+
+    return int(num_stops)
+
+
+#################################
+#### Functions to Print Data ####
+#################################
+
+# def viewTimings(df, tripID, expectedNumSequence): #NOT USED
+#     timings = get_timings(tripID, expectedNumSequence)
+#     print(100*"#")
+#     print("Arrival and Departure Timings for tripid #" + str(tripID))
+#     print("Expected number of timings is:",expectedNumSequence)
+#     print(100*"#")
+    
+#     stop = 1
+#     for times in timings:
+#         print("Stop "+str(stop)+", [Arrival] is", times[0],"[Departure] is",times[1])
+#         stop += 1
+
+# def view_timing_2(tripArray): #NOT USED
+#     stop = 1
+#     for times in tripArray:
+#         print("Stop "+str(stop)+": [Arrival] is", times[0],"[Departure] is",times[1])
+#         stop += 1
+#     print("\n")
+
+
+
+# def output(allDirectedTripTimings, allDirectedTripIds): #NOT USED
+#     for i in range(len(allDirectedTripIds)):
+#         print(100*"#")
+#         print("Arrival and Departure Timings for tripid #" + str(allDirectedTripIds[i]))
+#         print(100*"#")
+#         view_timing_2(allDirectedTripTimings[i])
+
+
+# Ignore
+
+# def getTripIds(directionDF):
+#     return directionDF["tripId"].unique()
+
+
+# greshamBoundTrips = cleaned_df[cleaned_df["tripDirectionId"] == 0]
+# portlandBoundTrips = cleaned_df[cleaned_df["tripDirectionId"] == 1]
+# allGreshamTripIds = getTripIds(greshamBoundTrips)
+# allPortlandTripIds = getTripIds(portlandBoundTrips)
+# allGreshamTripIds = allGreshamTripIds.tolist()
+# allPortlandTripIds = allPortlandTripIds.tolist()
+# greshamTimings = []
+# portlandTimings = []
+
+# greshamTimings = get_trip_timings_by_direction(allGreshamTripIds, expectedNumSequence)
+# portlandTimings = get_trip_timings_by_direction(allPortlandTripIds, expectedNumSequence)
 
 
 # Importing the data #
-file_path = "gtfs_data_2_15s_09-10-2023.csv"
+file_path = "gtfs_data_2_15s_17-09-2023.csv"
 orig_df = pd.read_csv(file_path)
 cleaned_df = clean_data(orig_df)
 
+
 # Some basic info needed for datetime calculations
 expectedNumSequence = cleaned_df["vehicleStopSequence"].max()-1
-
-service_poll_date = get_service_poll_date(file_path)
-service =  service_poll_date[0]
-poll_rate =  service_poll_date[1]
-date = service_poll_date[2]
+date = get_date_concerned(file_path)
+service = get_service_concerned(file_path)
 
 ## PRETTY PRINTS ##
-print("Service is:",service)
-print("Poll rate is:",poll_rate)
-print("Date is:",date)
-
-direction_interested = int(input("Enter the direction you are interested in (0 or 1):"))
+print("Date we are looking at:", date)
 
 
 # KeyStops [Manual, based on TriMet website]
 input_key_stops = [14232, 14233, 1416, 1381, 1499, 1459, 7800, 9302] #SET
+numStops0 = getNumStops(cleaned_df, 0)
+numStops1 = getNumStops(cleaned_df, 1)
 
+# Subset Trips [MidTerm]
+subsetTripIds = [12748581, 12748582, 12748583, 12748584]
+subsetTripDf = cleaned_df[cleaned_df["tripId"].isin(subsetTripIds)]
+subsetTimings = get_trip_timings_by_direction(subsetTripIds, expectedNumSequence)
 
-## Splitting the df into two directions (0: Gresham, 1: Portland)
-# trips_0_df = cleaned_df[cleaned_df["tripDirectionId"] == 0]
-# trips_1_df = cleaned_df[cleaned_df["tripDirectionId"] == 1]
+# Current Headways
+tripHeadways = get_headway(subsetTimings)
+target_headway = 720
 
-
-trips_1_df = cleaned_df[cleaned_df["tripId"].isin([12846118, 12846119, 12846120, 12846121, 12846122, 12846123])]
-
-## Getting a list of tripids by direction
-# trip_IDs_0 = get_trip_ids(trips_0_df)
-# trip_IDs_1 = get_trip_ids(trips_1_df)
-
-trip_IDs_0 = 12845661, 12845662, 12845663, 12845664, 12845665, 12845666
-trip_IDs_1 = 12846118, 12846119, 12846120, 12846121, 12846122, 12846123
-
-## Get a list of timings by direction
-timings_0 = get_trip_timings_by_direction(trip_IDs_0, expectedNumSequence)
-timings_1 = get_trip_timings_by_direction(trip_IDs_1, expectedNumSequence)
-
-
-
-target_headway = 720 # set
-
+# Setting some JSON Values # 
+num_trips =  subsetTripDf["tripId"].nunique()
+num_stops = get_num_stops(subsetTripDf,1)
 bus_capacity = 100 #SET
+original_dispatch_list = [73200, 73920, 74640, 75360] #Exlcude 72420 since it's trip 0 timing #Manual via TriMet website #!!! Change to 77420, 79200, 80920, 81640 or any other timing
+coordinates_list = get_stop_info(subsetTripDf, "stops.txt", 1)[0]
+stop_ids_list = get_stop_info(subsetTripDf, "stops.txt", 1)[1]
+stop_names_list = get_stop_info(subsetTripDf, "stops.txt", 1)[2]
+prev_arrival_list = get_arrivals(subsetTimings,date)[0] #Change to 1d
+prev_dwell_list = get_dwellings(subsetTimings)[0] #Change to 1d
+arrival_rate_list = generate_arrival_rate(cleaned_df, numStops1, input_key_stops) #[0.045, 0.029, 0.026, 0.096, 0.066, 0.095, 0.081, 0.02, 0.039, 0.018, 0.003, 0.076, 0.059, 0.024, 0.068, 0.075, 0.073, 0.027, 0.019, 0.05, 0.062, 0.063, 0.084, 0.086, 0.052, 0.00, 0.021, 0.002, 0.074, 0.095, 0.059, 0.012, 0.056, 0.011, 0.043, 0.026, 0.092, 0.009, 0.055, 0.01, 0.03, 0]
+alighting_percentage_list = generate_alighting_percentage(cleaned_df, numStops1, input_key_stops, 1) #[0.16, 0.31, 0.65, 0.22, 0.82, 0.17, 0.87, 0.07, 0.35, 0.83, 0.84, 0.14, 0.19, 0.21, 0.77, 0.24, 0.95, 0.7, 0.53, 0.61, 0.36, 0.32, 0.81, 0.45, 0.55, 0.25, 0.78, 0.06, 0.09, 0.78, 0.59, 0.6, 0.35, 0.46, 0.91, 0.96, 0.01, 0.58, 0.83, 0.03, 0.79]
 boarding_duration = 2 #SET
 alighting_duration = 2 #SET
+weights_list = generate_weights(cleaned_df, numStops1, input_key_stops) #[0.7, 0.75, 0.55, 0.55, 0.5, 0.55, 0.55, 0.55, 0.5, 0.75, 0.55, 0.6000000000000001, 0.55, 0.55, 0.55, 0.8, 0.6000000000000001, 0.5, 0.5, 0.55, 0.5, 0.75, 0.6000000000000001, 0.55, 0.55, 0.55, 0.55, 0.7, 0.5, 0.5, 0.55, 0.55, 0.5, 0.55, 0.8000000000000003, 0.55, 0.55, 0.6000000000000001, 0.8500000000000001, 0.55, 0.6000000000000001]
+bus_availability_list = [72000, 72000, 72000, 72000]  #get_bus_availability(subsetTimings,date)
+initial_passengers_list = generate_initial_passengers(cleaned_df, numStops1, input_key_stops) #[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 max_allowed_deviation = 600 #SET
-original_dispatch_list = [73200, 73920, 74640, 75360] # Manually retrieved from TriMet Website
-num_stops = get_num_stops(cleaned_df, direction_interested)
-
-coordinates_list = get_stop_info(trips_1_df, num_stops, "stops.txt", direction_interested)[0]
-stop_ids_list = get_stop_info(trips_1_df, num_stops,"stops.txt", direction_interested)[1]
-stop_names_list = get_stop_info(trips_1_df, num_stops, "stops.txt", direction_interested)[2]
-arrival_rate_list = generate_arrival_rate(cleaned_df, num_stops, input_key_stops) 
-alighting_percentage_list = generate_alighting_percentage(cleaned_df, num_stops, input_key_stops, direction_interested) 
-
-weights_list = generate_weights(cleaned_df, num_stops, input_key_stops) 
-
-if direction_interested == 0:
-    bus_availability_list = get_bus_availability(timings_1, date)
-    interstation_travel_2dlist = get_interstation(timings_0)
-    prev_arrival_list = get_arrivals(timings_0,date)[0] 
-    prev_dwell_list = get_dwellings(timings_0)[0]
-    current_headways = get_headway(timings_0)
-    num_trips = len(trip_IDs_0)
-else:
-    bus_availability_list = get_bus_availability(timings_0, date)
-    interstation_travel_2dlist = get_interstation(timings_1)
-    prev_arrival_list = get_arrivals(timings_1,date)[0]
-    prev_dwell_list = get_dwellings(timings_1)[0]
-    current_headways = get_headway(timings_1)
-    
-    num_trips = len(trip_IDs_1)
-
-initial_passengers_list = generate_initial_passengers(cleaned_df, num_stops, input_key_stops)
-target_headway_2dlist = generate_target_headways(current_headways, target_headway, expectedNumSequence) #SET
-
-print(bus_availability_list)
+target_headway_2dlist = generate_target_headways(tripHeadways, target_headway, expectedNumSequence) #SET
+interstation_travel_2dlist = get_interstation(subsetTimings)
 
 
 # ONE LAST HURRAH
@@ -856,7 +930,7 @@ def jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coord
     # Serializing json
     json_object = json.dumps(output, indent=4)
     
-    # Writing to input.json
+    # Writing to sample.json
     with open("input.json", "w") as outfile:
         outfile.write(json_object)
 
