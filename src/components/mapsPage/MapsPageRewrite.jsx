@@ -49,7 +49,7 @@ const MapsPageRewrite = React.memo(
         <div className="flex justify-evenly">
           <div className="w-full mx-5">
             <MapsRewrite
-              title={"Before"}
+              title={"Baseline Model"}
               zoom={zoom}
               center={center}
               setCenter={setCenter}
@@ -66,7 +66,7 @@ const MapsPageRewrite = React.memo(
           </div>
           <div className="w-full mx-5">
             <MapsRewrite
-              title={"After"}
+              title={"Optimized Model"}
               zoom={zoom}
               center={center}
               setCenter={setCenter}
