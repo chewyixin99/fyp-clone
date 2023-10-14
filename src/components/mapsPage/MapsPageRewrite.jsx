@@ -14,7 +14,6 @@ const MapsPageRewrite = React.memo(
     optimizedData,
     unoptimizedData,
     started,
-    setEnded,
     paused,
     ended,
     globalTime,
@@ -59,7 +58,6 @@ const MapsPageRewrite = React.memo(
               started={started}
               paused={paused}
               ended={ended}
-              setEnded={setEnded}
               globalTime={globalTime}
               mapContainerStyle={mapContainerStyle}
             />
@@ -76,7 +74,6 @@ const MapsPageRewrite = React.memo(
               started={started}
               paused={paused}
               ended={ended}
-              setEnded={setEnded}
               globalTime={globalTime}
               mapContainerStyle={mapContainerStyle}
             />
@@ -99,7 +96,6 @@ MapsPageRewrite.propTypes = {
   started: PropTypes.bool,
   paused: PropTypes.bool,
   ended: PropTypes.bool,
-  setEnded: PropTypes.func,
   globalTime: PropTypes.number,
   mapContainerStyle: PropTypes.object,
 };

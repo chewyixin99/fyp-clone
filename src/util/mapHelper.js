@@ -23,11 +23,9 @@ export const getRecordsWithUniqueKey = (objsArr, keyName, step) => {
   return resValues;
 };
 
-export const normalizeStartEndTimes = ({ optimizedData, unoptimizedData }) => {
+export const normalizeStartTime = ({ optimizedData, unoptimizedData }) => {
   const optimizedFirstRec = optimizedData[0];
   const unoptimizedFirstRec = unoptimizedData[0];
-  const optimizedLastRec = optimizedData[optimizedData.length - 1];
-  const unoptimizedLastRec = unoptimizedData[unoptimizedData.length - 1];
   let tmpOptimized = optimizedData;
   let tmpUnoptimized = unoptimizedData;
   // normalize start

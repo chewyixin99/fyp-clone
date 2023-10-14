@@ -16,7 +16,6 @@ const MapsRewrite = React.memo(
     started,
     paused,
     ended,
-    setEnded,
     globalTime,
     mapContainerStyle,
   }) => {
@@ -218,7 +217,6 @@ MapsRewrite.propTypes = {
   started: PropTypes.bool,
   paused: PropTypes.bool,
   ended: PropTypes.bool,
-  setEnded: PropTypes.func,
   globalTime: PropTypes.number,
   mapContainerStyle: PropTypes.object,
 };

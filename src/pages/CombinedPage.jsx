@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
-import { normalizeStartEndTimes } from "../util/mapHelper";
+import { normalizeStartTime } from "../util/mapHelper";
 
 const defaultIntervalTime = 300;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -138,7 +138,7 @@ const CombinedPage = () => {
     if (journeyData.length !== 0 && journeyDataUnoptimized.length !== 0) {
       // make it such that both optimized and unoptimized start and end at the same time
       const { normalizedOptimizedData, normalizedUnoptimizedData } =
-        normalizeStartEndTimes({
+        normalizeStartTime({
           optimizedData: journeyData,
           unoptimizedData: journeyDataUnoptimized,
         });
@@ -196,7 +196,7 @@ const CombinedPage = () => {
       }
       console.log("ended");
     }
-  }, [start, paused, ended, globalTime, journeyData]);
+  }, [start, paused, ended, globalTime, journeyData, mapsGlobalTime]);
 
   return (
     <div>
@@ -271,7 +271,6 @@ const CombinedPage = () => {
           optimizedData={journeyData}
           unoptimizedData={journeyDataUnoptimized}
           started={start}
-          setEnded={setEnded}
           paused={paused}
           ended={ended}
           globalTime={mapsGlobalTime}
