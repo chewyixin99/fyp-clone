@@ -10,7 +10,7 @@ export const getAllUniqueValues = (objsArr, keyName) => {
 };
 
 // separate original array by key
-export const getRecordsWithUniqueKey = (objsArr, keyName, step) => {
+export const getRecordsWithUniqueKey = (objsArr, keyName, step = 1) => {
   const uniqueValues = getAllUniqueValues(objsArr, keyName);
   let resValues = {};
   for (let i = 0; i < uniqueValues.length; i += step) {
@@ -18,7 +18,7 @@ export const getRecordsWithUniqueKey = (objsArr, keyName, step) => {
     const recordsWithVal = objsArr.filter((r) => {
       return r[keyName] === val;
     });
-    resValues[val - 1] = recordsWithVal;
+    resValues[val] = recordsWithVal;
   }
   return resValues;
 };

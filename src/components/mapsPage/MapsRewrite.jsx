@@ -40,11 +40,11 @@ const MapsRewrite = React.memo(
       if (Object.keys(journeyState).length === 0) {
         return;
       }
-      if (journeyState[globalTime - 1] === undefined) {
+      if (journeyState[globalTime] === undefined) {
         return;
       }
       const allJourneyMarkers = [];
-      for (const rec of journeyState[globalTime - 1]) {
+      for (const rec of journeyState[globalTime]) {
         rec.opacity = 1;
         const marker = (
           <MarkerWithInfoWindow
@@ -67,10 +67,10 @@ const MapsRewrite = React.memo(
       if (Object.keys(journeyState).length === 0) {
         return <BusStatus busNum={0} />;
       }
-      if (journeyState[globalTime - 1] === undefined) {
+      if (journeyState[globalTime] === undefined) {
         return <BusStatus busNum={0} />;
       }
-      const allStopDetails = journeyState[globalTime - 1];
+      const allStopDetails = journeyState[globalTime];
       allStopDetails.sort((a, b) => a.busTripNo - b.busTripNo);
       for (const stopDetails of allStopDetails) {
         const busStatus = (
@@ -87,10 +87,10 @@ const MapsRewrite = React.memo(
     };
 
     useEffect(() => {
-      if (journeyState[globalTime - 1] !== undefined) {
+      if (journeyState[globalTime] !== undefined) {
         if (started && !paused && !ended) {
           // set curr opacity and prev opacity
-          const currMarkers = journeyState[globalTime - 1];
+          const currMarkers = journeyState[globalTime];
           setNumBusCurr(currMarkers.length);
           if (numBusDispatched < currMarkers.length) {
             setNumBusDispatched(currMarkers.length);
