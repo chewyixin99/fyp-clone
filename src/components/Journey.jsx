@@ -4,6 +4,7 @@ import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import BusStop from "./BusStop";
 
 const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
@@ -16,7 +17,10 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
   const [dataObj, setDataObj] = useState({});
   const [deployedTrips, setDeployedTrips] = useState([]);
-
+  const [numBusStops, setNumBusStops] = useState(0);
+  const [headwayObj, setHeadwayObj] = useState({});
+  const [saveHeadwayObj, setSaveHeadwayObj] = useState({});
+  const [averageHeadway, setAverageHeadway] = useState({});
 
   const extractData = (data) => {
     let stopDistance = data.filter((item) => {
@@ -37,6 +41,7 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   const loadBusStops = () => {
     var busStopHTML = ``;
     var busStopDotHTML = ``;
+    setNumBusStops(relativeStopDistance.length);
     for (var i = 0; i < relativeStopDistance.length; i++) {
       var relative_distance_percentage =
         (relativeStopDistance[i]?.distance / totalDistance) * 100;
@@ -50,7 +55,7 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
       }px">
         <div class="group relative">
           <button class="bus-stop-dot"></button>
-          <span class="pointer-events-none max-w-xs absolute text-sm text-white bg-gray-700 p-2 rounded-lg -top-32 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100">
+          <span class="pointer-events-none max-w-xs absolute text-sm text-white bg-gray-700 p-2 rounded-lg -top-42 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100">
             ID: ${relativeStopDistance[i]?.stopId}
             <br />
             Name: ${relativeStopDistance[i]?.stopName}
@@ -60,6 +65,8 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
             )}m / ${totalDistance.toFixed(
         0
       )}m (${relative_distance_percentage.toFixed(0)}%)
+          <br />
+            Headway: <span class="headway-ref-${id}-${relativeStopDistance[i]?.stopId}">-</span>
           </span>
         </div>
       </div>`;
@@ -75,6 +82,7 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   };
 
   const convert_seconds_to_time = (seconds) => {
+    if (seconds == null) return "-";
     let min = Math.floor(seconds / 60);
     let sec = seconds % 60;
     return min + "m " + sec + "s";
@@ -190,6 +198,48 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
       add_travel_distance(0, i, busDispatchTimestamps[i]);
     }
   };
+
+
+  const updateAverageHeadway = () => {
+    var lengthOfObj = Object.keys(saveHeadwayObj).length
+    var totalSum = 0
+    Object.values(saveHeadwayObj).forEach(val => {
+      return totalSum += val
+    });
+    setAverageHeadway({[id]:totalSum/lengthOfObj})
+    console.log(averageHeadway);
+  }
+
+  const updateHeadway = (headway,stopId,tripNo, numBusPast) => {
+
+    if (headway != 0){
+      var current = headwayObj
+      var currentSave = saveHeadwayObj
+      console.log(numBusPast);
+      if (numBusPast == numOfTrips){
+        current[stopId] = null
+        setHeadwayObj(current)
+        return
+      }
+      // does not overwrite past headway
+      currentSave[[stopId,tripNo]] = headway
+      setSaveHeadwayObj(currentSave)
+      console.log(saveHeadwayObj);
+      // overwrites past headway if new bus comes through
+      current[stopId] = headway
+      setHeadwayObj(current)
+
+      var headwayref = document.querySelector(
+        `.headway-ref-${id}-${stopId}`
+      );
+      if (headwayref != null){
+        headwayref.innerHTML = convert_seconds_to_time(headway)
+      }
+      
+    }
+    updateAverageHeadway()
+
+  }
 
   useEffect(() => {
     extractData(data);
@@ -347,6 +397,17 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
 
           <div className={`bus-stop-ref-${id}`}></div>
           <div className={`bus-stop-dot-ref-${id}`}></div>
+          {[...Array(numBusStops)].map((x, i) => (
+            <BusStop 
+              key={relativeStopDistance[i]?.stopId} 
+              id={relativeStopDistance[i]?.stopId}
+              globalTime={globalTime}
+              start={start}
+              dataObj={dataObj}
+              updateHeadway={updateHeadway}
+              />
+          ))}
+          <h1 className="mt-5">Average Headway : {averageHeadway[id] > 0 ? convert_seconds_to_time(Math.round(averageHeadway[id], 2)) : "-"}</h1>
         </div>
       </div>
     </div>
