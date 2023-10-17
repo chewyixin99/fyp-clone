@@ -87,7 +87,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                             ((original_dispatch[j] + dispatch_offset[j]) + interstation_travel[(j,1)])
                             - ((original_dispatch[j-1] + dispatch_offset[j-1]) + interstation_travel[(j-1,1)]), "Eq3")
         
-        # Equation 4, Constraint 7
+    # Equation 4, Constraint 7
+    for j in range(2, num_trips+1):
         for s in range(3, num_stops+1):
             model.add_constraint(headway[j,s] ==
                                 headway[j,s-1]
@@ -112,10 +113,11 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                             + alighting_duration * alighting_percentage[s] * busload[1,s], "Eq8")
         
     # Equation 9, Constraint 27
+    for s in range(2, num_stops):
         model.add_constraint(willing_board[1,s] ==
                             (1 + arrival_rate[s] * boarding_duration)
                             * arrival_rate[s]
-                            * (headway[j,s] - prev_dwell[s]), "Eq9")
+                            * (headway[1,s] - prev_dwell[s]), "Eq9")
         
     # Equation 10, Constraint 28
     for j in range(2, num_trips+1):
@@ -124,7 +126,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                                 boarding_duration * willing_board[j,s]
                                 + alighting_duration * alighting_percentage[s] * busload[j,s], "Eq10")
             
-            # Equation 11, Constraint 29
+    # Equation 11, Constraint 29
+    for j in range(2, num_trips+1):
+        for s in range(2, num_stops):
             model.add_constraint(willing_board[j,s] ==
                         (1 + arrival_rate[s] * boarding_duration)
                         * arrival_rate[s]
@@ -180,12 +184,6 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                                 arrival[j,s-1]
                                 + dwell[j,s-1]
                                 + interstation_travel[j,s-1], "Eq19")
-
-    # model.add_constraint(dispatch_offset[3] == -1) # TODO look into why no negatives
-
-
-    # for j in range(1, num_trips+1): # to observe if dispatch optimisation was not used
-    #     model.add_constraint(dispatch_offset[j] == 0)
 
     # to evaluate rolled horizons
     if glued_dispatch_dict != None:
