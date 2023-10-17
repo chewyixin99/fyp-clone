@@ -5,7 +5,7 @@ import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import BusStop from "./BusStop";
-
+import output from "../../public/v1_0CVXPY_optimised_output.json";
 const Journey = ({ start, paused, ended, data, globalTime, id }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
@@ -407,7 +407,8 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
               updateHeadway={updateHeadway}
               />
           ))}
-          <h1 className="mt-5">Average Headway : {averageHeadway[id] > 0 ? convert_seconds_to_time(Math.round(averageHeadway[id], 2)) : "-"}</h1>
+          <h5 className="mt-5">Average Headway: {averageHeadway[id] > 0 ? convert_seconds_to_time(Math.round(averageHeadway[id], 2)) : "-"}</h5>
+          <h5>Objective Function Metric: {id == 1 ? "" : output.objective_value}</h5>
         </div>
       </div>
     </div>
