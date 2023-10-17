@@ -97,8 +97,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
 
     # Equation 5, Constraint 20
     beta = 1 / (num_trips * sum(weights))
-    f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips))
-                    for s in range(2, num_stops))
+    f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips+1))
+                    for s in range(2, num_stops+1))
 
     # Equation 6, Constraint 20
     constraints.append(beta > 0)
@@ -118,7 +118,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
         constraints.append(willing_board[1,s] ==
                             (1 + arrival_rate[s] * boarding_duration)
                             * arrival_rate[s]
-                            * (headway[1,s] - prev_dwell[s]) + prev_arrival[s])
+                            * (headway[1,s] - prev_dwell[s]))
 
     # Equation 10, Constraint 28
     for j in range(2, num_trips+1):
@@ -167,6 +167,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     for j in range(1, num_trips+1):
         #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
         constraints.append(slack >= (dispatch_offset[j] - max_allowed_deviation))
+        constraints.append(slack >= (-dispatch_offset[j] - max_allowed_deviation))
     # Equation 17, Constraint 35
     constraints.append(slack >= 0)
 
@@ -193,15 +194,12 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                                 glued_dispatch_dict[f"{j}"])
 
     # OBJECTIVE FUNCTION
-    beta = 1 / (num_trips * sum(weights))
-    f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips))
-                    for s in range(2, num_stops))
     objective_function = f_x + 1000 * slack
-
+    # objective_function = sum(dispatch_offset)
     model = cp.Problem(cp.Minimize(objective_function), constraints)
 
     # Solve the model
-    result = model.solve(verbose=True)
+    result = model.solve(verbose=False)
 
     # Output the results
     if not silent:

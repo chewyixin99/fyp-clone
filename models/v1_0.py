@@ -9,7 +9,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
     This function takes input data describing the bus dispatch problem and uses Q-hat optimisation
-    model to find an optimal dispatch schedule. It utilises various constraints and decision variables
+    model to find an optima l dispatch schedule. It utilises various constraints and decision variables
     to minimise a specified objective function.
 
     Args:
@@ -97,8 +97,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
 
     # Equation 5, Constraint 20
     beta = 1 / (num_trips * sum(weights))
-    f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips))
-                        for s in range(2, num_stops))
+    f_x = beta * sum(weights[s] * sum((headway[j,s] - target_headway[(j,s)]) ** 2 for j in range(1, num_trips+1))
+                        for s in range(2, num_stops+1))
     # Equation 6, Constraint 20
     model.add_constraint(beta > 0, "Eq6")
 
@@ -165,7 +165,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
     for j in range(1, num_trips+1):
         #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
-        model.add_constraint(slack >= (dispatch_offset[j] - max_allowed_deviation), "Eq16")
+        model.add_constraint(slack >= (dispatch_offset[j] - max_allowed_deviation), "Eq16a")
+        model.add_constraint(slack >= (-dispatch_offset[j] - max_allowed_deviation), "Eq16b") # addition to make negative dispatch offsets adhere to max_allowed_deviation
     # Equation 17, Constraint 35
     model.add_constraint(slack >= 0, "Eq17")
 
@@ -198,6 +199,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
 
     # Solve the model
     model.solve()
+
+    print(slack.solution_value)
+    print(max_allowed_deviation)
 
     # Output the results
     if not silent:
