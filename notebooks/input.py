@@ -40,12 +40,13 @@ def clean_data(orig_df):
 
     cleaned_df = orig_df.copy() 
     cleaned_df["vehicleTimestamp"] = pd.to_datetime(cleaned_df["vehicleTimestamp"], unit="s")
-    cleaned_df.drop(["pippenId", "pippenCreatedAt", "tripStartTime", "tripStartDate"], axis=1,inplace = True)
+    cleaned_df.drop(["pippenId", "pippenCreatedAt", "pippenPollingRate", "tripStartTime", "tripStartDate", "tripRouteId"] , axis=1, inplace = True)
     cleaned_df["tripDirectionId"] = np.where((cleaned_df["vehicleLabel"] == "FX2 To Portland") | (cleaned_df["vehicleLabel"] == "FX2 To NW 5th & Hoyt") | (cleaned_df["vehicleLabel"] == "FX2 To NW Irving & 5th"), 1, 0)
     cleaned_df.drop_duplicates(inplace=True)
     cleaned_df.sort_values(by=['tripId', 'vehicleTimestamp'], inplace=True)
 
-    return cleaned_df
+    # Set max and min
+    return cleaned_df.groupby('tripId').filter(lambda x: ((x.vehicleStopSequence.max() >= 42) & (x.vehicleStopSequence.min() <= 2)))
 
 def get_service_poll_date(file_path):
     """
@@ -276,11 +277,11 @@ def get_stop_info(df, num_stops ,staticStopsFile, directionId):
     stopsTxt = pd.read_csv(staticStopsFile, delimiter='\t')
 
     bus_stops = df["vehicleStopID"].loc[df["tripDirectionId"] == directionId].unique().astype(int).astype(str)
-    stop_to_ignore = ["9302"]  # TO BE FURTHER IMPROVED
+    print(bus_stops)  
+    stops_to_ignore =  ["0", "3007"] #For Gresham #["9302"] or #["3007"] #For Portland  # TO BE FURTHER IMPROVED
     coordinates_list = []
     stop_ids_list = []
     stop_names_list = []
-
     for i in range(num_stops):
         coordinates_list.append([])
 
@@ -291,19 +292,18 @@ def get_stop_info(df, num_stops ,staticStopsFile, directionId):
             stop_id = str(one_stop[0])
             stop_name = str(one_stop[2])
 
-            if stop_id in bus_stops and stop_id not in stop_to_ignore and each_stop == stop_id:
+            if stop_id in bus_stops and stop_id not in stops_to_ignore and each_stop == stop_id:
                 try:
                     stop_location_lat = float(one_stop[5])
                     stop_location_long = float(one_stop[6])
                 except ValueError:
                     stop_location_lat = float(one_stop[6])
-                    stop_location_long = float(one_stop[7])
-
+                    stop_location_long = float(one_stop[7])                                     
+                
                 coordinates_list[idx].append(stop_location_lat)
                 coordinates_list[idx].append(stop_location_long)
                 stop_ids_list.append(stop_id)
                 stop_names_list.append(stop_name)
-
     return coordinates_list, stop_ids_list, stop_names_list
 
 
@@ -398,7 +398,6 @@ def get_bus_availability(tripsTimings,date):
             lastRecord = tripsTimings[i][lastRecordIndex]
 
     return result
-
 
 # Get Trip Dwelling Times [Each stop, per trip]
 def get_dwellings(tripsTimings):
@@ -771,23 +770,23 @@ input_key_stops = [14232, 14233, 1416, 1381, 1499, 1459, 7800, 9302] #SET
 
 
 ## Splitting the df into two directions (0: Gresham, 1: Portland)
-# trips_0_df = cleaned_df[cleaned_df["tripDirectionId"] == 0]
-# trips_1_df = cleaned_df[cleaned_df["tripDirectionId"] == 1]
+trips_0_df = cleaned_df[cleaned_df["tripDirectionId"] == 0]
+trips_1_df = cleaned_df[cleaned_df["tripDirectionId"] == 1]
 
 
-trips_1_df = cleaned_df[cleaned_df["tripId"].isin([12846118, 12846119, 12846120, 12846121, 12846122, 12846123])]
+# trips_1_df = cleaned_df[cleaned_df["tripId"].isin([12846118, 12846119, 12846120, 12846121, 12846122, 12846123])]
 
 ## Getting a list of tripids by direction
-# trip_IDs_0 = get_trip_ids(trips_0_df)
-# trip_IDs_1 = get_trip_ids(trips_1_df)
+trip_IDs_0 = get_trip_ids(trips_0_df)
+trip_IDs_1 = get_trip_ids(trips_1_df)
 
-trip_IDs_0 = 12845661, 12845662, 12845663, 12845664, 12845665, 12845666
-trip_IDs_1 = 12846118, 12846119, 12846120, 12846121, 12846122, 12846123
+
+# trip_IDs_0 = 12845661, 12845662, 12845663, 12845664, 12845665, 12845666
+# trip_IDs_1 = 12846118, 12846119, 12846120, 12846121, 12846122, 12846123
 
 ## Get a list of timings by direction
 timings_0 = get_trip_timings_by_direction(trip_IDs_0, expectedNumSequence)
 timings_1 = get_trip_timings_by_direction(trip_IDs_1, expectedNumSequence)
-
 
 
 target_headway = 720 # set
@@ -799,9 +798,10 @@ max_allowed_deviation = 600 #SET
 original_dispatch_list = [73200, 73920, 74640, 75360] # Manually retrieved from TriMet Website
 num_stops = get_num_stops(cleaned_df, direction_interested)
 
-coordinates_list = get_stop_info(trips_1_df, num_stops, "stops.txt", direction_interested)[0]
-stop_ids_list = get_stop_info(trips_1_df, num_stops,"stops.txt", direction_interested)[1]
-stop_names_list = get_stop_info(trips_1_df, num_stops, "stops.txt", direction_interested)[2]
+coordinates_list = get_stop_info(cleaned_df, num_stops, "stops.txt", direction_interested)[0]
+stop_ids_list = get_stop_info(cleaned_df, num_stops,"stops.txt", direction_interested)[1]
+stop_names_list = get_stop_info(cleaned_df, num_stops, "stops.txt", direction_interested)[2]
+
 arrival_rate_list = generate_arrival_rate(cleaned_df, num_stops, input_key_stops) 
 alighting_percentage_list = generate_alighting_percentage(cleaned_df, num_stops, input_key_stops, direction_interested) 
 
@@ -823,11 +823,10 @@ else:
     
     num_trips = len(trip_IDs_1)
 
+
+
 initial_passengers_list = generate_initial_passengers(cleaned_df, num_stops, input_key_stops)
 target_headway_2dlist = generate_target_headways(current_headways, target_headway, expectedNumSequence) #SET
-
-print(bus_availability_list)
-
 
 # ONE LAST HURRAH
 def jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coordinates_list, stop_ids_list, stop_names_list, prev_arrival_list, prev_dwell_list, arrival_rate_list, alighting_percentage_list, boarding_duration, alighting_duration, weights_list, bus_availability_list, initial_passengers_list, max_allowed_deviation, target_headway_2dlist, interstation_travel_2dlist):
@@ -857,7 +856,7 @@ def jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coord
     json_object = json.dumps(output, indent=4)
     
     # Writing to input.json
-    with open("input.json", "w") as outfile:
-        outfile.write(json_object)
+    # with open("input.json", "w") as outfile:
+    #     outfile.write(json_object)
 
-jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coordinates_list, stop_ids_list, stop_names_list, prev_arrival_list, prev_dwell_list, arrival_rate_list, alighting_percentage_list, boarding_duration, alighting_duration, weights_list, bus_availability_list, initial_passengers_list, max_allowed_deviation, target_headway_2dlist, interstation_travel_2dlist)
+# jsonOutput(num_trips, num_stops, bus_capacity, original_dispatch_list, coordinates_list, stop_ids_list, stop_names_list, prev_arrival_list, prev_dwell_list, arrival_rate_list, alighting_percentage_list, boarding_duration, alighting_duration, weights_list, bus_availability_list, initial_passengers_list, max_allowed_deviation, target_headway_2dlist, interstation_travel_2dlist)
