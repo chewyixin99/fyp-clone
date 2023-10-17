@@ -10,6 +10,9 @@ router = APIRouter(
 @router.get(
   "/healthcheck",
   tags=["Admin"],
+  responses={
+    200: {"model": APIResponse},
+  }
 )
 def check_health():
   '''
