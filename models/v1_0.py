@@ -9,7 +9,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
     This function takes input data describing the bus dispatch problem and uses Q-hat optimisation
-    model to find an optima l dispatch schedule. It utilises various constraints and decision variables
+    model to find an optimal dispatch schedule. It utilises various constraints and decision variables
     to minimise a specified objective function.
 
     Args:
@@ -163,10 +163,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                             - alighting_percentage[s-1] * busload[j,s-1], "Eq15")
             
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
-    for j in range(1, num_trips+1):
-        #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
-        model.add_constraint(slack >= (dispatch_offset[j] - max_allowed_deviation), "Eq16a")
-        model.add_constraint(slack >= (-dispatch_offset[j] - max_allowed_deviation), "Eq16b") # addition to make negative dispatch offsets adhere to max_allowed_deviation
+    #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
+    model.add_constraint(slack >= (dispatch_offset[num_trips] - max_allowed_deviation), "Eq16") # restrict schedule-sliding
+
     # Equation 17, Constraint 35
     model.add_constraint(slack >= 0, "Eq17")
 
@@ -199,9 +198,6 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
 
     # Solve the model
     model.solve()
-
-    print(slack.solution_value)
-    print(max_allowed_deviation)
 
     # Output the results
     if not silent:

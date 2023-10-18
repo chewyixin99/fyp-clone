@@ -61,18 +61,21 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
 # DECISION VARIABLES
     dispatch_offset = {i: cp.Variable(nonneg=False) for i in range(1, num_trips+1)}
     headway = {(i,j): cp.Variable(nonneg=True) for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
-    arrival = {(i,j): cp.Variable(nonneg=True) for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
-    dwell = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
+    arrival = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
+    dwell = {(i,j): cp.Variable(nonneg=True) for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
     willing_board = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
     busload = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
-    stranded = {(i,j): cp.Variable(nonneg=True) for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
+    stranded = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
     slack = cp.Variable()   
 
     # CONSTRAINTS
     constraints = []
 
     # Equation 1, Constraint 6
-    constraints.append(headway[1,2] == (original_dispatch[1] + dispatch_offset[1]) + interstation_travel[(1,1)] - prev_arrival[2])
+    constraints.append(headway[1,2] ==
+                        (original_dispatch[1] + dispatch_offset[1])
+                        + interstation_travel[(1,1)]
+                        - prev_arrival[2])
 
     # Equation 2, Constraint 6
     for s in range(3, num_stops+1):
@@ -164,10 +167,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                             - alighting_percentage[s-1] * busload[j,s-1])
 
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
-    for j in range(1, num_trips+1):
-        #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
-        constraints.append(slack >= (dispatch_offset[j] - max_allowed_deviation))
-        constraints.append(slack >= (-dispatch_offset[j] - max_allowed_deviation))
+    #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
+    constraints.append(slack >= (dispatch_offset[num_trips] - max_allowed_deviation))
+
     # Equation 17, Constraint 35
     constraints.append(slack >= 0)
 
@@ -199,7 +201,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     model = cp.Problem(cp.Minimize(objective_function), constraints)
 
     # Solve the model
-    result = model.solve(verbose=False)
+    result = model.solve(solver=cp.OSQP, verbose=not silent, max_iter=100000)
 
     # Output the results
     if not silent:
