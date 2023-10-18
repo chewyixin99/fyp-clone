@@ -82,8 +82,27 @@ def visualise_heatmap(timings_matrix, model_name):
 
     return fig
 
-def calculate_growth_rate(timings_matrix):
-    pass # TODO
+def visualise_3d(timings_matrix):
+    # create coordinate grids
+    num_trips = np.arange(1, timings_matrix.shape[0] + 1)
+    num_stops = np.arange(1, timings_matrix.shape[1] + 1)
+    trips, stops = np.meshgrid(num_trips, num_stops)
+
+    # flatten data
+    flat_data = timings_matrix.flatten()
+    flat_stops = stops.flatten()
+    flat_trips = trips.flatten()
+
+    # filter out the -1 values for not possible combinations
+    mask = flat_data != -1
+    x = flat_stops[mask]
+    y = flat_trips[mask]
+    z = flat_data[mask]
+
+    fig = px.scatter_3d(x=x, y=y, z=z, color=z, color_continuous_scale='Viridis',
+                        labels={'x': 'Number of Stops', 'y': 'Number of Trips', 'z': 'Run time (s)'})
+
+    fig.show()
 
 def save_figure(fig, save_fig_path, timings_matrix, save_npy_path):
 
@@ -122,7 +141,11 @@ def main():
 
     timings_matrix = get_all_timings(input_data)
     fig = visualise_heatmap(timings_matrix, model)
-    save_figure(fig, save_fig_path, timings_matrix, save_npy_path)
+    fig_3d = visualise_3d(timings_matrix)
+    # save_figure(fig, save_fig_path, timings_matrix, save_npy_path)
+
+    # loaded_array = np.load(save_npy_path, allow_pickle=True)
+    # fig_3d = visualise_3d(loaded_array)
 
 if __name__ == "__main__":
     main()
