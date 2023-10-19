@@ -14,7 +14,7 @@ def get_mm_result_feed():
   '''
     Transform result to feed and return result.
   '''
-  polling_rate = 1
+  polling_rate = 15
   output_data = get_mm_raw_result() # TODO: PF-190 - retrieve this data from cache 
   result = json_to_feed(
     polling_rate=polling_rate,
