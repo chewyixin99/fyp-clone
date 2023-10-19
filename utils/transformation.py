@@ -108,6 +108,20 @@ def convert_2dlist_to_dict(list_to_convert, j_start, j_end, s_start, s_end):
     """
     return {(j,s): list_to_convert[j-j_start][s-s_start] for j in range(j_start, j_end+1) for s in range(s_start, s_end+1)}
 
+def compress_dicts(**dicts) -> Dict[str, Any]:
+    '''
+    Args:
+        **dicts: One or more dictionaries to be compressed. Each dictionary will contain a key-value pair.
+    
+    Returns:
+        dict: A compression of all of the input dictionaries.
+    '''
+    data_dict = {}
+    for k, v in dicts.items():
+        data_dict[k] = v
+    
+    return data_dict
+
 def write_data_to_json(output_file_path, **dicts):
     """
     Write dictionaries to a JSON file.
@@ -138,10 +152,7 @@ def write_data_to_json(output_file_path, **dicts):
         "dict2": {"key2": "value2"}
     }
     """
-    data_dict = {}
-    for k, v in dicts.items():
-        data_dict[k] = v
-
+    data_dict = compress_dicts(**dicts)
     directory_path = os.path.dirname(output_file_path)
 
     if not os.path.exists(directory_path):
