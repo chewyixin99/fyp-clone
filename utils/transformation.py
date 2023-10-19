@@ -302,7 +302,12 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
 
     return df
 
-def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int = 1) -> None:
+def json_to_feed(
+    json_file_path: str | None = None,
+    feed_output_path: str | None = None,
+    polling_rate: int = 1,
+    data: Dict[str, Any] | None = None
+) -> None:
     """
     Converts a JSON file containing bus trip data into a CSV feed with detailed trip information.
 
@@ -312,10 +317,14 @@ def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int =
     specified output path.
 
     Args:
-        json_file_path (str): Path to the input JSON file containing bus trip data.
-        feed_output_path (str): Path where the generated CSV feed should be saved.
+        json_file_path (str, optional): Path to the input JSON file containing bus trip data.
+            Takes precedence over data if both are provided a valid JSON file and JSON-like data is provided.
+            Either json_file_path OR data MUST be provided.
+        feed_output_path (str, optional): Path where the generated CSV feed should be saved.
+            If not provided, provides a csv string of dataframe data.
         polling_rate (int, optional): The interval in seconds at which data points are to be sampled. 
             Defaults to 1.
+        data (Dict, optional): JSON-like data to transform to a feed.
 
     Outputs:
         CSV file: A file containing the detailed bus trip data with columns such as "timestamp (in seconds)", 
@@ -327,11 +336,15 @@ def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int =
         - Trip details are constructed using the `initialise_dataframe` function for each trip.
         - If the directory specified in the `feed_output_path` doesn't exist, it is created.
     """
-
     if not isinstance(polling_rate, int):
         raise TypeError("\nTypeError: Polling rate is not an integer! Please make it an integer.")
     
-    data = convert_json_to_dict(json_file_path)
+    if (json_file_path is None) and (data is None):
+        raise ValueError("\ValueError: Please ensure that either json_file_path or data is provided.")
+
+    if not (json_file_path is None):
+        data = convert_json_to_dict(json_file_path) # Overwrites data if file exists
+
     polling_rate = polling_rate
 
     num_trips = data["num_trips"]
@@ -355,9 +368,10 @@ def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int =
     df = df.sort_values(by=["timestamp (in seconds)"])
     df = df.reset_index(drop=True)
 
-    directory_path = os.path.dirname(feed_output_path)
+    if not (feed_output_path is None):
+        directory_path = os.path.dirname(feed_output_path)
 
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
 
     df.to_csv(feed_output_path, index=False)
