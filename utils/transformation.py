@@ -307,7 +307,7 @@ def json_to_feed(
     feed_output_path: str | None = None,
     polling_rate: int = 1,
     data: Dict[str, Any] | None = None
-) -> None:
+) -> str | None:
     """
     Converts a JSON file containing bus trip data into a CSV feed with detailed trip information.
 
@@ -325,6 +325,10 @@ def json_to_feed(
         polling_rate (int, optional): The interval in seconds at which data points are to be sampled. 
             Defaults to 1.
         data (Dict, optional): JSON-like data to transform to a feed.
+
+    Returns:
+        str or None: returns the resulting csv format as a string if feed_output_path is None.
+        Otherwise returns None.
 
     Outputs:
         CSV file: A file containing the detailed bus trip data with columns such as "timestamp (in seconds)", 
@@ -374,4 +378,4 @@ def json_to_feed(
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
 
-    df.to_csv(feed_output_path, index=False)
+    return df.to_csv(feed_output_path, index=False)
