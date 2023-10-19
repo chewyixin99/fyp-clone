@@ -5,7 +5,7 @@ import os
 import json
 from http import HTTPStatus
 
-from ..request.mm import RunMMRequest
+from ..request.mm import MMResultRequest, MMFeedRequest
 from ..response.standard import APIResponse
 from ..response.mm import MMResultMatrices, MMResponse
 from ..response.error import APIException
@@ -23,7 +23,7 @@ router = APIRouter(
     500: {"model": APIResponse}
   }
 )
-async def get_mock_result_matrices(request: RunMMRequest):
+async def get_mock_result_matrices(request: MMResultRequest):
   '''
     Provides mock (static) data matrices from the mathematical model for rendering by the Visualizer.
   '''
@@ -56,7 +56,7 @@ async def get_mock_result_matrices(request: RunMMRequest):
     500: {"model": APIResponse}
   }
 )
-async def get_mock_result_feed(request: RunMMRequest):
+async def get_mock_result_feed(request: MMFeedRequest):
   '''
     Provides mock (static) csv files from the mathematical model for rendering by the Visualizer.
   '''

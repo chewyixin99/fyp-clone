@@ -4,7 +4,7 @@ from fastapi.responses import Response
 from http import HTTPStatus
 
 from ..services import mm
-from ..request.mm import RunMMRequest
+from ..request.mm import MMResultRequest, MMFeedRequest
 from ..response.standard import APIResponse
 from ..response.mm import MMResultMatrices, MMResponse
 from ..response.error import APIException
@@ -22,7 +22,7 @@ router = APIRouter(
     500: {"model": APIResponse}
   }
 )
-async def get_result_matrices(request: RunMMRequest):
+async def get_result_matrices(request: MMResultRequest):
   '''
     Provides result matrices from the mathematical model for rendering by the Visualizer.
   '''  
@@ -52,12 +52,14 @@ async def get_result_matrices(request: RunMMRequest):
     500: {"model": APIResponse}
   }
 )
-async def get_result_feed(request: RunMMRequest):
+async def get_result_feed(request: MMFeedRequest):
   '''
     Provides mock (static) csv files from the mathematical model for rendering by the Visualizer.
   '''
   try:
-    result = mm.get_mm_result_feed()
+    result = mm.get_mm_result_feed(
+      polling_rate=request.polling_rate
+    )
   except Exception as e:
     raise APIException(
       response=APIResponse(
