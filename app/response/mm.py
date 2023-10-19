@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class MMDwellResult(BaseModel):
+class MMResultMatrices(BaseModel):
   num_trips: int
   num_stops: int
   bus_capacity: int
@@ -22,4 +22,4 @@ class MMDwellResult(BaseModel):
 class MMResponse(BaseModel):
   status: int = 0
   status_text: str = ""
-  data: MMDwellResult
+  data: MMResultMatrices

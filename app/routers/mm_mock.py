@@ -1,34 +1,38 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import FileResponse
 
+import os
+import json
 from http import HTTPStatus
 
-from ..services import mm
 from ..request.mm import RunMMRequest
 from ..response.standard import APIResponse
 from ..response.mm import MMResultMatrices, MMResponse
 from ..response.error import APIException
 
 router = APIRouter(
-  prefix="/mm",
+  prefix="/mm_mock",
   responses={404: {"model": APIResponse}}
 )
 
 @router.post(
   "/result_matrices",
-  tags=["Mathematical Model"],
+  tags=["Mathematical Model (Mock)"],
   responses={
     200: {"model": MMResponse},
     500: {"model": APIResponse}
   }
 )
-async def get_result_matrices(request: RunMMRequest):
+async def get_mock_result_matrices(request: RunMMRequest):
   '''
-    Provides result matrices from the mathematical model for rendering by the Visualizer.
-  '''  
+    Provides mock (static) data matrices from the mathematical model for rendering by the Visualizer.
+  '''
+  mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_result_matrices.json")
+  
   try:
-    result = mm.get_mm_result_matrices()
-    data = MMResultMatrices(**result)
+    with open(mock_data_path, 'r') as file:
+      mock_data = json.load(file)
+      data = MMResultMatrices(**mock_data)
 
   except Exception as e:
     raise APIException(
@@ -47,18 +51,18 @@ async def get_result_matrices(request: RunMMRequest):
 
 @router.post(
   "/result_feed",
-  tags=["Mathematical Model"],
+  tags=["Mathematical Model (Mock)"],
   responses={
     500: {"model": APIResponse}
   }
 )
-async def get_result_feed(request: RunMMRequest):
+async def get_mock_result_feed(request: RunMMRequest):
   '''
     Provides mock (static) csv files from the mathematical model for rendering by the Visualizer.
   '''
-  try:
-    result = mm.get_mm_result_feed()
-  except Exception as e:
+  mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_result_feed.csv")
+
+  if not os.path.isfile(mock_data_path):
     raise APIException(
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
@@ -67,5 +71,5 @@ async def get_result_feed(request: RunMMRequest):
       )
     )
 
-  return Response(content=result, media_type="text/csv")
+  return FileResponse(mock_data_path, filename="mock_feed_csv.csv")
 

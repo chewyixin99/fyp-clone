@@ -1,4 +1,4 @@
-from utils.coordinates import calculate_haversine_distance, split_line_between_coordinates
+from .coordinates import calculate_haversine_distance, split_line_between_coordinates
 import json
 import pandas as pd
 import os
@@ -108,6 +108,20 @@ def convert_2dlist_to_dict(list_to_convert, j_start, j_end, s_start, s_end):
     """
     return {(j,s): list_to_convert[j-j_start][s-s_start] for j in range(j_start, j_end+1) for s in range(s_start, s_end+1)}
 
+def compress_dicts(**dicts) -> Dict[str, Any]:
+    '''
+    Args:
+        **dicts: One or more dictionaries to be compressed. Each dictionary will contain a key-value pair.
+    
+    Returns:
+        dict: A compression of all of the input dictionaries.
+    '''
+    data_dict = {}
+    for k, v in dicts.items():
+        data_dict[k] = v
+    
+    return data_dict
+
 def write_data_to_json(output_file_path, **dicts):
     """
     Write dictionaries to a JSON file.
@@ -138,10 +152,7 @@ def write_data_to_json(output_file_path, **dicts):
         "dict2": {"key2": "value2"}
     }
     """
-    data_dict = {}
-    for k, v in dicts.items():
-        data_dict[k] = v
-
+    data_dict = compress_dicts(**dicts)
     directory_path = os.path.dirname(output_file_path)
 
     if not os.path.exists(directory_path):
@@ -291,7 +302,12 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
 
     return df
 
-def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int = 1) -> None:
+def json_to_feed(
+    json_file_path: str | None = None,
+    feed_output_path: str | None = None,
+    polling_rate: int = 1,
+    data: Dict[str, Any] | None = None
+) -> str | None:
     """
     Converts a JSON file containing bus trip data into a CSV feed with detailed trip information.
 
@@ -301,10 +317,18 @@ def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int =
     specified output path.
 
     Args:
-        json_file_path (str): Path to the input JSON file containing bus trip data.
-        feed_output_path (str): Path where the generated CSV feed should be saved.
+        json_file_path (str, optional): Path to the input JSON file containing bus trip data.
+            Takes precedence over data if both are provided a valid JSON file and JSON-like data is provided.
+            Either json_file_path OR data MUST be provided.
+        feed_output_path (str, optional): Path where the generated CSV feed should be saved.
+            If not provided, provides a csv string of dataframe data.
         polling_rate (int, optional): The interval in seconds at which data points are to be sampled. 
             Defaults to 1.
+        data (Dict, optional): JSON-like data to transform to a feed.
+
+    Returns:
+        str or None: returns the resulting csv format as a string if feed_output_path is None.
+        Otherwise returns None.
 
     Outputs:
         CSV file: A file containing the detailed bus trip data with columns such as "timestamp (in seconds)", 
@@ -316,11 +340,15 @@ def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int =
         - Trip details are constructed using the `initialise_dataframe` function for each trip.
         - If the directory specified in the `feed_output_path` doesn't exist, it is created.
     """
-
     if not isinstance(polling_rate, int):
         raise TypeError("\nTypeError: Polling rate is not an integer! Please make it an integer.")
     
-    data = convert_json_to_dict(json_file_path)
+    if (json_file_path is None) and (data is None):
+        raise ValueError("\ValueError: Please ensure that either json_file_path or data is provided.")
+
+    if not (json_file_path is None):
+        data = convert_json_to_dict(json_file_path) # Overwrite data if file exists
+
     polling_rate = polling_rate
 
     num_trips = data["num_trips"]
@@ -344,9 +372,10 @@ def json_to_feed(json_file_path: str, feed_output_path: str, polling_rate: int =
     df = df.sort_values(by=["timestamp (in seconds)"])
     df = df.reset_index(drop=True)
 
-    directory_path = os.path.dirname(feed_output_path)
+    if not (feed_output_path is None):
+        directory_path = os.path.dirname(feed_output_path)
 
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
 
-    df.to_csv(feed_output_path, index=False)
+    return df.to_csv(feed_output_path, index=False)

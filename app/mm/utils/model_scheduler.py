@@ -1,7 +1,7 @@
 # TODO refactor
 
 from models.v1_0 import run_model # NOTE: to change to other models (not frequent)
-from utils.transformation import convert_json_to_dict, write_data_to_json, json_to_feed
+from .transformation import convert_json_to_dict, write_data_to_json, json_to_feed
 from copy import deepcopy
 import json
 
