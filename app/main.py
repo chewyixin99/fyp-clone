@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import admin, mm_mock, mm
 from .response.error import APIException
@@ -24,6 +25,16 @@ app = FastAPI(
   summary="API endpoints to integrate the Visualizer, MM and Pippen's data.",
   openapi_tags=tags_metadata,
   docs_url="/"
+)
+
+origins = ["*"]
+
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=origins,
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"]
 )
 
 app.include_router(admin.router)
