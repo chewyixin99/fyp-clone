@@ -60,3 +60,49 @@ export const normalizeStartTime = ({ optimizedData, unoptimizedData }) => {
     normalizedUnoptimizedData: tmpUnoptimized,
   };
 };
+
+export const processCsvData = (data) => {
+  let tmpJourneyData = [];
+  for (let i = 0; i < data.length; i++) {
+    const rowData = data[i];
+    const [
+      timestamp,
+      bus_trip_no,
+      status,
+      bus_stop_no,
+      stop_id,
+      stop_name,
+      latitude,
+      longitude,
+      distance,
+    ] = rowData;
+    tmpJourneyData.push({
+      timestamp: parseInt(timestamp),
+      lat: parseFloat(parseFloat(latitude).toFixed(6)),
+      lng: parseFloat(parseFloat(longitude).toFixed(6)),
+      opacity: 0,
+      stopId: stop_id,
+      stopName: stop_name,
+      busStopNo: parseInt(bus_stop_no),
+      currentStatus: status,
+      busTripNo: parseInt(bus_trip_no),
+      distance: parseFloat(distance),
+    });
+  }
+  const tmpStopObjs = tmpJourneyData.filter((r) => {
+    return (
+      r.busTripNo == 1 &&
+      (r.currentStatus === "STOPPED_AT" ||
+        r.currentStatus === "DISPATCHED_FROM")
+    );
+  });
+  for (const row of tmpStopObjs) {
+    row.opacity = 0.8;
+  }
+  tmpStopObjs.sort((a, b) => a.timestamp - b.timestamp);
+  tmpJourneyData = tmpJourneyData.filter((r) => !isNaN(r.timestamp));
+  return {
+    journeyData: tmpJourneyData,
+    stopObjs: tmpStopObjs,
+  };
+};

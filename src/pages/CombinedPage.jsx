@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
-import { normalizeStartTime } from "../util/mapHelper";
+import { normalizeStartTime, processCsvData } from "../util/mapHelper";
 
 const defaultIntervalTime = 300;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -39,53 +39,48 @@ const CombinedPage = () => {
   const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
   const [globalTime, setGlobalTime] = useState(0);
 
+  const fetchFromEndpoint = async () => {
+    const url = "http://127.0.0.1:8000/mm_mock/result_feed";
+    const requestBody = {
+      polling_rate: 0,
+      horizon_length: "string",
+      horizon_interval: "string",
+      actual_trip_timings: [0],
+    };
+    const options = {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    };
+
+    await fetch(url, options)
+      .then((response) => {
+        // response.body is a ReadableStream
+        // return response.body.getReader().read();
+        return response.text();
+      })
+      .then((csvData) => {
+        const parsed = Papa.parse(csvData).data.slice(1);
+        const processedData = processCsvData(parsed);
+        // set journey and stops after
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  };
+
   const fetchData = async () => {
     Papa.parse(optimizedFile, {
       // options
       download: true,
       complete: (res) => {
-        let tmpJourneyData = [];
         const data = res.data.slice(1);
-        for (let i = 0; i < data.length; i++) {
-          const rowData = data[i];
-          const [
-            timestamp,
-            bus_trip_no,
-            status,
-            bus_stop_no,
-            stop_id,
-            stop_name,
-            latitude,
-            longitude,
-            distance,
-          ] = rowData;
-          tmpJourneyData.push({
-            timestamp: parseInt(timestamp),
-            lat: parseFloat(parseFloat(latitude).toFixed(6)),
-            lng: parseFloat(parseFloat(longitude).toFixed(6)),
-            opacity: 0,
-            stopId: stop_id,
-            stopName: stop_name,
-            busStopNo: parseInt(bus_stop_no),
-            currentStatus: status,
-            busTripNo: parseInt(bus_trip_no),
-            distance: parseFloat(distance),
-          });
-        }
-        const tmpStopObjs = tmpJourneyData.filter((r) => {
-          return (
-            r.busTripNo == 1 &&
-            (r.currentStatus === "STOPPED_AT" ||
-              r.currentStatus === "DISPATCHED_FROM")
-          );
-        });
-        for (const row of tmpStopObjs) {
-          row.opacity = 0.8;
-        }
-        tmpStopObjs.sort((a, b) => a.timestamp - b.timestamp);
-        setStopObjs(tmpStopObjs);
-        tmpJourneyData = tmpJourneyData.filter((r) => !isNaN(r.timestamp));
-        setJourneyData(tmpJourneyData);
+        const processedData = processCsvData(data);
+        setStopObjs(processedData.stopObjs);
+        setJourneyData(processedData.journeyData);
       },
     });
 
@@ -93,38 +88,9 @@ const CombinedPage = () => {
       // options
       download: true,
       complete: (res) => {
-        let tmpJourneyDataUnoptimized = [];
         const data = res.data.slice(1);
-        for (let i = 0; i < data.length; i++) {
-          const rowData = data[i];
-          const [
-            timestamp,
-            bus_trip_no,
-            status,
-            bus_stop_no,
-            stop_id,
-            stop_name,
-            latitude,
-            longitude,
-            distance,
-          ] = rowData;
-          tmpJourneyDataUnoptimized.push({
-            timestamp: parseInt(timestamp),
-            lat: parseFloat(parseFloat(latitude).toFixed(6)),
-            lng: parseFloat(parseFloat(longitude).toFixed(6)),
-            opacity: 0,
-            stopId: stop_id,
-            stopName: stop_name,
-            busStopNo: parseInt(bus_stop_no),
-            currentStatus: status,
-            busTripNo: parseInt(bus_trip_no),
-            distance: parseFloat(distance),
-          });
-        }
-        tmpJourneyDataUnoptimized = tmpJourneyDataUnoptimized.filter(
-          (r) => !isNaN(r.timestamp)
-        );
-        setJourneyDataUnoptimized(tmpJourneyDataUnoptimized);
+        const processedData = processCsvData(data);
+        setJourneyDataUnoptimized(processedData.journeyData);
       },
     });
   };
@@ -132,6 +98,7 @@ const CombinedPage = () => {
   // load initial data
   useEffect(() => {
     fetchData();
+    // fetchFromEndpoint();
   }, []);
 
   useEffect(() => {
