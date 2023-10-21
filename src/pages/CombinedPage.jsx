@@ -3,6 +3,9 @@ import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 import { normalizeStartTime, processCsvData } from "../util/mapHelper";
+import { BsFillPlayFill, BsFillPauseFill, BsRepeat } from "react-icons/bs";
+import { BiRun } from "react-icons/bi";
+import { MdFilterCenterFocus } from "react-icons/md";
 
 const defaultIntervalTime = 300;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -172,10 +175,12 @@ const CombinedPage = () => {
         <button
           onClick={onStartClick}
           type="button"
-          className={paused ? "control-button-disabled" : "control-button"}
+          className={
+            paused || start ? "control-button-disabled" : "control-button"
+          }
           disabled={paused}
         >
-          start
+          <BiRun />
         </button>
         <button
           onClick={onPauseClick}
@@ -183,17 +188,17 @@ const CombinedPage = () => {
           className={ended ? `control-button-disabled` : `control-button`}
           disabled={ended}
         >
-          {paused ? "resume" : "pause"}
+          {paused ? <BsFillPlayFill /> : <BsFillPauseFill />}
         </button>
         <button onClick={onEndClick} type="button" className={`control-button`}>
-          end
+          <BsRepeat />
         </button>
         <button
           onClick={onResetZoomAndCenterClick}
           type="button"
           className="control-button"
         >
-          reset zoom and center map
+          <MdFilterCenterFocus />
         </button>
       </div>
       {/* JianLin's component */}
