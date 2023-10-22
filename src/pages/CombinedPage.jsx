@@ -6,6 +6,8 @@ import { normalizeStartTime, processCsvData } from "../util/mapHelper";
 import { BsFillPlayFill, BsFillPauseFill, BsRepeat } from "react-icons/bs";
 import { BiRun } from "react-icons/bi";
 import { MdFilterCenterFocus } from "react-icons/md";
+import { TiTick } from "react-icons/ti";
+import { PuffLoader } from "react-spinners";
 
 const defaultIntervalTime = 300;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -37,15 +39,17 @@ const CombinedPage = () => {
 
   // combined
   const [paused, setPaused] = useState(false);
-  const [ended, setEnded] = useState(false);
+  const [ended, setEnded] = useState(true);
   const [journeyData, setJourneyData] = useState([]);
   const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
   const [globalTime, setGlobalTime] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const fetchFromEndpoint = async () => {
-    const url = "http://127.0.0.1:8000/mm_mock/result_feed";
+    setLoading(true);
+    const url = "http://127.0.0.1:8000/mm/result_feed";
     const requestBody = {
-      polling_rate: 0,
+      polling_rate: 1,
       horizon_length: "string",
       horizon_interval: "string",
       actual_trip_timings: [0],
@@ -63,14 +67,19 @@ const CombinedPage = () => {
       .then((response) => {
         // response.body is a ReadableStream
         // return response.body.getReader().read();
-        return response.text();
+        if (response.ok) {
+          setLoading(false);
+          return response.text();
+        }
       })
       .then((csvData) => {
         const parsed = Papa.parse(csvData).data.slice(1);
         const processedData = processCsvData(parsed);
+        console.log(processedData);
         // set journey and stops after
       })
       .catch((e) => {
+        setLoading(false);
         console.log(e);
       });
   };
@@ -200,6 +209,23 @@ const CombinedPage = () => {
         >
           <MdFilterCenterFocus />
         </button>
+        <div className="">
+          {loading ? (
+            <div className="flex items-center text-orange-600">
+              <div className="px-3">model is running</div>
+              <PuffLoader
+                color="rgb(234, 88, 12)"
+                loading={loading}
+                size={15}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center text-green-500">
+              <div className="px-3">data loaded</div>
+              <TiTick />
+            </div>
+          )}
+        </div>
       </div>
       {/* JianLin's component */}
       <div className="">
