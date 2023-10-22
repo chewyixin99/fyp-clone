@@ -7,6 +7,7 @@ import { BsFillPlayFill, BsFillPauseFill, BsRepeat } from "react-icons/bs";
 import { BiRun } from "react-icons/bi";
 import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
+import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
 
 const defaultIntervalTime = 300;
@@ -44,9 +45,12 @@ const CombinedPage = () => {
   const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
   const [globalTime, setGlobalTime] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const fetchFromEndpoint = async () => {
     setLoading(true);
+    setError(false);
     const url = "http://127.0.0.1:8000/mm/result_feed";
     const requestBody = {
       polling_rate: 1,
@@ -80,7 +84,9 @@ const CombinedPage = () => {
       })
       .catch((e) => {
         setLoading(false);
+        setError(true);
         console.log(e);
+        setErrorMsg(e.message);
       });
   };
 
@@ -110,7 +116,7 @@ const CombinedPage = () => {
   // load initial data
   useEffect(() => {
     fetchData();
-    // fetchFromEndpoint();
+    fetchFromEndpoint();
   }, []);
 
   useEffect(() => {
@@ -148,6 +154,37 @@ const CombinedPage = () => {
   const onResetZoomAndCenterClick = () => {
     setCenter(defaultCenter);
     setZoom(defaultZoom);
+  };
+
+  const onRefetchDataClick = () => {
+    fetchFromEndpoint();
+  };
+
+  const renderFetchStatus = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center text-orange-600">
+          <div className="mr-3">Model is running</div>
+          <PuffLoader color="rgb(234, 88, 12)" loading={loading} size={15} />
+        </div>
+      );
+    }
+    if (error) {
+      return (
+        <div className="flex items-center text-red-600">
+          <div>{errorMsg}</div>
+          <button onClick={onRefetchDataClick} className="control-button">
+            <RxReload />
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center text-green-500">
+        <div>Data loaded</div>
+        <TiTick className="ml-3" />
+      </div>
+    );
   };
 
   // global time to sync between both maps and line component
@@ -209,23 +246,7 @@ const CombinedPage = () => {
         >
           <MdFilterCenterFocus />
         </button>
-        <div className="">
-          {loading ? (
-            <div className="flex items-center text-orange-600">
-              <div className="px-3">model is running</div>
-              <PuffLoader
-                color="rgb(234, 88, 12)"
-                loading={loading}
-                size={15}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center text-green-500">
-              <div className="px-3">data loaded</div>
-              <TiTick />
-            </div>
-          )}
-        </div>
+        <div className="border-l-2 pl-3">{renderFetchStatus()}</div>
       </div>
       {/* JianLin's component */}
       <div className="">
