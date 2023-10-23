@@ -12,10 +12,13 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.19.2",
+    "chart.js": "^4.4.0",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.11.0",
-    "react-router-dom": "^6.14.2"
+    "react-router-dom": "^6.14.2",
+    "react-spinners": "^0.13.8"
   },
   "devDependencies": {
     "@simbathesailor/use-what-changed": "^2.0.0",

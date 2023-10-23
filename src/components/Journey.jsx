@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import BusStop from "./BusStop";
 import output from "../../public/v1_0CVXPY_optimised_output.json";
-const Journey = ({ start, paused, ended, data, globalTime, id }) => {
+const Journey = ({ start, paused, ended, data, globalTime, id, triggerParentSave, busStopData, setBusStopData}) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
   const [relativeStopDistance, setRelativeStopDistance] = useState([]);
@@ -42,7 +42,11 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
     var busStopHTML = ``;
     var busStopDotHTML = ``;
     setNumBusStops(relativeStopDistance.length);
+    var tempBusData = []
     for (var i = 0; i < relativeStopDistance.length; i++) {
+      tempBusData.push([relativeStopDistance[i].busStopNo, relativeStopDistance[i].stopId])
+
+      
       var relative_distance_percentage =
         (relativeStopDistance[i]?.distance / totalDistance) * 100;
       var relative_distance =
@@ -66,12 +70,14 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
         0
       )}m (${relative_distance_percentage.toFixed(0)}%)
           <br />
-            Headway: <span class="headway-ref-${id}-${relativeStopDistance[i]?.stopId}">-</span>
+            Headway: <span class="headway-ref-${id}-${relativeStopDistance[i]?.busStopNo}">-</span>
           </span>
         </div>
       </div>`;
     }
-
+    if (id == 1){
+      setBusStopData(tempBusData);
+    }
     document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
     document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML +=
       busStopDotHTML;
@@ -207,30 +213,44 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
       return totalSum += val
     });
     setAverageHeadway({[id]:totalSum/lengthOfObj})
-    console.log(averageHeadway);
+    // console.log(averageHeadway);
   }
 
-  const updateHeadway = (headway,stopId,tripNo, numBusPast) => {
+  // useEffect(() => {
+  //   console.log("bnoom");
+  //   triggerParentSave(saveHeadwayObj)
+  // }, [saveHeadwayObj])
+
+  useEffect(() => {
+    console.log(saveHeadwayObj);
+  }, [saveHeadwayObj])
+
+  const updateLink = () => {
+    triggerParentSave(saveHeadwayObj, id)
+  }
+
+  const updateHeadway = (headway,stopId,busStopNo,tripNo, numBusPast) => {
 
     if (headway != 0){
       var current = headwayObj
       var currentSave = saveHeadwayObj
-      console.log(numBusPast);
+      // console.log(numBusPast);
       if (numBusPast == numOfTrips){
-        current[stopId] = null
+        current[busStopNo] = null
         setHeadwayObj(current)
         return
       }
       // does not overwrite past headway
-      currentSave[[stopId,tripNo]] = headway
+      currentSave[[busStopNo,tripNo]] = headway
       setSaveHeadwayObj(currentSave)
-      console.log(saveHeadwayObj);
+      updateLink()
+      // console.log(saveHeadwayObj);
       // overwrites past headway if new bus comes through
-      current[stopId] = headway
+      current[busStopNo] = headway
       setHeadwayObj(current)
 
       var headwayref = document.querySelector(
-        `.headway-ref-${id}-${stopId}`
+        `.headway-ref-${id}-${busStopNo}`
       );
       if (headwayref != null){
         headwayref.innerHTML = convert_seconds_to_time(headway)
@@ -401,14 +421,13 @@ const Journey = ({ start, paused, ended, data, globalTime, id }) => {
             <BusStop 
               key={relativeStopDistance[i]?.stopId} 
               id={relativeStopDistance[i]?.stopId}
+              busStopNo={relativeStopDistance[i]?.busStopNo}
               globalTime={globalTime}
               start={start}
               dataObj={dataObj}
               updateHeadway={updateHeadway}
               />
           ))}
-          <h5 className="mt-5">Average Headway: {averageHeadway[id] > 0 ? convert_seconds_to_time(Math.round(averageHeadway[id], 2)) : "-"}</h5>
-          <h5>Objective Function Metric: {id == 1 ? "" : output.objective_value}</h5>
         </div>
       </div>
     </div>
@@ -419,6 +438,7 @@ Journey.propTypes = {
   paused: PropTypes.bool,
   ended: PropTypes.bool,
   start: PropTypes.bool,
+  triggerParentSave: PropTypes.func,
 };
 
 export default Journey;

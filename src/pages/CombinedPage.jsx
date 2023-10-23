@@ -9,6 +9,7 @@ import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
+import Metrics from "../components/Metrics";
 
 const defaultIntervalTime = 300;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -23,8 +24,10 @@ const mapContainerStyle = {
   maxWidth: "100%",
 };
 
-const optimizedFile = "./v1_4_poll1_feed.csv";
-const unoptimizedFile = "./v1_4_poll1_unoptimised_feed.csv";
+// const optimizedFile = "./v1_4_poll1_feed.csv";
+// const unoptimizedFile = "./v1_4_poll1_unoptimised_feed.csv";
+const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
+const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
 
 const CombinedPage = () => {
   // yixin states
@@ -36,6 +39,21 @@ const CombinedPage = () => {
 
   // jianlin states
   const [start, setStart] = useState(false);
+  const [saveHeadwayObj, setSaveHeadwayObj] = useState("");
+  const [saveHeadwayObjOptimised, setSaveHeadwayObjOptimised] = useState("");
+  const [busStopData, setBusStopData] = useState([]);
+  
+  const triggerParentSave = (obj,id) => {
+
+    if (id == 1){
+      setSaveHeadwayObj({['string']:JSON.stringify(obj), ['obj']:obj})
+    }
+    else {
+      setSaveHeadwayObjOptimised({['string']:JSON.stringify(obj), ['obj']:obj})
+    }
+
+  }
+
   // end of jianlin states
 
   // combined
@@ -249,7 +267,8 @@ const CombinedPage = () => {
         <div className="border-l-2 pl-3">{renderFetchStatus()}</div>
       </div>
       {/* JianLin's component */}
-      <div className="">
+      <div className="divider"></div>
+      <div className="my-2">
         <h1 className="ms-24 mb-8 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
           Baseline Model
         </h1>
@@ -260,9 +279,11 @@ const CombinedPage = () => {
           start={start}
           data={journeyDataUnoptimized}
           globalTime={globalTime}
+          triggerParentSave={triggerParentSave}
+          setBusStopData={setBusStopData}
+          busStopData={busStopData}
         />
       </div>
-      <div className="divider"></div>
       <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
         Optimized Model
       </h1>
@@ -276,7 +297,19 @@ const CombinedPage = () => {
           start={start}
           data={journeyData}
           globalTime={globalTime}
+          triggerParentSave={triggerParentSave}
+          setBusStopData={setBusStopData}
+          busStopData={busStopData}
         />
+      </div>
+      <div className="divider"></div>
+
+      <div className="mx-auto my-2" style={{height: "400px",width: "80vw", justifyContent: "center", display: "flex"}}> 
+        <Metrics 
+          saveHeadwayObj={saveHeadwayObj}
+          saveHeadwayObjOptimised={saveHeadwayObjOptimised}
+          busStopData={busStopData}
+          />
       </div>
       {/* Yixin's component */}
       <div className="m-10 mt-0">

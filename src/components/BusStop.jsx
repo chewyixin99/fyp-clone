@@ -2,7 +2,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from 'react'
 
-const BusStop = ({id,start, globalTime, dataObj, updateHeadway}) => {
+const BusStop = ({id,busStopNo,start, globalTime, dataObj, updateHeadway}) => {
 
   const [triggerStart, setTriggerStart] = useState(false)
   const [lastTime, setLastTime] = useState(0)
@@ -36,7 +36,7 @@ const BusStop = ({id,start, globalTime, dataObj, updateHeadway}) => {
       if (lastTime != 0 && firstStopReached){
         // headwayref.innerHTML = globalTime-lastTime
         setHeadway(globalTime-lastTime)
-        updateHeadway(globalTime-lastTime,id,lastTripNo, numBusPast)
+        updateHeadway(globalTime-lastTime,id,busStopNo, lastTripNo, numBusPast)
       }
       // else {
       //   if (firstStopReached){
@@ -54,7 +54,7 @@ const BusStop = ({id,start, globalTime, dataObj, updateHeadway}) => {
     else {
       // headwayref.innerHTML = 0
       setHeadway(0)
-      updateHeadway(0,id,lastTripNo)
+      updateHeadway(0,id,busStopNo,lastTripNo,numBusPast)
     }
 
   }, [globalTime,triggerStart,lastTime, firstStopReached,lastTripNo])
