@@ -42,19 +42,21 @@ const CombinedPage = () => {
   const [saveHeadwayObj, setSaveHeadwayObj] = useState("");
   const [saveHeadwayObjOptimised, setSaveHeadwayObjOptimised] = useState("");
   const [busStopData, setBusStopData] = useState([]);
-  
-  const triggerParentSave = (obj,id) => {
+  // end of jianlin states
 
+  // jian lin functions
+  const triggerParentSave = (obj,id) => {
     if (id == 1){
+      // added json data to object to implement data immutability so that 
+      // useEffect hook dependency can be triggered
       setSaveHeadwayObj({['string']:JSON.stringify(obj), ['obj']:obj})
     }
     else {
       setSaveHeadwayObjOptimised({['string']:JSON.stringify(obj), ['obj']:obj})
     }
-
   }
-
-  // end of jianlin states
+  // end of jian lin functions
+  
 
   // combined
   const [paused, setPaused] = useState(false);
@@ -281,7 +283,6 @@ const CombinedPage = () => {
           globalTime={globalTime}
           triggerParentSave={triggerParentSave}
           setBusStopData={setBusStopData}
-          busStopData={busStopData}
         />
       </div>
       <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
@@ -299,7 +300,6 @@ const CombinedPage = () => {
           globalTime={globalTime}
           triggerParentSave={triggerParentSave}
           setBusStopData={setBusStopData}
-          busStopData={busStopData}
         />
       </div>
       <div className="divider"></div>

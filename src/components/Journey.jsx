@@ -5,8 +5,16 @@ import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import BusStop from "./BusStop";
-import output from "../../public/v1_0CVXPY_optimised_output.json";
-const Journey = ({ start, paused, ended, data, globalTime, id, triggerParentSave, busStopData, setBusStopData}) => {
+const Journey = ({
+  start,
+  paused,
+  ended,
+  data,
+  globalTime,
+  id,
+  triggerParentSave,
+  setBusStopData,
+}) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
   const [relativeStopDistance, setRelativeStopDistance] = useState([]);
@@ -20,7 +28,6 @@ const Journey = ({ start, paused, ended, data, globalTime, id, triggerParentSave
   const [numBusStops, setNumBusStops] = useState(0);
   const [headwayObj, setHeadwayObj] = useState({});
   const [saveHeadwayObj, setSaveHeadwayObj] = useState({});
-  const [averageHeadway, setAverageHeadway] = useState({});
 
   const extractData = (data) => {
     let stopDistance = data.filter((item) => {
@@ -42,11 +49,13 @@ const Journey = ({ start, paused, ended, data, globalTime, id, triggerParentSave
     var busStopHTML = ``;
     var busStopDotHTML = ``;
     setNumBusStops(relativeStopDistance.length);
-    var tempBusData = []
+    var tempBusData = [];
     for (var i = 0; i < relativeStopDistance.length; i++) {
-      tempBusData.push([relativeStopDistance[i].busStopNo, relativeStopDistance[i].stopId])
+      tempBusData.push([
+        relativeStopDistance[i].busStopNo,
+        relativeStopDistance[i].stopId,
+      ]);
 
-      
       var relative_distance_percentage =
         (relativeStopDistance[i]?.distance / totalDistance) * 100;
       var relative_distance =
@@ -70,12 +79,14 @@ const Journey = ({ start, paused, ended, data, globalTime, id, triggerParentSave
         0
       )}m (${relative_distance_percentage.toFixed(0)}%)
           <br />
-            Headway: <span class="headway-ref-${id}-${relativeStopDistance[i]?.busStopNo}">-</span>
+            Headway: <span class="headway-ref-${id}-${
+        relativeStopDistance[i]?.busStopNo
+      }">-</span>
           </span>
         </div>
       </div>`;
     }
-    if (id == 1){
+    if (id == 1) {
       setBusStopData(tempBusData);
     }
     document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
@@ -205,61 +216,37 @@ const Journey = ({ start, paused, ended, data, globalTime, id, triggerParentSave
     }
   };
 
-
-  const updateAverageHeadway = () => {
-    var lengthOfObj = Object.keys(saveHeadwayObj).length
-    var totalSum = 0
-    Object.values(saveHeadwayObj).forEach(val => {
-      return totalSum += val
-    });
-    setAverageHeadway({[id]:totalSum/lengthOfObj})
-    // console.log(averageHeadway);
-  }
-
-  // useEffect(() => {
-  //   console.log("bnoom");
-  //   triggerParentSave(saveHeadwayObj)
-  // }, [saveHeadwayObj])
-
-  useEffect(() => {
-    console.log(saveHeadwayObj);
-  }, [saveHeadwayObj])
+  useEffect(() => {}, [saveHeadwayObj]);
 
   const updateLink = () => {
-    triggerParentSave(saveHeadwayObj, id)
-  }
+    triggerParentSave(saveHeadwayObj, id);
+  };
 
-  const updateHeadway = (headway,stopId,busStopNo,tripNo, numBusPast) => {
-
-    if (headway != 0){
-      var current = headwayObj
-      var currentSave = saveHeadwayObj
-      // console.log(numBusPast);
-      if (numBusPast == numOfTrips){
-        current[busStopNo] = null
-        setHeadwayObj(current)
-        return
+  const updateHeadway = (headway, stopId, busStopNo, tripNo, numBusPast) => {
+    if (headway != 0) {
+      var current = headwayObj;
+      var currentSave = saveHeadwayObj;
+      if (numBusPast == numOfTrips) {
+        current[busStopNo] = null;
+        setHeadwayObj(current);
+        return;
       }
       // does not overwrite past headway
-      currentSave[[busStopNo,tripNo]] = headway
-      setSaveHeadwayObj(currentSave)
-      updateLink()
-      // console.log(saveHeadwayObj);
+      currentSave[[busStopNo, tripNo]] = headway;
+      setSaveHeadwayObj(currentSave);
+      updateLink();
       // overwrites past headway if new bus comes through
-      current[busStopNo] = headway
-      setHeadwayObj(current)
+      current[busStopNo] = headway;
+      setHeadwayObj(current);
 
       var headwayref = document.querySelector(
         `.headway-ref-${id}-${busStopNo}`
       );
-      if (headwayref != null){
-        headwayref.innerHTML = convert_seconds_to_time(headway)
+      if (headwayref != null) {
+        headwayref.innerHTML = convert_seconds_to_time(headway);
       }
-      
     }
-    updateAverageHeadway()
-
-  }
+  };
 
   useEffect(() => {
     extractData(data);
@@ -418,15 +405,15 @@ const Journey = ({ start, paused, ended, data, globalTime, id, triggerParentSave
           <div className={`bus-stop-ref-${id}`}></div>
           <div className={`bus-stop-dot-ref-${id}`}></div>
           {[...Array(numBusStops)].map((x, i) => (
-            <BusStop 
-              key={relativeStopDistance[i]?.stopId} 
+            <BusStop
+              key={relativeStopDistance[i]?.stopId}
               id={relativeStopDistance[i]?.stopId}
               busStopNo={relativeStopDistance[i]?.busStopNo}
               globalTime={globalTime}
               start={start}
               dataObj={dataObj}
               updateHeadway={updateHeadway}
-              />
+            />
           ))}
         </div>
       </div>
