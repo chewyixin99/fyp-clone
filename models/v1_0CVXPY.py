@@ -195,9 +195,19 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
             constraints.append(original_dispatch[j] + dispatch_offset[j] ==
                                 glued_dispatch_dict[f"{j}"])
 
+    # constraints.append(dispatch_offset[1] == -476)
+    # constraints.append(dispatch_offset[2] == -745)
+    # constraints.append(dispatch_offset[3] == -159)
+    # constraints.append(dispatch_offset[4] == -0)
+
     # OBJECTIVE FUNCTION
     objective_function = f_x + 1000 * slack
-    # objective_function = sum(dispatch_offset)
+
+    # value = 0
+    # for j in range(1, num_trips+1):
+    #     value += cp.abs(dispatch_offset[j])
+
+    # objective_function = value
     model = cp.Problem(cp.Minimize(objective_function), constraints)
 
     # Solve the model
