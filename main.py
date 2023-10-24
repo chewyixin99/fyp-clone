@@ -40,7 +40,7 @@ def main():
 
     try:
         write_data_to_json(
-        output_file_path=f"./data/outputs/json/{model}/{model}_optimised_output.json",
+        output_file_path=f"./data/outputs/json/{model}/{model}_unoptimised_output.json",
         num_trips=input_data["num_trips"],
         num_stops=input_data["num_stops"],
         bus_capacity=input_data["bus_capacity"],
@@ -56,6 +56,7 @@ def main():
         stranded_matrix=output_data["stranded_dict"],
         dispatch_list=output_data["dispatch_dict"],
         objective_value=output_data["objective_value"],
+        ewt_value=output_data["ewt_value"]
         )
     except Exception as e:
         print("write_data_to_json failed")
@@ -63,8 +64,8 @@ def main():
 
     try:
         json_to_feed(
-            f"./data/outputs/json/{model}/{model}_optimised_output.json",
-            f"./data/outputs/csv/{model}/{model}_poll{polling_rate}_optimised_feed.csv",
+            f"./data/outputs/json/{model}/{model}_unoptimised_output.json",
+            f"./data/outputs/csv/{model}/{model}_poll{polling_rate}_unoptimised_feed.csv",
             polling_rate=polling_rate
         )
     except Exception as e:

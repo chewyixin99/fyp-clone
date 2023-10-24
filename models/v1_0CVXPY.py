@@ -195,10 +195,10 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
             constraints.append(original_dispatch[j] + dispatch_offset[j] ==
                                 glued_dispatch_dict[f"{j}"])
 
-    # constraints.append(dispatch_offset[1] == -476)
-    # constraints.append(dispatch_offset[2] == -745)
-    # constraints.append(dispatch_offset[3] == -159)
-    # constraints.append(dispatch_offset[4] == -0)
+    constraints.append(dispatch_offset[1] == -476)
+    constraints.append(dispatch_offset[2] == -745)
+    constraints.append(dispatch_offset[3] == -159)
+    constraints.append(dispatch_offset[4] == -0)
 
     # OBJECTIVE FUNCTION
     objective_function = f_x + 1000 * slack
@@ -253,6 +253,33 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     for j in range(1, num_trips+1):
         dispatch_dict[f"{j}"] = round(np.round(original_dispatch[j] + dispatch_offset[j].value)) if dispatch_offset[j].value != None else 0
 
+    # TODO: refactor code after confirmation
+    swt = sum(target_headway.values())/len(target_headway)
+    print(swt)
+    
+    # assuming passengers arrive at the bus stop at a rate of 1/min
+
+    total_awt = []
+
+    for s in range(2, num_stops):
+
+        total_wait_time = 0
+        total_passengers = 0
+
+        for j in range(1, num_trips+1):
+            
+            num_passengers = headway_dict[f"{j},{s}"] * arrival_rate[s]
+            average_wait_time = headway_dict[f"{j},{s}"]/2
+            total_passengers += num_passengers
+            total_wait_time += num_passengers * average_wait_time
+        
+        awt_for_stop = total_wait_time / total_passengers
+        print(awt_for_stop)
+        total_awt.append(awt_for_stop)
+
+    awt = sum(total_awt)/len(total_awt)
+    print(awt)
+
     variables_to_return = {
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
@@ -261,6 +288,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
         "objective_value": result,
+        "ewt_value": awt - swt
     }
             
     return variables_to_return
