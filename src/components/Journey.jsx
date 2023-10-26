@@ -232,7 +232,7 @@ const Journey = ({
         return;
       }
       // does not overwrite past headway
-      currentSave[[busStopNo, tripNo]] = headway;
+      currentSave[[tripNo, busStopNo]] = headway;
       setSaveHeadwayObj(currentSave);
       updateLink();
       // overwrites past headway if new bus comes through
