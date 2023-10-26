@@ -10,6 +10,7 @@ import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
 import Metrics from "../components/Metrics";
+import DispatchTimings from "../components/DispatchTimings";
 
 const defaultIntervalTime = 300;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -24,8 +25,13 @@ const mapContainerStyle = {
   maxWidth: "100%",
 };
 
-// const optimizedFile = "./v1_4_poll1_feed.csv";
-// const unoptimizedFile = "./v1_4_poll1_unoptimised_feed.csv";
+const mockDispatchTimes = {
+  0: 1000,
+  1: 2000,
+  2: 3000,
+  3: 4000,
+};
+
 const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
 const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
 
@@ -45,18 +51,19 @@ const CombinedPage = () => {
   // end of jianlin states
 
   // jian lin functions
-  const triggerParentSave = (obj,id) => {
-    if (id == 1){
-      // added json data to object to implement data immutability so that 
+  const triggerParentSave = (obj, id) => {
+    if (id == 1) {
+      // added json data to object to implement data immutability so that
       // useEffect hook dependency can be triggered
-      setSaveHeadwayObj({['string']:JSON.stringify(obj), ['obj']:obj})
+      setSaveHeadwayObj({ ["string"]: JSON.stringify(obj), ["obj"]: obj });
+    } else {
+      setSaveHeadwayObjOptimised({
+        ["string"]: JSON.stringify(obj),
+        ["obj"]: obj,
+      });
     }
-    else {
-      setSaveHeadwayObjOptimised({['string']:JSON.stringify(obj), ['obj']:obj})
-    }
-  }
+  };
   // end of jian lin functions
-  
 
   // combined
   const [paused, setPaused] = useState(false);
@@ -90,7 +97,6 @@ const CombinedPage = () => {
     await fetch(url, options)
       .then((response) => {
         // response.body is a ReadableStream
-        // return response.body.getReader().read();
         if (response.ok) {
           setLoading(false);
           return response.text();
@@ -215,10 +221,8 @@ const CombinedPage = () => {
         if ((globalTime + 1 - mapsGlobalTime) % defaultStepInterval === 0) {
           // pass
           setMapsGlobalTime(globalTime + 1);
-          // console.log(`update, currTime is ${globalTime + 1}`);
         }
         setGlobalTime(globalTime + 1);
-        // console.log(`currTime is ${globalTime + 1}`);
       }, 10);
       return () => clearInterval(interval);
     } else if (paused) {
@@ -304,14 +308,25 @@ const CombinedPage = () => {
       </div>
       <div className="divider"></div>
 
-      <div className="mx-auto my-2" style={{height: "400px",width: "80vw", justifyContent: "center", display: "flex"}}> 
-        <Metrics 
+      <div
+        className="mx-auto my-2"
+        style={{
+          height: "400px",
+          width: "80vw",
+          justifyContent: "center",
+          display: "flex",
+        }}
+      >
+        <Metrics
           saveHeadwayObj={saveHeadwayObj}
           saveHeadwayObjOptimised={saveHeadwayObjOptimised}
           busStopData={busStopData}
-          />
+        />
       </div>
       {/* Yixin's component */}
+      <div className="my-5">
+        <DispatchTimings dispatchTimes={mockDispatchTimes} />
+      </div>
       <div className="m-10 mt-0">
         <MapsPageRewrite
           zoom={zoom}
