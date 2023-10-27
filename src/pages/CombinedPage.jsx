@@ -134,8 +134,9 @@ const CombinedPage = () => {
       .then((csvData) => {
         const parsed = Papa.parse(csvData).data.slice(1);
         const processedData = processCsvData(parsed);
-        console.log(processedData);
         // set journey and stops after
+        console.log(`fetched data`);
+        console.log(processedData);
       })
       .catch((e) => {
         setLoadingFetch(false);
@@ -248,7 +249,7 @@ const CombinedPage = () => {
     return (
       <div className="flex items-center text-green-500">
         <div>Data loaded</div>
-        <TiTick className="ml-3" />
+        <TiTick className="mx-3" />
       </div>
     );
   };

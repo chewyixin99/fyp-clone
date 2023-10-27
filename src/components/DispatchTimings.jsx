@@ -1,16 +1,28 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import Papa from "papaparse";
+import { PuffLoader } from "react-spinners";
 import PropTypes from "prop-types";
+import { processCsvData } from "../util/mapHelper";
 
 const DispatchTimings = React.memo(({ dispatchTimes }) => {
   const [dispatchInput, setDispatchInput] = useState({});
+  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [errorFetch, setErrorFetch] = useState(false);
+  const [errorMsgFetch, setErrorMsgFetch] = useState("");
 
   const handleInputChange = (e) => {
     const trip = e.target.id;
     const val = e.target.value.length < 1 ? 0 : parseInt(e.target.value);
-    setDispatchInput({
-      ...dispatchInput,
-      [trip]: val,
-    });
+    if (val === 0) {
+      const tmpDispatchInput = dispatchInput;
+      delete tmpDispatchInput[trip];
+      setDispatchInput(tmpDispatchInput);
+    } else {
+      setDispatchInput({
+        ...dispatchInput,
+        [trip]: val,
+      });
+    }
   };
 
   const handleSubmit = () => {
@@ -22,6 +34,58 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
     }
     // send tmpDispatchInput to backend
     console.log(tmpDispatchInput);
+    fetchFromEndpoint(dispatchInput);
+  };
+
+  const fetchFromEndpoint = async (dispatchInput) => {
+    setLoadingFetch(true);
+    setErrorFetch(false);
+    setErrorMsgFetch("");
+    const url = "http://127.0.0.1:8000/mm/result_feed_stream";
+    const requestBody = {
+      unoptimised: false,
+      polling_rate: 1,
+      deviated_dispatch_dict: dispatchInput,
+    };
+    const options = {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    };
+
+    await fetch(url, options)
+      .then((response) => {
+        if (response.ok) {
+          setLoadingFetch(false);
+          return response.text();
+        }
+      })
+      .then((csvData) => {
+        const parsed = Papa.parse(csvData).data.slice(1);
+        const processedData = processCsvData(parsed);
+        // continue
+      })
+      .catch((e) => {
+        setLoadingFetch(false);
+        setErrorFetch(true);
+        console.log(e);
+        setErrorMsgFetch(e.message);
+      });
+  };
+
+  const renderFetchButton = () => {
+    return (
+      <div className="my-3 flex justify-end mr-3 items-center">
+        <div>{errorMsgFetch}</div>
+        <button onClick={handleSubmit} className="control-button">
+          run model
+        </button>
+        <PuffLoader color="rgb(234, 88, 12)" loading={loadingFetch} size={15} />
+      </div>
+    );
   };
 
   return (
@@ -67,11 +131,7 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
           })}
         </div>
       </div>
-      <div className="my-3 flex justify-end mr-3">
-        <button onClick={handleSubmit} className="control-button">
-          submit
-        </button>
-      </div>
+      {renderFetchButton()}
     </div>
   );
 });
