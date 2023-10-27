@@ -5,7 +5,7 @@ import numpy as np
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None) -> Dict[str, Any]:
+def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False) -> Dict[str, Any]:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -200,11 +200,12 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     # for every second of deviation more than max_allowed_deviation, penalty is 10000
     objective_function = f_x + 10000 * slack
 
-    # value = 0
-    # for j in range(1, num_trips+1):
-    #     value += cp.abs(dispatch_offset[j])
+    if unoptimised:
+        value = 0
+        for j in range(1, num_trips+1):
+            value += cp.abs(dispatch_offset[j])
+        objective_function = value
 
-    # objective_function = value
     model = cp.Problem(cp.Minimize(objective_function), constraints)
 
     # Solve the model
@@ -252,7 +253,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
 
     # TODO: refactor code after confirmation
     swt = sum(target_headway.values())/len(target_headway)/2
-    print(f"Scheduled waiting time: {swt}")
+    print(f"Scheduled waiting time: {swt:.0f}")
 
     total_awt = []
 
@@ -273,8 +274,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         total_awt.append(awt_for_stop)
 
     awt = sum(total_awt)/len(total_awt)
-    print(f"Actual waiting time: {awt}")
-
+    print(f"Actual waiting time: {awt:.0f}")
+    print(f"Excess waiting time: {awt-swt:.0f}")
     variables_to_return = {
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
@@ -285,5 +286,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         "objective_value": result,
         "ewt_value": awt - swt
     }
-            
+
+    if unoptimised:
+        return run_model(data=data, silent=silent, deviated_dispatch_dict=variables_to_return["dispatch_dict"])   
     return variables_to_return
