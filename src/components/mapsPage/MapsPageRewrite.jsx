@@ -64,7 +64,7 @@ const MapsPageRewrite = React.memo(
           </div>
           <div className="w-full mx-5">
             <MapsRewrite
-              title={"Optimized Model"}
+              title={"Optimised Model"}
               zoom={zoom}
               center={center}
               setCenter={setCenter}

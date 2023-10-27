@@ -4,14 +4,6 @@ import PropTypes from "prop-types";
 const DispatchTimings = React.memo(({ dispatchTimes }) => {
   const [dispatchInput, setDispatchInput] = useState({});
 
-  useEffect(() => {
-    const tmpDispatchInput = {};
-    for (const trip of Object.keys(dispatchTimes)) {
-      tmpDispatchInput[trip] = dispatchTimes[trip];
-    }
-    setDispatchInput(tmpDispatchInput);
-  }, [dispatchTimes]);
-
   const handleInputChange = (e) => {
     const trip = e.target.id;
     const val = e.target.value.length < 1 ? 0 : parseInt(e.target.value);
@@ -22,21 +14,26 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
   };
 
   const handleSubmit = () => {
-    console.log(dispatchInput);
+    const tmpDispatchInput = dispatchInput;
+    for (const trip of Object.keys(tmpDispatchInput)) {
+      if (tmpDispatchInput[trip] == dispatchTimes[trip]) {
+        delete tmpDispatchInput[trip];
+      }
+    }
+    // send tmpDispatchInput to backend
+    console.log(tmpDispatchInput);
   };
 
   return (
     <div>
-      <div className="overflow-y-scroll h-[300px] pr-3">
-        <div className="px-3 mx-3 pb-3">
-          Dispatch timings (sec) (mock values)
-        </div>
+      <div className="pb-3">Dispatch timings (sec)</div>
+      <div className="overflow-y-scroll h-[30vh] border-2">
         <div>
           <div className="flex font-semibold">
             <div className="text-center w-[50px] border">#</div>
             <div className="text-center w-[100px] border">Planned</div>
             <div className="text-center w-[100px] border">
-              <span>Optimized</span>
+              <span>Optimised</span>
             </div>
             <div className="text-center w-[100px] border">
               <span>Actual</span>
@@ -45,14 +42,12 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
         </div>
         <div>
           {Object.keys(dispatchTimes).map((trip) => {
-            const plannedTime = parseInt(dispatchTimes[trip]);
-            const optimizedTime = parseInt(
-              dispatchTimes[trip] - 100 + Math.floor(Math.random() * 200)
-            );
+            const plannedTime = parseInt(dispatchTimes[trip].planned);
+            const optimizedTime = parseInt(dispatchTimes[trip].optimized);
             return (
               <div className="flex" key={trip}>
                 <div className="text-center w-[50px] border">
-                  {parseInt(trip) + 1}
+                  {parseInt(trip)}
                 </div>
                 <div className="text-center w-[100px] border">
                   {plannedTime}
@@ -64,8 +59,8 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
                   id={trip}
                   onChange={handleInputChange}
                   className="text-center w-[100px] border"
-                  placeholder={dispatchInput[trip]}
                   type="number"
+                  placeholder={optimizedTime}
                 />
               </div>
             );

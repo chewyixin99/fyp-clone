@@ -12,6 +12,7 @@ import { PuffLoader } from "react-spinners";
 import { AiOutlineSwap } from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
+import optimizedOutputJson from "../../public/v1_0CVXPY_optimised_output.json";
 
 const defaultIntervalTime = 1000;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -26,32 +27,10 @@ const mapContainerStyle = {
   maxWidth: "100%",
 };
 
-const mockDispatchTimes = {
-  0: 1000,
-  1: 2000,
-  2: 3000,
-  3: 4000,
-  4: 5000,
-  5: 6000,
-  6: 7000,
-  7: 8000,
-  8: 9000,
-  9: 10000,
-  10: 11000,
-  11: 12000,
-  12: 13000,
-  13: 14000,
-  14: 15000,
-  15: 16000,
-  16: 17000,
-  17: 18000,
-  18: 19000,
-  19: 20000,
-  20: 21000,
-};
-
-const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
-const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
+// const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
+// const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
+const optimizedFile = "";
+const unoptimizedFile = "";
 
 const CombinedPage = () => {
   // yixin states
@@ -89,13 +68,17 @@ const CombinedPage = () => {
   const [journeyData, setJourneyData] = useState([]);
   const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
   const [globalTime, setGlobalTime] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [toggle, setToggle] = useState({
     maps: false,
     line: true,
   });
+  const [dispatchTimes, setDispatchTimes] = useState({});
+  // loading states
+  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [errorFetch, setErrorFetch] = useState(false);
+  const [errorMsgFetch, setErrorMsgFetch] = useState("");
+  const [loadingParseOptimized, setLoadingParseOptimized] = useState(false);
+  const [loadingParseUnoptimized, setLoadingParseUnoptimized] = useState(false);
 
   const toggleVisibility = () => {
     setToggle({
@@ -104,9 +87,26 @@ const CombinedPage = () => {
     });
   };
 
+  const initDispatchTimes = () => {
+    const originalTimesArr = optimizedOutputJson.original_dispatch_list;
+    const optimizedDispatchTimes = optimizedOutputJson.dispatch_list;
+    const tmpDispatchTimes = {};
+    const originalDispatchTimes = {};
+    for (let i = 0; i < originalTimesArr.length; i++) {
+      originalDispatchTimes[i + 1] = parseInt(originalTimesArr[i]);
+    }
+    for (const key of Object.keys(optimizedDispatchTimes)) {
+      tmpDispatchTimes[key] = {
+        planned: originalDispatchTimes[key],
+        optimized: optimizedDispatchTimes[key],
+      };
+    }
+    setDispatchTimes(tmpDispatchTimes);
+  };
+
   const fetchFromEndpoint = async () => {
-    setLoading(true);
-    setError(false);
+    setLoadingFetch(true);
+    setErrorFetch(false);
     const url = "http://127.0.0.1:8000/mm/result_feed";
     const requestBody = {
       polling_rate: 1,
@@ -127,7 +127,7 @@ const CombinedPage = () => {
       .then((response) => {
         // response.body is a ReadableStream
         if (response.ok) {
-          setLoading(false);
+          setLoadingFetch(false);
           return response.text();
         }
       })
@@ -138,22 +138,26 @@ const CombinedPage = () => {
         // set journey and stops after
       })
       .catch((e) => {
-        setLoading(false);
-        setError(true);
+        setLoadingFetch(false);
+        setErrorFetch(true);
         console.log(e);
-        setErrorMsg(e.message);
+        setErrorMsgFetch(e.message);
       });
   };
 
-  const fetchData = async () => {
+  const parseData = async () => {
+    setLoadingParseOptimized(true);
+    setLoadingParseUnoptimized(true);
     Papa.parse(optimizedFile, {
       // options
       download: true,
       complete: (res) => {
         const data = res.data.slice(1);
         const processedData = processCsvData(data);
+        console.log(`optimized done parsing`);
         setStopObjs(processedData.stopObjs);
         setJourneyData(processedData.journeyData);
+        setLoadingParseOptimized(false);
       },
     });
 
@@ -163,15 +167,18 @@ const CombinedPage = () => {
       complete: (res) => {
         const data = res.data.slice(1);
         const processedData = processCsvData(data);
+        console.log(`unoptimized done parsing`);
         setJourneyDataUnoptimized(processedData.journeyData);
+        setLoadingParseUnoptimized(false);
       },
     });
   };
 
   // load initial data
   useEffect(() => {
-    fetchData();
+    initDispatchTimes();
     fetchFromEndpoint();
+    parseData();
   }, []);
 
   useEffect(() => {
@@ -216,18 +223,22 @@ const CombinedPage = () => {
   };
 
   const renderFetchStatus = () => {
-    if (loading) {
+    if (loadingFetch) {
       return (
-        <div className="flex items-center text-orange-600">
-          <div className="mr-3">Model is running</div>
-          <PuffLoader color="rgb(234, 88, 12)" loading={loading} size={15} />
+        <div className="flex items-center text-orange-600 pr-3">
+          <div className="mr-3">Fetching data</div>
+          <PuffLoader
+            color="rgb(234, 88, 12)"
+            loading={loadingFetch}
+            size={15}
+          />
         </div>
       );
     }
-    if (error) {
+    if (errorFetch) {
       return (
         <div className="flex items-center text-red-600">
-          <div>{errorMsg}</div>
+          <div>{errorMsgFetch}</div>
           <button onClick={onRefetchDataClick} className="control-button">
             <RxReload />
           </button>
@@ -237,6 +248,27 @@ const CombinedPage = () => {
     return (
       <div className="flex items-center text-green-500">
         <div>Data loaded</div>
+        <TiTick className="ml-3" />
+      </div>
+    );
+  };
+
+  const renderParseStatus = () => {
+    const loading = loadingParseOptimized || loadingParseUnoptimized;
+    if (loading) {
+      return (
+        <div className="flex items-center text-orange-600 pr-3">
+          <div className="mr-3">
+            Parsing data: {loadingParseOptimized ? " optimized " : ""}
+            {loadingParseUnoptimized ? " unoptimized " : ""}
+          </div>
+          <PuffLoader color="rgb(234, 88, 12)" loading={loading} size={15} />
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center text-green-500">
+        <div>Data parsed</div>
         <TiTick className="ml-3" />
       </div>
     );
@@ -299,6 +331,7 @@ const CombinedPage = () => {
           <MdFilterCenterFocus />
         </button>
         <div className="border-l-2 pl-3">{renderFetchStatus()}</div>
+        <div className="border-l-2 pl-3">{renderParseStatus()}</div>
         <div className=" ml-10 flex">
           <div>Viewing {toggle.maps ? "Maps" : "Line"}</div>
           <button
@@ -310,7 +343,7 @@ const CombinedPage = () => {
           </button>
         </div>
       </div>
-      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center h-[400px]">
+      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">
         {/* Metrics */}
         <div
           className="mx-auto my-2"
@@ -328,7 +361,7 @@ const CombinedPage = () => {
         </div>
         {/* Dispatch timings */}
         <div className="my-5 w-20vw text-center mx-auto">
-          <DispatchTimings dispatchTimes={mockDispatchTimes} />
+          <DispatchTimings dispatchTimes={dispatchTimes} />
         </div>
       </div>
       {/* Line */}
