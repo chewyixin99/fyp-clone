@@ -2,7 +2,7 @@ from .coordinates import calculate_haversine_distance, split_line_between_coordi
 import json
 import pandas as pd
 import os
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple, Any, Union
 
 # Ingestion of .json inputs
 def convert_json_to_dict(input_file_path):
@@ -303,11 +303,12 @@ def initialise_dataframe(current_trip: int, data: Dict[str, Any], coordinates: D
     return df
 
 def json_to_feed(
-    json_file_path: str | None = None,
-    feed_output_path: str | None = None,
+    json_file_path: Union[str, None] = None,
+    feed_output_path: Union[str, None] = None,
     polling_rate: int = 1,
-    data: Dict[str, Any] | None = None
-) -> str | None:
+    data: Union[Dict[str, Any], None] = None,
+    return_df: bool = False
+) -> Union[str, pd.DataFrame, None]:
     """
     Converts a JSON file containing bus trip data into a CSV feed with detailed trip information.
 
@@ -347,7 +348,7 @@ def json_to_feed(
         raise ValueError("\ValueError: Please ensure that either json_file_path or data is provided.")
 
     if not (json_file_path is None):
-        data = convert_json_to_dict(json_file_path) # Overwrite data if file exists
+        data = convert_json_to_dict(json_file_path) # Overwrites data if file exists
 
     polling_rate = polling_rate
 
@@ -371,6 +372,9 @@ def json_to_feed(
     df = pd.concat(dataframes_list)
     df = df.sort_values(by=["timestamp (in seconds)"])
     df = df.reset_index(drop=True)
+
+    if return_df:
+        return df
 
     if not (feed_output_path is None):
         directory_path = os.path.dirname(feed_output_path)

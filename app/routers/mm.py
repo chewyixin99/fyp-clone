@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 
 from http import HTTPStatus
 
@@ -27,8 +27,14 @@ async def get_result_matrices(request: MMResultRequest):
     Provides result matrices from the mathematical model for rendering by the Visualizer.
   '''  
   try:
-    result = mm.get_mm_result_matrices()
+    request.validate()
+    result = mm.get_mm_result_matrices(
+      deviated_dispatch_dict=request.deviated_dispatch_dict
+    )
     data = MMResultMatrices(**result)
+
+  except APIException as e:
+    raise e
 
   except Exception as e:
     raise APIException(
@@ -57,9 +63,15 @@ async def get_result_feed(request: MMFeedRequest):
     Provides mock (static) csv files from the mathematical model for rendering by the Visualizer.
   '''
   try:
+    request.validate()
     result = mm.get_mm_result_feed(
-      polling_rate=request.polling_rate
+      polling_rate=request.polling_rate,
+      deviated_dispatch_dict=request.deviated_dispatch_dict
     )
+
+  except APIException as e:
+    raise e
+
   except Exception as e:
     raise APIException(
       response=APIResponse(
@@ -71,3 +83,35 @@ async def get_result_feed(request: MMFeedRequest):
 
   return Response(content=result, media_type="text/csv")
 
+@router.post(
+  "/result_feed_stream",
+  tags=["Mathematical Model"],
+  responses={
+    500: {"model": APIResponse}
+  }
+)
+async def get_result_feed_stream(request: MMFeedRequest):
+  '''
+    Provides mock (static) csv files from the mathematical model for rendering by the Visualizer via a streaming response.
+  '''
+  try:
+    request.validate()
+
+    return StreamingResponse(
+      content=mm.get_mm_result_feed_stream(
+        polling_rate=request.polling_rate,
+        deviated_dispatch_dict=request.deviated_dispatch_dict
+      )
+    )
+
+  except APIException as e:
+    raise e
+
+  except Exception as e:
+    raise APIException(
+      response=APIResponse(
+        status=HTTPStatus.INTERNAL_SERVER_ERROR, 
+        status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
+        data="failed to generate data"
+      )
+    )

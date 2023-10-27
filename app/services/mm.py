@@ -4,17 +4,22 @@ import json
 from ..mm.model import run_model
 from ..mm.utils.transformation import compress_dicts, json_to_feed
 
-def get_mm_result_matrices():
+def get_mm_result_matrices(deviated_dispatch_dict: dict[str, any]):
   '''
     Transform result to json and return result.
   '''
-  return get_mm_raw_result() # TODO: PF-190 - retrieve this data from cache 
+  return get_mm_raw_result(
+    deviated_dispatch_dict=deviated_dispatch_dict
+  ) # TODO: PF-190 - retrieve this data from cache 
 
-def get_mm_result_feed(polling_rate: int):
+def get_mm_result_feed(polling_rate: int, deviated_dispatch_dict: dict[str, any]):
   '''
     Transform result to feed and return result.
   '''
-  output_data = get_mm_raw_result() # TODO: PF-190 - retrieve this data from cache 
+  output_data = get_mm_raw_result(
+    deviated_dispatch_dict=deviated_dispatch_dict
+  ) # TODO: PF-190 - retrieve this data from cache 
+
   result = json_to_feed(
     polling_rate=polling_rate,
     data=output_data
@@ -22,14 +27,32 @@ def get_mm_result_feed(polling_rate: int):
 
   return result
 
-def get_mm_raw_result():
+async def get_mm_result_feed_stream(polling_rate: int, deviated_dispatch_dict: dict[str, any]):
+  output_data = get_mm_raw_result(
+    deviated_dispatch_dict=deviated_dispatch_dict
+  ) # TODO: PF-190 - retrieve this data from cache 
+
+  result = json_to_feed(
+    polling_rate=polling_rate,
+    data=output_data,
+    return_df=True
+  )
+
+  for _, row in result.iterrows():
+    yield json.dumps(row.to_dict()) + '\n'
+
+def get_mm_raw_result(deviated_dispatch_dict: dict[str, any]):
   '''
     Coordinates running of model and returning of raw result.
     Checks if data has been cached. Unless there is cached data, run the model.
   '''
   silent = False
   input_data = get_mm_input_data()
-  output_data = run_model(data=input_data,silent=silent) # TODO: PF-190 - check cached data before running here
+  output_data = run_model(
+    data=input_data,
+    deviated_dispatch_dict=deviated_dispatch_dict,
+    silent=silent
+  ) # TODO: PF-190 - check cached data before running here
 
   # TODO: PF-190 - save output to cache if model is ran
 

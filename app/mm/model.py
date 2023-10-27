@@ -5,7 +5,7 @@ import numpy as np
 from .utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: Dict[str, Any] = None) -> Dict[str, Any]:
+def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False) -> Dict[str, Any]:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -167,8 +167,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                             - alighting_percentage[s-1] * busload[j,s-1])
 
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
-    #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
+    # essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
     constraints.append(slack >= (dispatch_offset[num_trips] - max_allowed_deviation))
+    constraints.append(slack >= (-dispatch_offset[num_trips] - max_allowed_deviation))
 
     # Equation 17, Constraint 35
     constraints.append(slack >= 0)
@@ -189,15 +190,22 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                                 + dwell[j,s-1]
                                 + interstation_travel[j,s-1])
 
-    # to evaluate rolled horizons
-    if glued_dispatch_dict != None:
-        for j in range(1, num_trips+1):
-            constraints.append(original_dispatch[j] + dispatch_offset[j] ==
-                                glued_dispatch_dict[f"{j}"])
+    # to evaluate deviated dispatches
+    if deviated_dispatch_dict != None:
+        for key in deviated_dispatch_dict:
+            constraints.append(original_dispatch[int(key)] + dispatch_offset[int(key)] ==
+                                deviated_dispatch_dict[key])
 
     # OBJECTIVE FUNCTION
-    objective_function = f_x + 1000 * slack
-    # objective_function = sum(dispatch_offset)
+    # for every second of deviation more than max_allowed_deviation, penalty is 10000
+    objective_function = f_x + 10000 * slack
+
+    if unoptimised:
+        value = 0
+        for j in range(1, num_trips+1):
+            value += cp.abs(dispatch_offset[j])
+        objective_function = value
+
     model = cp.Problem(cp.Minimize(objective_function), constraints)
 
     # Solve the model
@@ -206,9 +214,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     # Output the results
     if not silent:
         for j in range(1, num_trips+1):
-                print(f"Trip {j}: Original dispatch timing = {original_dispatch[j]:.0f}\
-                        Trip {j}: Dispatch offset = {dispatch_offset[j].value:.0f}\
-                        Time of Dispatch = {original_dispatch[j] + dispatch_offset[j].value:.0f}")
+                print(f"Trip {j:3}: Original dispatch timing = {original_dispatch[j]:>6.0f}\
+                        Trip {j:3}: Dispatch offset = {dispatch_offset[j].value:>6.0f}\
+                        Time of Dispatch = {original_dispatch[j] + dispatch_offset[j].value:>6.0f}")
 
         print("\nObjective Function Value:", result)
 
@@ -243,6 +251,31 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
     for j in range(1, num_trips+1):
         dispatch_dict[f"{j}"] = round(np.round(original_dispatch[j] + dispatch_offset[j].value)) if dispatch_offset[j].value != None else 0
 
+    # TODO: refactor code after confirmation
+    swt = sum(target_headway.values())/len(target_headway)/2
+    print(f"Scheduled waiting time: {swt:.0f}")
+
+    total_awt = []
+
+    for s in range(2, num_stops):
+
+        total_wait_time = 0
+        total_passengers = 0
+
+        for j in range(1, num_trips+1):
+            
+            num_passengers = headway_dict[f"{j},{s}"] * arrival_rate[s]
+            average_wait_time = headway_dict[f"{j},{s}"]/2
+            total_passengers += num_passengers
+            total_wait_time += num_passengers * average_wait_time
+        
+        awt_for_stop = total_wait_time / total_passengers
+        # print(awt_for_stop)
+        total_awt.append(awt_for_stop)
+
+    awt = sum(total_awt)/len(total_awt)
+    print(f"Actual waiting time: {awt:.0f}")
+    print(f"Excess waiting time: {awt-swt:.0f}")
     variables_to_return = {
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
@@ -251,6 +284,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
         "objective_value": result,
+        "ewt_value": awt - swt
     }
-            
+
+    if unoptimised:
+        return run_model(data=data, silent=silent, deviated_dispatch_dict=variables_to_return["dispatch_dict"])   
     return variables_to_return

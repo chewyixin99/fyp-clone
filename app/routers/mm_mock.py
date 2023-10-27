@@ -30,9 +30,14 @@ async def get_mock_result_matrices(request: MMResultRequest):
   mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_result_matrices.json")
   
   try:
+    request.validate()
+
     with open(mock_data_path, 'r') as file:
       mock_data = json.load(file)
       data = MMResultMatrices(**mock_data)
+
+  except APIException as e:
+    raise e
 
   except Exception as e:
     raise APIException(
@@ -61,6 +66,12 @@ async def get_mock_result_feed(request: MMFeedRequest):
     Provides mock (static) csv files from the mathematical model for rendering by the Visualizer.
   '''
   mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_result_feed.csv")
+
+  try:
+    request.validate()
+
+  except APIException as e:
+    raise e
 
   if not os.path.isfile(mock_data_path):
     raise APIException(
