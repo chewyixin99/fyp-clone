@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 const DispatchTimings = React.memo(({ dispatchTimes }) => {
   return (
-    <div className="overflow-y-scroll h-[300px]">
+    <div className="overflow-y-scroll h-[300px] pr-3">
       <div className="px-3 mx-3 pb-3">
         Dispatch timings (sec) (mock values)
       </div>

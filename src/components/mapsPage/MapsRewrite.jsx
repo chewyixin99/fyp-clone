@@ -182,20 +182,21 @@ const MapsRewrite = React.memo(
 
     return (
       <div className="border rounded-md">
-        <h6 className="my-3 px-5 font-extrabold tracking-tight">{title}</h6>
-        <hr />
-        <div className="my-3 px-5 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="mr-3">Dispatched</div>
-            <div className="px-3 py-1 border rounded-md mr-5 font-bold">
-              {numBusDispatched}
+        <div className="flex justify-between">
+          <h6 className="my-3 px-5 font-extrabold tracking-tight">{title}</h6>
+          <div className="my-3 px-5 flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="mr-3">Dispatched</div>
+              <div className="px-3 py-1 border rounded-md mr-5 font-bold">
+                {numBusDispatched}
+              </div>
+              <div className="mr-3">In journey</div>
+              <div className="px-3 py-1 border rounded-md mr-5 font-bold">
+                {numBusCurr}
+              </div>
             </div>
-            <div className="mr-3">In journey</div>
-            <div className="px-3 py-1 border rounded-md mr-5 font-bold">
-              {numBusCurr}
-            </div>
+            <div>{/* RHS */}</div>
           </div>
-          <div>{/* RHS */}</div>
         </div>
         <div>{renderMap()}</div>
         <div className="grid grid-cols-3 max-w-[100%] mx-auto">
