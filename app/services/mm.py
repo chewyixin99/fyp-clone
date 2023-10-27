@@ -4,20 +4,29 @@ import json
 from ..mm.model import run_model
 from ..mm.utils.transformation import compress_dicts, json_to_feed
 
-def get_mm_result_matrices(deviated_dispatch_dict: dict[str, any]):
+def get_mm_result_matrices(
+  deviated_dispatch_dict: dict[str, any],
+  unoptimised: bool
+):
   '''
     Transform result to json and return result.
   '''
   return get_mm_raw_result(
-    deviated_dispatch_dict=deviated_dispatch_dict
+    deviated_dispatch_dict=deviated_dispatch_dict,
+    unoptimised=unoptimised
   ) # TODO: PF-190 - retrieve this data from cache 
 
-def get_mm_result_feed(polling_rate: int, deviated_dispatch_dict: dict[str, any]):
+def get_mm_result_feed(
+  polling_rate: int,
+  deviated_dispatch_dict: dict[str, any],
+  unoptimised: bool
+):
   '''
     Transform result to feed and return result.
   '''
   output_data = get_mm_raw_result(
-    deviated_dispatch_dict=deviated_dispatch_dict
+    deviated_dispatch_dict=deviated_dispatch_dict,
+    unoptimised=unoptimised
   ) # TODO: PF-190 - retrieve this data from cache 
 
   result = json_to_feed(
@@ -27,9 +36,14 @@ def get_mm_result_feed(polling_rate: int, deviated_dispatch_dict: dict[str, any]
 
   return result
 
-async def get_mm_result_feed_stream(polling_rate: int, deviated_dispatch_dict: dict[str, any]):
+async def get_mm_result_feed_stream(
+  polling_rate: int,
+  deviated_dispatch_dict: dict[str, any],
+  unoptimised: bool
+):
   output_data = get_mm_raw_result(
-    deviated_dispatch_dict=deviated_dispatch_dict
+    deviated_dispatch_dict=deviated_dispatch_dict,
+    unoptimised=unoptimised
   ) # TODO: PF-190 - retrieve this data from cache 
 
   result = json_to_feed(
@@ -41,7 +55,10 @@ async def get_mm_result_feed_stream(polling_rate: int, deviated_dispatch_dict: d
   for _, row in result.iterrows():
     yield json.dumps(row.to_dict()) + '\n'
 
-def get_mm_raw_result(deviated_dispatch_dict: dict[str, any]):
+def get_mm_raw_result(
+  deviated_dispatch_dict: dict[str, any],
+  unoptimised: bool
+):
   '''
     Coordinates running of model and returning of raw result.
     Checks if data has been cached. Unless there is cached data, run the model.
@@ -51,7 +68,8 @@ def get_mm_raw_result(deviated_dispatch_dict: dict[str, any]):
   output_data = run_model(
     data=input_data,
     deviated_dispatch_dict=deviated_dispatch_dict,
-    silent=silent
+    silent=silent,
+    unoptimised=unoptimised
   ) # TODO: PF-190 - check cached data before running here
 
   # TODO: PF-190 - save output to cache if model is ran

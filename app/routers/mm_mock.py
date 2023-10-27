@@ -31,6 +31,8 @@ async def get_mock_result_matrices(request: MMResultRequest):
   
   try:
     request.validate()
+    if request.unoptimised:
+      mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_result_matrices_unoptimised.json")
 
     with open(mock_data_path, 'r') as file:
       mock_data = json.load(file)
@@ -69,6 +71,8 @@ async def get_mock_result_feed(request: MMFeedRequest):
 
   try:
     request.validate()
+    if request.unoptimised:
+        mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_result_feed_unoptimised.csv")
 
   except APIException as e:
     raise e
@@ -83,4 +87,3 @@ async def get_mock_result_feed(request: MMFeedRequest):
     )
 
   return FileResponse(mock_data_path, filename="mock_feed_csv.csv")
-

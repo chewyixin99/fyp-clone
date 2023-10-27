@@ -29,7 +29,8 @@ async def get_result_matrices(request: MMResultRequest):
   try:
     request.validate()
     result = mm.get_mm_result_matrices(
-      deviated_dispatch_dict=request.deviated_dispatch_dict
+      deviated_dispatch_dict=request.deviated_dispatch_dict,
+      unoptimised=request.unoptimised
     )
     data = MMResultMatrices(**result)
 
@@ -66,7 +67,8 @@ async def get_result_feed(request: MMFeedRequest):
     request.validate()
     result = mm.get_mm_result_feed(
       polling_rate=request.polling_rate,
-      deviated_dispatch_dict=request.deviated_dispatch_dict
+      deviated_dispatch_dict=request.deviated_dispatch_dict,
+      unoptimised=request.unoptimised
     )
 
   except APIException as e:
@@ -100,7 +102,8 @@ async def get_result_feed_stream(request: MMFeedRequest):
     return StreamingResponse(
       content=mm.get_mm_result_feed_stream(
         polling_rate=request.polling_rate,
-        deviated_dispatch_dict=request.deviated_dispatch_dict
+        deviated_dispatch_dict=request.deviated_dispatch_dict,
+        unoptimised=request.unoptimised
       )
     )
 
