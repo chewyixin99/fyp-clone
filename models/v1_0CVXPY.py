@@ -5,7 +5,7 @@ import numpy as np
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: Dict[str, Any] = None) -> None:
+def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -167,7 +167,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                             - alighting_percentage[s-1] * busload[j,s-1])
 
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
-    #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
+    # essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
     constraints.append(slack >= (dispatch_offset[num_trips] - max_allowed_deviation))
     constraints.append(slack >= (-dispatch_offset[num_trips] - max_allowed_deviation))
 
@@ -190,16 +190,11 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                                 + dwell[j,s-1]
                                 + interstation_travel[j,s-1])
 
-    # to evaluate rolled horizons
-    if glued_dispatch_dict != None:
-        for j in range(1, num_trips+1):
-            constraints.append(original_dispatch[j] + dispatch_offset[j] ==
-                                glued_dispatch_dict[f"{j}"])
-
-    # constraints.append(dispatch_offset[1] == -476)
-    # constraints.append(dispatch_offset[2] == -745)
-    # constraints.append(dispatch_offset[3] == -159)
-    # constraints.append(dispatch_offset[4] == -0)
+    # to evaluate deviated dispatches
+    if deviated_dispatch_dict != None:
+        for key in deviated_dispatch_dict:
+            constraints.append(original_dispatch[int(key)] + dispatch_offset[int(key)] ==
+                                deviated_dispatch_dict[key])
 
     # OBJECTIVE FUNCTION
     # for every second of deviation more than max_allowed_deviation, penalty is 10000
