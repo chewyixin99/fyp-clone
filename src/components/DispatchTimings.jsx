@@ -56,17 +56,55 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
       body: JSON.stringify(requestBody),
     };
 
+    // await fetch(url, options)
+    //   .then((response) => {
+    //     if (response.ok) {
+    //       setLoadingFetch(false);
+    //       return response.text();
+    //     }
+    //   })
+    //   .then((csvData) => {
+    //     const parsed = Papa.parse(csvData).data.slice(1);
+    //     const processedData = processCsvData(parsed);
+    //     // continue
+    //   })
+    //   .catch((e) => {
+    //     setLoadingFetch(false);
+    //     setErrorFetch(true);
+    //     console.log(e);
+    //     setErrorMsgFetch(e.message);
+    //   });
+
     await fetch(url, options)
-      .then((response) => {
-        if (response.ok) {
-          setLoadingFetch(false);
-          return response.text();
+      .then(response => {
+        const reader = response.body.getReader(); // Create a ReadableStream from the response body
+        let partialData = ''; // Store the remaining partial data
+      
+        // Define a function to process each data chunk
+        const processData = ({ done, value }) => {
+          const chunk = value ? partialData + new TextDecoder().decode(value) : partialData; // Combine the partial data with the new chunk - stream chunks may come in multiple at a time
+          const jsonObjects = chunk.split('\n').filter(Boolean);  // Split the chunk into individual JSON objects
+      
+          jsonObjects.forEach(jsonObject => { // Process each JSON object
+            try {
+              const data = JSON.parse(jsonObject);
+              console.log(data); // Process the data - check your logs YX
+            } catch(e) {
+              console.error('Error parsing JSON object:', e); // Hard to handle - probably can just ignore
+            }
+          });
+          
+          partialData = chunk.endsWith('\n') ? '' : jsonObjects[jsonObjects.length - 1] || ''; // Store any remaining partial data
+          
+          if (!done) { // Continue reading the next chunk of data
+            reader.read().then(processData); 
+          }
         }
+      
+        reader.read().then(processData); // Read the first chunk of data
       })
-      .then((csvData) => {
-        const parsed = Papa.parse(csvData).data.slice(1);
-        const processedData = processCsvData(parsed);
-        // continue
+      .then(() => {
+        setLoadingFetch(false);
       })
       .catch((e) => {
         setLoadingFetch(false);
