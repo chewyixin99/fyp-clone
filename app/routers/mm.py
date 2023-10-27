@@ -104,7 +104,8 @@ async def get_result_feed_stream(request: MMFeedRequest):
         polling_rate=request.polling_rate,
         deviated_dispatch_dict=request.deviated_dispatch_dict,
         unoptimised=request.unoptimised
-      )
+      ),
+      media_type="application/json"
     )
 
   except APIException as e:

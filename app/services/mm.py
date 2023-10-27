@@ -98,8 +98,8 @@ def get_mm_input_data():
     Coordinates data retrieval and transformation.
   '''
   input_data = None
-  mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_input.json")
-  # mock_data_path = os.path.join(os.path.dirname(__file__), "../static/actual_input.json")
+  # mock_data_path = os.path.join(os.path.dirname(__file__), "../static/mock_input.json")
+  mock_data_path = os.path.join(os.path.dirname(__file__), "../static/actual_input.json")
 
   with open(mock_data_path, 'r') as file:
     input_data = json.load(file)
