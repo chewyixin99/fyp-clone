@@ -4,7 +4,7 @@ import {
   num_trips,
   weights_list,
   target_headway_2dlist,
-} from "../../public/actual_input_2908";
+} from "../../public/actual_input_2710";
 import { headway_matrix as headway_matrix_optimised } from "../../public/v1_0CVXPY_optimised_output";
 import { headway_matrix as headway_matrix_unoptimised } from "../../public/v1_0CVXPY_unoptimised_output";
 
@@ -129,7 +129,7 @@ const Metrics = ({ saveHeadwayObj, saveHeadwayObjOptimised, busStopData }) => {
   const processCumulativeObjectiveFn = (unoptimised, optimised) => {
     var obj = unoptimised.obj;
     var objOptimised = optimised.obj;
-    console.log(obj);
+    // console.log(obj);
     var collectedData = {};
 
     if (obj != null) {
@@ -142,13 +142,13 @@ const Metrics = ({ saveHeadwayObj, saveHeadwayObjOptimised, busStopData }) => {
           temp[stopNo_unoptimised] = [obj[key]];
         }
       });
-      console.log(temp);
+      // console.log(temp);
       var cumulative_output = []
       var currentCumulative = 0;
       Object.keys(temp).forEach((stopNo_unoptimised) => {
 
         temp[stopNo_unoptimised].map((headway, i) => {
-          console.log(headway,convertToObjFn(headway,stopNo_unoptimised,i),stopNo_unoptimised,i);
+          // console.log(headway,convertToObjFn(headway,stopNo_unoptimised,i),stopNo_unoptimised,i);
           currentCumulative += convertToObjFn(headway,stopNo_unoptimised,i)
        })
        cumulative_output.push(parseInt(currentCumulative))
@@ -200,7 +200,7 @@ const Metrics = ({ saveHeadwayObj, saveHeadwayObjOptimised, busStopData }) => {
   }, [saveHeadwayObj, saveHeadwayObjOptimised, beta, sumOfWeights]);
 
   useEffect(() => {
-    console.log(processedCumulativeData);
+    // console.log(processedCumulativeData);
   }, [processedCumulativeData]);
 
   const processedChartData = () => {
