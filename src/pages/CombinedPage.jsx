@@ -9,10 +9,11 @@ import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
+import { AiOutlineSwap } from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 
-const defaultIntervalTime = 300;
+const defaultIntervalTime = 1000;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
 const defaultCenter = {
   lat: 45.515,
@@ -30,6 +31,23 @@ const mockDispatchTimes = {
   1: 2000,
   2: 3000,
   3: 4000,
+  4: 5000,
+  5: 6000,
+  6: 7000,
+  7: 8000,
+  8: 9000,
+  9: 10000,
+  10: 11000,
+  11: 12000,
+  12: 13000,
+  13: 14000,
+  14: 15000,
+  15: 16000,
+  16: 17000,
+  17: 18000,
+  18: 19000,
+  19: 20000,
+  20: 21000,
 };
 
 const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
@@ -74,6 +92,17 @@ const CombinedPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [toggle, setToggle] = useState({
+    maps: false,
+    line: true,
+  });
+
+  const toggleVisibility = () => {
+    setToggle({
+      maps: !toggle.maps,
+      line: !toggle.line,
+    });
+  };
 
   const fetchFromEndpoint = async () => {
     setLoading(true);
@@ -240,7 +269,7 @@ const CombinedPage = () => {
 
   return (
     <div>
-      {/* test buttons to test logic */}
+      {/* Control buttons */}
       <div className="flex justify-center items-center py-5">
         <button
           onClick={onStartClick}
@@ -248,7 +277,6 @@ const CombinedPage = () => {
           className={
             paused || start ? "control-button-disabled" : "control-button"
           }
-          disabled={paused}
         >
           <BiRun />
         </button>
@@ -271,78 +299,95 @@ const CombinedPage = () => {
           <MdFilterCenterFocus />
         </button>
         <div className="border-l-2 pl-3">{renderFetchStatus()}</div>
+        <div className=" ml-10 flex">
+          <div>Viewing {toggle.maps ? "Maps" : "Line"}</div>
+          <button
+            onClick={toggleVisibility}
+            type="button"
+            className="control-button"
+          >
+            <AiOutlineSwap />
+          </button>
+        </div>
       </div>
-      {/* JianLin's component */}
-      <div className="divider"></div>
-      <div className="my-2">
-        <h1 className="ms-24 mb-8 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
-          Baseline Model
-        </h1>
-        <Journey
-          id={"1"}
-          paused={paused}
-          ended={ended}
-          start={start}
-          data={journeyDataUnoptimized}
-          globalTime={globalTime}
-          triggerParentSave={triggerParentSave}
-          setBusStopData={setBusStopData}
-        />
+      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center h-[400px]">
+        {/* Metrics */}
+        <div
+          className="mx-auto my-2"
+          style={{
+            width: "75vw",
+            justifyContent: "center",
+            display: "flex",
+          }}
+        >
+          <Metrics
+            saveHeadwayObj={saveHeadwayObj}
+            saveHeadwayObjOptimised={saveHeadwayObjOptimised}
+            busStopData={busStopData}
+          />
+        </div>
+        {/* Dispatch timings */}
+        <div className="my-5 w-20vw text-center mx-auto">
+          <DispatchTimings dispatchTimes={mockDispatchTimes} />
+        </div>
       </div>
-      <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
-        Optimized Model
-      </h1>
-
-      <div className="mt-10">
-        <Journey
-          id={"2"}
-          key={"optimized"}
-          paused={paused}
-          ended={ended}
-          start={start}
-          data={journeyData}
-          globalTime={globalTime}
-          triggerParentSave={triggerParentSave}
-          setBusStopData={setBusStopData}
-        />
-      </div>
-      <div className="divider"></div>
-
+      {/* Line */}
       <div
-        className="mx-auto my-2"
-        style={{
-          height: "400px",
-          width: "80vw",
-          justifyContent: "center",
-          display: "flex",
-        }}
+        className={`${toggle.line ? "block" : "hidden"} flex justify-center`}
       >
-        <Metrics
-          saveHeadwayObj={saveHeadwayObj}
-          saveHeadwayObjOptimised={saveHeadwayObjOptimised}
-          busStopData={busStopData}
-        />
+        <div>
+          <div className="my-2">
+            <h1 className="ms-24 mb-8 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
+              Baseline Model
+            </h1>
+            <Journey
+              id={"1"}
+              paused={paused}
+              ended={ended}
+              start={start}
+              data={journeyDataUnoptimized}
+              globalTime={globalTime}
+              triggerParentSave={triggerParentSave}
+              setBusStopData={setBusStopData}
+            />
+          </div>
+          <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
+            Optimized Model
+          </h1>
+          <div className="mt-10">
+            <Journey
+              id={"2"}
+              key={"optimized"}
+              paused={paused}
+              ended={ended}
+              start={start}
+              data={journeyData}
+              globalTime={globalTime}
+              triggerParentSave={triggerParentSave}
+              setBusStopData={setBusStopData}
+            />
+          </div>
+        </div>
       </div>
-      {/* Yixin's component */}
-      <div className="my-5">
-        <DispatchTimings dispatchTimes={mockDispatchTimes} />
-      </div>
-      <div className="m-10 mt-0">
-        <MapsPageRewrite
-          zoom={zoom}
-          center={center}
-          setZoom={setZoom}
-          setCenter={setCenter}
-          stops={stopObjs}
-          defaultStepInterval={defaultStepInterval}
-          optimizedData={journeyData}
-          unoptimizedData={journeyDataUnoptimized}
-          started={start}
-          paused={paused}
-          ended={ended}
-          globalTime={mapsGlobalTime}
-          mapContainerStyle={mapContainerStyle}
-        />
+      {/* Maps */}
+      <div className={`${toggle.maps ? "block" : "hidden"} w-[95%] mx-auto`}>
+        <div className="m-10 mt-0">
+          <MapsPageRewrite
+            zoom={zoom}
+            center={center}
+            setZoom={setZoom}
+            setCenter={setCenter}
+            stops={stopObjs}
+            defaultStepInterval={defaultStepInterval}
+            optimizedData={journeyData}
+            unoptimizedData={journeyDataUnoptimized}
+            started={start}
+            paused={paused}
+            ended={ended}
+            globalTime={mapsGlobalTime}
+            mapContainerStyle={mapContainerStyle}
+          />
+        </div>
       </div>
     </div>
   );
