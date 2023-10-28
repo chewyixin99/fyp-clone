@@ -104,28 +104,32 @@ def visualise_3d(timings_matrix):
 
     fig.show()
 
-def save_figure(fig, save_fig_path, timings_matrix, save_npy_path):
+def save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path):
 
-    directory_path = os.path.dirname(save_fig_path)
+    directory_path = os.path.dirname(save_fig_path_2d)
 
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
 
-    _, file_type = os.path.splitext(save_fig_path)
+    _, file_type = os.path.splitext(save_fig_path_2d)
 
     if file_type == '.html':
         # save to an HTML file
-        fig.write_html(save_fig_path)
-        print(f"successfully saved figure as a .html file at {save_fig_path}!")
+        fig_2d.write_html(save_fig_path_2d)
+        fig_3d.write_html(save_fig_path_3d)
+        print(f"successfully saved figures as a .html file at {save_fig_path_2d}!")
 
     if file_type == '.json':
         # convert the figure to a JSON format
-        fig_json = fig.to_json()
+        fig_json_2d = fig_2d.to_json()
+        fig_json_3d = fig_3d.to_json()
 
         # write to a JSON file
-        with open(save_fig_path, "w") as file:
-            json.dump(fig_json, file)
-        print(f"successfully saved as a .json file at {save_fig_path}!")
+        with open(save_fig_path_2d, "w") as file:
+            json.dump(fig_json_2d, file)
+        with open(save_fig_path_3d, "w") as file:
+            json.dump(fig_json_3d, file)
+        print(f"successfully saved as a .json file at {save_fig_path_2d}!")
 
     np.save(save_npy_path, timings_matrix)
     print(f"successfully saved matrix as a .npy file at {save_npy_path}!")
@@ -133,19 +137,19 @@ def save_figure(fig, save_fig_path, timings_matrix, save_npy_path):
 def main():
     model = "v1_0CVXPY" # NOTE: to change to other models (not frequent)
     file_type = "html"
-    save_fig_path = f"./data/sensitivity_analyses/{model}.{file_type}"
+    save_fig_path_2d = f"./data/sensitivity_analyses/{model}_2d.{file_type}"
+    save_fig_path_3d = f"./data/sensitivity_analyses/{model}_3d.{file_type}"
     save_npy_path = f"./data/sensitivity_analyses/{model}.npy"
 
     input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2710.json")
     # input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2909.json")
 
     timings_matrix = get_all_timings(input_data)
-    fig = visualise_heatmap(timings_matrix, model)
+    fig_2d = visualise_heatmap(timings_matrix, model)
     fig_3d = visualise_3d(timings_matrix)
-    # save_figure(fig, save_fig_path, timings_matrix, save_npy_path)
+    save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path)
 
     # loaded_array = np.load(save_npy_path, allow_pickle=True)
-    # fig_3d = visualise_3d(loaded_array)
 
 if __name__ == "__main__":
     main()
