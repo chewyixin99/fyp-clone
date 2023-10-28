@@ -2,7 +2,7 @@ import json
 import re
 import plotly.express as px
 import pandas as pd
-from models.v1_0 import run_model # NOTE: to change to other models (not frequent)
+from models.v1_0CVXPY import run_model # NOTE: to change to other models (not frequent)
 from utils.transformation import convert_json_to_dict
 import numpy as np
 import time
@@ -86,7 +86,7 @@ def visualise_3d(timings_matrix):
     # create coordinate grids
     num_trips = np.arange(1, timings_matrix.shape[0] + 1)
     num_stops = np.arange(1, timings_matrix.shape[1] + 1)
-    trips, stops = np.meshgrid(num_trips, num_stops)
+    stops, trips = np.meshgrid(num_stops, num_trips)
 
     # flatten data
     flat_data = timings_matrix.flatten()
@@ -131,13 +131,13 @@ def save_figure(fig, save_fig_path, timings_matrix, save_npy_path):
     print(f"successfully saved matrix as a .npy file at {save_npy_path}!")
 
 def main():
-    model = "v1_0" # NOTE: to change to other models (not frequent)
+    model = "v1_0CVXPY" # NOTE: to change to other models (not frequent)
     file_type = "html"
     save_fig_path = f"./data/sensitivity_analyses/{model}.{file_type}"
     save_npy_path = f"./data/sensitivity_analyses/{model}.npy"
 
-    input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2908.json")
-    # input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2908.json")
+    input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2710.json")
+    # input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2909.json")
 
     timings_matrix = get_all_timings(input_data)
     fig = visualise_heatmap(timings_matrix, model)

@@ -253,7 +253,6 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
 
     # TODO: refactor code after confirmation
     swt = sum(target_headway.values())/len(target_headway)/2
-    print(f"Scheduled waiting time: {swt:.0f}")
 
     total_awt = []
 
@@ -274,8 +273,10 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         total_awt.append(awt_for_stop)
 
     awt = sum(total_awt)/len(total_awt)
-    print(f"Actual waiting time: {awt:.0f}")
-    print(f"Excess waiting time: {awt-swt:.0f}")
+    if not silent:
+        print(f"Scheduled waiting time: {swt:.0f}")
+        print(f"Actual waiting time: {awt:.0f}")
+        print(f"Excess waiting time: {awt-swt:.0f}")
     variables_to_return = {
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
