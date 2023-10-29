@@ -39,9 +39,11 @@ def main():
             busload_matrix=output_data["busload_dict"],
             arrival_matrix=output_data["arrival_dict"],
             headway_matrix=output_data["headway_dict"],
+            obj_fn_matrix=output_data["obj_fn_dict"],
             stranded_matrix=output_data["stranded_dict"],
             dispatch_list=output_data["dispatch_dict"],
             objective_value=output_data["objective_value"],
+            slack_penalty=output_data["slack_penalty"]
             ewt_value=output_data["ewt_value"]
         )
     except Exception as e:

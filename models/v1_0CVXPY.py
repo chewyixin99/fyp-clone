@@ -242,6 +242,13 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         for s in range(2, num_stops+1):
             headway_dict[f"{j},{s}"] = round(np.round(headway[j,s].value)) if headway[j,s].value != None else 0
 
+    obj_fn_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(2, num_stops+1):
+            obj_fn_dict[f"{j},{s}"] = weights[s] * beta * \
+                                            (headway[j,s].value - target_headway[(j,s)]) ** 2 \
+                                            if headway[j,s].value != None else 0
+
     stranded_dict = {}
     for j in range(1, num_trips+1):
         for s in range(1, num_stops+1):
@@ -282,9 +289,11 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         "busload_dict": busload_dict,
         "arrival_dict": arrival_dict,
         "headway_dict": headway_dict,
+        "obj_fn_dict": obj_fn_dict,
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
         "objective_value": result,
+        "slack_penalty": slack.value * 10000,
         "ewt_value": awt - swt
     }
 
