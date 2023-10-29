@@ -1,11 +1,10 @@
 // return all unique values present within the array
 export const getAllUniqueValues = (objsArr, keyName) => {
-  const resValues = [];
+  let resValues = [];
   for (const obj of objsArr) {
-    if (!resValues.includes(obj[keyName])) {
-      resValues.push(obj[keyName]);
-    }
+    resValues.push(obj[keyName]);
   }
+  resValues = Array.from(new Set(resValues));
   return resValues;
 };
 
@@ -14,11 +13,12 @@ export const getRecordsWithUniqueKey = (objsArr, keyName, step = 1) => {
   const uniqueValues = getAllUniqueValues(objsArr, keyName);
   let resValues = {};
   for (let i = 0; i < uniqueValues.length; i += step) {
-    const val = uniqueValues[i];
-    const recordsWithVal = objsArr.filter((r) => {
-      return r[keyName] === val;
-    });
-    resValues[val] = recordsWithVal;
+    resValues[uniqueValues[i]] = [];
+  }
+  for (const row of objsArr) {
+    if (resValues[row[keyName]]) {
+      resValues[row[keyName]].push(row);
+    }
   }
   return resValues;
 };

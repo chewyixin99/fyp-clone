@@ -26,21 +26,26 @@ const MapsPageRewrite = React.memo(
 
     // process journeyData
     useEffect(() => {
-      if (optimizedData !== 0 && unoptimizedData !== 0) {
+      if (optimizedData.length !== 0) {
         const optimizedSeparatedByKey = getRecordsWithUniqueKey(
           optimizedData,
           "timestamp",
           defaultStepInterval
         );
+        setOptimizedProcessed(optimizedSeparatedByKey);
+      }
+    }, [optimizedData.length, defaultStepInterval]);
+
+    useEffect(() => {
+      if (unoptimizedData.length !== 0) {
         const unoptimizedSeparatedByKey = getRecordsWithUniqueKey(
           unoptimizedData,
           "timestamp",
           defaultStepInterval
         );
-        setOptimizedProcessed(optimizedSeparatedByKey);
         setUnoptimizedProcessed(unoptimizedSeparatedByKey);
       }
-    }, [optimizedData.length, unoptimizedData.length, defaultStepInterval]);
+    }, [unoptimizedData.length, defaultStepInterval]);
 
     return (
       <div>

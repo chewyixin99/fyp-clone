@@ -92,8 +92,8 @@ const MapsRewrite = React.memo(
           // set curr opacity and prev opacity
           const currMarkers = journeyState[globalTime];
           setNumBusCurr(currMarkers.length);
-          if (numBusDispatched < currMarkers.length) {
-            setNumBusDispatched(currMarkers.length);
+          if (currMarkers.length) {
+            setNumBusDispatched(getNumDispatched(currMarkers));
           }
         } else if (ended) {
           console.log("reset states");
@@ -131,6 +131,17 @@ const MapsRewrite = React.memo(
       }
       setPolyPath(tmpPolyPath);
     }, [stops]);
+
+    const getNumDispatched = (objsArr) => {
+      let dispatched = 0;
+      for (let i = 0; i < objsArr.length; i++) {
+        const tripNum = objsArr[i].busTripNo;
+        if (tripNum > dispatched) {
+          dispatched = tripNum;
+        }
+      }
+      return dispatched;
+    };
 
     const renderMap = () => {
       return (
@@ -191,7 +202,7 @@ const MapsRewrite = React.memo(
                 {numBusDispatched}
               </div>
               <div className="mr-3">In journey</div>
-              <div className="px-3 py-1 border rounded-md mr-5 font-bold">
+              <div className="px-3 py-1 border rounded-md font-bold">
                 {numBusCurr}
               </div>
             </div>

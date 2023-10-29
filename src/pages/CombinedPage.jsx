@@ -106,24 +106,27 @@ const CombinedPage = () => {
 
   const fetchFromEndpoint = async () => {
     setLoadingFetch(true);
+    setLoadingParseOptimized(true);
+    setLoadingParseUnoptimized(true);
     setErrorFetch(false);
     const url = "http://127.0.0.1:8000/mm/result_feed";
-    const requestBody = {
+    const requestBodyOptimised = {
       polling_rate: 1,
-      horizon_length: "string",
-      horizon_interval: "string",
-      actual_trip_timings: [0],
+      unoptimised: false,
+      deviated_dispatch_dict: {},
     };
-    const options = {
+    const commonOptions = {
       method: "POST",
       mode: "cors",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody),
     };
 
-    await fetch(url, options)
+    await fetch(url, {
+      ...commonOptions,
+      body: JSON.stringify(requestBodyOptimised),
+    })
       .then((response) => {
         // response.body is a ReadableStream
         if (response.ok) {
@@ -133,10 +136,50 @@ const CombinedPage = () => {
       })
       .then((csvData) => {
         const parsed = Papa.parse(csvData).data.slice(1);
-        const processedData = processCsvData(parsed);
+        const processedDataOptimised = processCsvData(parsed);
         // set journey and stops after
-        console.log(`fetched data`);
-        console.log(processedData);
+        console.log(
+          `fetched data: optimised: ${processedDataOptimised.journeyData.length} rows`
+        );
+        console.log(processedDataOptimised);
+        setStopObjs(processedDataOptimised.stopObjs);
+        setJourneyData(processedDataOptimised.journeyData);
+        setLoadingParseOptimized(false);
+      })
+      .catch((e) => {
+        setLoadingFetch(false);
+        setErrorFetch(true);
+        console.log(e);
+        setErrorMsgFetch(e.message);
+      });
+
+    // ! Not fetching unoptimised because it is taking too long
+    const requestBodyUnoptimised = {
+      polling_rate: 1,
+      unoptimised: true,
+      deviated_dispatch_dict: {},
+    };
+
+    await fetch(url, {
+      ...commonOptions,
+      body: JSON.stringify(requestBodyUnoptimised),
+    })
+      .then((response) => {
+        // response.body is a ReadableStream
+        if (response.ok) {
+          setLoadingFetch(false);
+          return response.text();
+        }
+      })
+      .then((csvData) => {
+        const parsed = Papa.parse(csvData).data.slice(1);
+        const processedDataUnoptimised = processCsvData(parsed);
+        // set journey and stops after
+        console.log(
+          `fetched data: unoptimised: ${processedDataUnoptimised.journeyData.length} rows`
+        );
+        setJourneyDataUnoptimized(processedDataUnoptimised.journeyData);
+        setLoadingParseUnoptimized(false);
       })
       .catch((e) => {
         setLoadingFetch(false);
@@ -155,7 +198,10 @@ const CombinedPage = () => {
       complete: (res) => {
         const data = res.data.slice(1);
         const processedData = processCsvData(data);
-        console.log(`optimized done parsing`);
+        console.log(
+          `optimised done parsing: optimised: ${processedData.journeyData.length} rows`
+        );
+        console.log(processedData);
         setStopObjs(processedData.stopObjs);
         setJourneyData(processedData.journeyData);
         setLoadingParseOptimized(false);
@@ -168,7 +214,10 @@ const CombinedPage = () => {
       complete: (res) => {
         const data = res.data.slice(1);
         const processedData = processCsvData(data);
-        console.log(`unoptimized done parsing`);
+        console.log(
+          `unoptimised done parsing: unoptimised: ${processedData.journeyData.length} rows`
+        );
+        console.log(processedData);
         setJourneyDataUnoptimized(processedData.journeyData);
         setLoadingParseUnoptimized(false);
       },
@@ -178,7 +227,7 @@ const CombinedPage = () => {
   // load initial data
   useEffect(() => {
     initDispatchTimes();
-    fetchFromEndpoint();
+    // fetchFromEndpoint();
     parseData();
   }, []);
 
@@ -248,7 +297,7 @@ const CombinedPage = () => {
     }
     return (
       <div className="flex items-center text-green-500">
-        <div>Data loaded</div>
+        <div>Data fetched</div>
         <TiTick className="mx-3" />
       </div>
     );
