@@ -27,10 +27,10 @@ const mapContainerStyle = {
   maxWidth: "100%",
 };
 
-// const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
-// const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
-const optimizedFile = "";
-const unoptimizedFile = "";
+const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
+const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
+// const optimizedFile = "";
+// const unoptimizedFile = "";
 
 const CombinedPage = () => {
   // yixin states
@@ -74,7 +74,8 @@ const CombinedPage = () => {
   });
   const [dispatchTimes, setDispatchTimes] = useState({});
   // loading states
-  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [loadingFetchOptimized, setLoadingFetchOptimized] = useState(false);
+  const [loadingFetchUnoptimized, setLoadingFetchUnoptimized] = useState(false);
   const [errorFetch, setErrorFetch] = useState(false);
   const [errorMsgFetch, setErrorMsgFetch] = useState("");
   const [loadingParseOptimized, setLoadingParseOptimized] = useState(false);
@@ -105,7 +106,8 @@ const CombinedPage = () => {
   };
 
   const fetchFromEndpoint = async () => {
-    setLoadingFetch(true);
+    setLoadingFetchOptimized(true);
+    setLoadingFetchUnoptimized(true);
     setLoadingParseOptimized(true);
     setLoadingParseUnoptimized(true);
     setErrorFetch(false);
@@ -123,6 +125,7 @@ const CombinedPage = () => {
       },
     };
 
+    // optimised
     await fetch(url, {
       ...commonOptions,
       body: JSON.stringify(requestBodyOptimised),
@@ -130,7 +133,7 @@ const CombinedPage = () => {
       .then((response) => {
         // response.body is a ReadableStream
         if (response.ok) {
-          setLoadingFetch(false);
+          setLoadingFetchOptimized(false);
           return response.text();
         }
       })
@@ -147,13 +150,12 @@ const CombinedPage = () => {
         setLoadingParseOptimized(false);
       })
       .catch((e) => {
-        setLoadingFetch(false);
+        setLoadingFetchOptimized(false);
         setErrorFetch(true);
         console.log(e);
         setErrorMsgFetch(e.message);
       });
 
-    // ! Not fetching unoptimised because it is taking too long
     const requestBodyUnoptimised = {
       polling_rate: 1,
       unoptimised: true,
@@ -167,7 +169,7 @@ const CombinedPage = () => {
       .then((response) => {
         // response.body is a ReadableStream
         if (response.ok) {
-          setLoadingFetch(false);
+          setLoadingFetchUnoptimized(false);
           return response.text();
         }
       })
@@ -182,7 +184,7 @@ const CombinedPage = () => {
         setLoadingParseUnoptimized(false);
       })
       .catch((e) => {
-        setLoadingFetch(false);
+        setLoadingFetchUnoptimized(false);
         setErrorFetch(true);
         console.log(e);
         setErrorMsgFetch(e.message);
@@ -227,7 +229,7 @@ const CombinedPage = () => {
   // load initial data
   useEffect(() => {
     initDispatchTimes();
-    // fetchFromEndpoint();
+    fetchFromEndpoint();
     parseData();
   }, []);
 
@@ -273,15 +275,43 @@ const CombinedPage = () => {
   };
 
   const renderFetchStatus = () => {
-    if (loadingFetch) {
+    const loadingFetch = loadingFetchOptimized || loadingFetchUnoptimized;
+    if (loadingFetch && !errorFetch) {
       return (
-        <div className="flex items-center text-orange-600 pr-3">
-          <div className="mr-3">Fetching data</div>
-          <PuffLoader
-            color="rgb(234, 88, 12)"
-            loading={loadingFetch}
-            size={15}
-          />
+        <div className="flex items-center pr-3">
+          <div className="mr-3 flex items-center">
+            Fetching data:
+            {loadingFetchOptimized ? (
+              <div className="text-orange-600 flex items-center">
+                <span className="mx-3">optimised</span>
+                <PuffLoader
+                  color="rgb(234, 88, 12)"
+                  loading={loadingFetch}
+                  size={15}
+                />
+              </div>
+            ) : (
+              <div className="text-green-500 flex items-center">
+                <span className="mx-3">optimised</span>
+                <TiTick />
+              </div>
+            )}
+            {loadingFetchUnoptimized ? (
+              <div className="text-orange-500 flex items-center">
+                <span className="mx-3">unoptimised</span>
+                <PuffLoader
+                  color="rgb(234, 88, 12)"
+                  loading={loadingFetch}
+                  size={15}
+                />
+              </div>
+            ) : (
+              <div className="text-green-600 flex items-center">
+                <span className="mx-3">unoptimised</span>
+                <TiTick />
+              </div>
+            )}
+          </div>
         </div>
       );
     }
@@ -307,12 +337,40 @@ const CombinedPage = () => {
     const loading = loadingParseOptimized || loadingParseUnoptimized;
     if (loading) {
       return (
-        <div className="flex items-center text-orange-600 pr-3">
-          <div className="mr-3">
-            Parsing data: {loadingParseOptimized ? " optimized " : ""}
-            {loadingParseUnoptimized ? " unoptimized " : ""}
+        <div className="flex items-center pr-3">
+          <div className="mr-3 flex items-center">
+            Parsing data:{" "}
+            {loadingParseOptimized ? (
+              <div className="text-orange-600 flex items-center">
+                <span className="mx-3">optimised</span>
+                <PuffLoader
+                  color="rgb(234, 88, 12)"
+                  loading={loading}
+                  size={15}
+                />
+              </div>
+            ) : (
+              <div className="text-green-500 flex items-center">
+                <span className="mx-3">optimised</span>
+                <TiTick />
+              </div>
+            )}
+            {loadingParseUnoptimized ? (
+              <div className="text-orange-500 flex items-center">
+                <span className="mx-3">unoptimised</span>
+                <PuffLoader
+                  color="rgb(234, 88, 12)"
+                  loading={loading}
+                  size={15}
+                />
+              </div>
+            ) : (
+              <div className="text-green-600 flex items-center">
+                <span className="mx-3">unoptimised</span>
+                <TiTick />
+              </div>
+            )}
           </div>
-          <PuffLoader color="rgb(234, 88, 12)" loading={loading} size={15} />
         </div>
       );
     }
