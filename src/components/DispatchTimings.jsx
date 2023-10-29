@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
 import { PuffLoader } from "react-spinners";
 import PropTypes from "prop-types";
@@ -6,11 +6,27 @@ import { processCsvData } from "../util/mapHelper";
 import { TiTick } from "react-icons/ti";
 
 const DispatchTimings = React.memo(({ dispatchTimes }) => {
+  const [localDispatchTimes, setLocalDispatchTimes] = useState(dispatchTimes);
   const [dispatchInput, setDispatchInput] = useState({});
   const [loadingFetch, setLoadingFetch] = useState(false);
   const [errorFetch, setErrorFetch] = useState(false);
   const [errorMsgFetch, setErrorMsgFetch] = useState("");
   const [updatedData, setUpdatedData] = useState({});
+
+  useEffect(() => {
+    setLocalDispatchTimes(dispatchTimes);
+  }, [dispatchTimes]);
+
+  const computeDispatchTimes = (data) => {
+    const newDispatchTimes = localDispatchTimes;
+    const allDispatchTimes = data.journeyData.filter((r) => {
+      return r.currentStatus === "DISPATCHED_FROM";
+    });
+    for (const rec of allDispatchTimes) {
+      newDispatchTimes[rec.busTripNo].optimized = rec.timestamp;
+    }
+    return newDispatchTimes;
+  };
 
   const handleInputChange = (e) => {
     const trip = e.target.id;
@@ -69,6 +85,8 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
         const parsed = Papa.parse(csvData).data.slice(1);
         const processedData = processCsvData(parsed);
         setUpdatedData(processedData);
+        const newDispatchTimes = computeDispatchTimes(processedData);
+        setLocalDispatchTimes(newDispatchTimes);
       })
       .catch((e) => {
         setLoadingFetch(false);
@@ -158,9 +176,9 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
           </div>
         </div>
         <div>
-          {Object.keys(dispatchTimes).map((trip) => {
-            const plannedTime = parseInt(dispatchTimes[trip].planned);
-            const optimizedTime = parseInt(dispatchTimes[trip].optimized);
+          {Object.keys(localDispatchTimes).map((trip) => {
+            const plannedTime = parseInt(localDispatchTimes[trip].planned);
+            const optimizedTime = parseInt(localDispatchTimes[trip].optimized);
             return (
               <div className="flex" key={trip}>
                 <div className="text-center w-[50px] border">
