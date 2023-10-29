@@ -1,0 +1,256 @@
+{
+  "bus_stop_data" : [
+    {
+        "stopId": "9302",
+        "stopName": "NW 5th & Hoyt",
+        "busStopNo": 1,
+        "distance": 0
+    },
+    {
+        "stopId": "9301",
+        "stopName": "NW 5th & Davis",
+        "busStopNo": 2,
+        "distance": 332.19482247649404
+    },
+    {
+        "stopId": "7642",
+        "stopName": "SW 5th & Washington",
+        "busStopNo": 3,
+        "distance": 835.6837782266155
+    },
+    {
+        "stopId": "7634",
+        "stopName": "SW 5th & Salmon",
+        "busStopNo": 4,
+        "distance": 1231.5207464617288
+    },
+    {
+        "stopId": "7594",
+        "stopName": "SW 5th & Columbia",
+        "busStopNo": 5,
+        "distance": 1546.713483543839
+    },
+    {
+        "stopId": "10491",
+        "stopName": "SW 5th & Hall",
+        "busStopNo": 6,
+        "distance": 2024.711328971957
+    },
+    {
+        "stopId": "3397",
+        "stopName": "300 Block SW Lincoln",
+        "busStopNo": 7,
+        "distance": 2347.826419786352
+    },
+    {
+        "stopId": "13732",
+        "stopName": "South Waterfront/S Moody",
+        "busStopNo": 8,
+        "distance": 3258.591163375124
+    },
+    {
+        "stopId": "13772",
+        "stopName": "OMSI/SE Water",
+        "busStopNo": 9,
+        "distance": 4043.5098921924446
+    },
+    {
+        "stopId": "1375",
+        "stopName": "SE Division & 12th Ave",
+        "busStopNo": 10,
+        "distance": 4764.690050184701
+    },
+    {
+        "stopId": "1435",
+        "stopName": "SE Division & 20th Ave",
+        "busStopNo": 11,
+        "distance": 5340.296940193659
+    },
+    {
+        "stopId": "1441",
+        "stopName": "SE Division & 26th Ave",
+        "busStopNo": 12,
+        "distance": 5872.409491443604
+    },
+    {
+        "stopId": "1447",
+        "stopName": "SE Division & 30th Ave",
+        "busStopNo": 13,
+        "distance": 6258.403475405472
+    },
+    {
+        "stopId": "1451",
+        "stopName": "SE Division & 34th Ave",
+        "busStopNo": 14,
+        "distance": 6651.487542787401
+    },
+    {
+        "stopId": "1458",
+        "stopName": "SE Division & Cesar Chavez Blvd",
+        "busStopNo": 15,
+        "distance": 7194.361941221766
+    },
+    {
+        "stopId": "8791",
+        "stopName": "SE Division & 43rd Ave",
+        "busStopNo": 16,
+        "distance": 7513.135296222216
+    },
+    {
+        "stopId": "14225",
+        "stopName": "SE Division & 51st Ave",
+        "busStopNo": 17,
+        "distance": 8175.028748035175
+    },
+    {
+        "stopId": "1477",
+        "stopName": "SE Division & 60th Ave",
+        "busStopNo": 18,
+        "distance": 8769.568523343014
+    },
+    {
+        "stopId": "14226",
+        "stopName": "SE Division & 68th Ave",
+        "busStopNo": 19,
+        "distance": 9470.629262079538
+    },
+    {
+        "stopId": "1489",
+        "stopName": "SE Division & 76th Ave",
+        "busStopNo": 20,
+        "distance": 10122.518069589
+    },
+    {
+        "stopId": "1497",
+        "stopName": "SE Division & 82nd Ave",
+        "busStopNo": 21,
+        "distance": 10630.400615608069
+    },
+    {
+        "stopId": "8433",
+        "stopName": "SE Division & 87th Ave",
+        "busStopNo": 22,
+        "distance": 10968.617094975112
+    },
+    {
+        "stopId": "13297",
+        "stopName": "SE Division & SE Division St MAX Station",
+        "busStopNo": 23,
+        "distance": 11512.411911799461
+    },
+    {
+        "stopId": "1359",
+        "stopName": "SE Division & 101st Ave",
+        "busStopNo": 24,
+        "distance": 12114.017199133166
+    },
+    {
+        "stopId": "14227",
+        "stopName": "SE Division & 113th Ave",
+        "busStopNo": 25,
+        "distance": 13069.447145560973
+    },
+    {
+        "stopId": "1370",
+        "stopName": "SE Division & 116th Ave",
+        "busStopNo": 26,
+        "distance": 13347.538758899722
+    },
+    {
+        "stopId": "1379",
+        "stopName": "SE Division & 122nd Ave",
+        "busStopNo": 27,
+        "distance": 13830.426942770186
+    },
+    {
+        "stopId": "1386",
+        "stopName": "SE Division & 130th Ave",
+        "busStopNo": 28,
+        "distance": 14425.613264693297
+    },
+    {
+        "stopId": "1389",
+        "stopName": "SE Division & 136th Ave",
+        "busStopNo": 29,
+        "distance": 14919.161606230064
+    },
+    {
+        "stopId": "13881",
+        "stopName": "14200 Block SE Division",
+        "busStopNo": 30,
+        "distance": 15445.01558450282
+    },
+    {
+        "stopId": "1400",
+        "stopName": "SE Division & 148th Ave",
+        "busStopNo": 31,
+        "distance": 15867.937900880557
+    },
+    {
+        "stopId": "1409",
+        "stopName": "SE Division & 157th Ave",
+        "busStopNo": 32,
+        "distance": 16622.691488505327
+    },
+    {
+        "stopId": "1415",
+        "stopName": "SE Division & 162nd Ave",
+        "busStopNo": 33,
+        "distance": 16957.315045345385
+    },
+    {
+        "stopId": "1418",
+        "stopName": "SE Division & 168th Ave",
+        "busStopNo": 34,
+        "distance": 17571.51442872654
+    },
+    {
+        "stopId": "1422",
+        "stopName": "SE Division & 174th Ave",
+        "busStopNo": 35,
+        "distance": 17960.392231147387
+    },
+    {
+        "stopId": "14228",
+        "stopName": "18200 Block SE Division",
+        "busStopNo": 36,
+        "distance": 18729.580237930335
+    },
+    {
+        "stopId": "1333",
+        "stopName": "NW Division & Eastwood Ave",
+        "busStopNo": 37,
+        "distance": 19623.833472564995
+    },
+    {
+        "stopId": "9426",
+        "stopName": "NW Division & Angeline Ave",
+        "busStopNo": 38,
+        "distance": 20721.57851383744
+    },
+    {
+        "stopId": "14229",
+        "stopName": "NW Division & Overlook Ave",
+        "busStopNo": 39,
+        "distance": 21243.5670130328
+    },
+    {
+        "stopId": "1331",
+        "stopName": "NW Division & Eastman Pkwy",
+        "busStopNo": 40,
+        "distance": 21785.512200638343
+    },
+    {
+        "stopId": "8199",
+        "stopName": "Gresham Central Transit Center",
+        "busStopNo": 41,
+        "distance": 22445.448269530792
+    },
+    {
+        "stopId": "14230",
+        "stopName": "Cleveland Ave Park & Ride",
+        "busStopNo": 42,
+        "distance": 23081.6540130216
+    }
+]
+}
