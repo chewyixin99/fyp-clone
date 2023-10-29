@@ -5,7 +5,7 @@ import {
   weights_list,
   target_headway_2dlist,
 } from "../../public/actual_input_2710";
-import { headway_matrix as headway_matrix_optimised } from "../../public/v1_0CVXPY_optimised_output";
+import { headway_matrix as headway_matrix_optimised, num_stops } from "../../public/v1_0CVXPY_optimised_output";
 import { headway_matrix as headway_matrix_unoptimised } from "../../public/v1_0CVXPY_unoptimised_output";
 
 import {
@@ -118,8 +118,8 @@ const Metrics = ({ saveHeadwayObj, saveHeadwayObjOptimised, busStopData }) => {
     sumOfWeightsFn();
     if (busStopData.length > 0) {
       setBusStopLabel(
-        busStopData.slice(1).map((busStop) => {
-          return `No. ${busStop[0]}, ${busStop[1]}`;
+        busStopData.map((busStop) => {
+          return `${busStop.busStopNo},${busStop.stopId}`;
         })
       );
     }

@@ -5,6 +5,9 @@ import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import BusStop from "./BusStop";
+import { num_trips, num_stops } from "/public/v1_0CVXPY_optimised_output.json"
+import { bus_stop_data } from "/public/bus_stop_data.json"
+
 const Journey = ({
   start,
   paused,
@@ -18,37 +21,32 @@ const Journey = ({
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
   const [relativeStopDistance, setRelativeStopDistance] = useState([]);
-  const [numOfTrips, setNumOfTrips] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [triggerStart, setTriggerStart] = useState(false);
   const [triggerStop, setTriggerStop] = useState(false);
   const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
   const [dataObj, setDataObj] = useState({});
   const [deployedTrips, setDeployedTrips] = useState([]);
-  const [numBusStops, setNumBusStops] = useState(0);
   const [headwayObj, setHeadwayObj] = useState({});
   const [saveHeadwayObj, setSaveHeadwayObj] = useState({});
 
-  const extractData = (data) => {
-    let stopDistance = data.filter((item) => {
-      return (
-        (item.currentStatus == "STOPPED_AT" ||
-          item.currentStatus == "DISPATCHED_FROM") &&
-        item.busTripNo == 1
-      );
-    });
-    let numberOfBusTrips = data.filter((item) => {
-      return item.currentStatus == "DISPATCHED_FROM";
-    });
-    setRelativeStopDistance(stopDistance);
-    setTotalDistance(stopDistance[stopDistance.length - 1]?.distance);
-    setNumOfTrips(numberOfBusTrips.length);
-  };
+  const distanceDataLoader = (data) => {    
+    var output = data.map((item) => {
+      return {
+        stopId: item.stopId,
+        stopName: item.stopName,
+        busStopNo: item.busStopNo,
+        distance: item.distance,
+      }});
+      setRelativeStopDistance(output)
+      setTotalDistance(output[output.length - 1]?.distance);
+      setBusStopData(output)
+  }
+  
 
   const loadBusStops = () => {
     var busStopHTML = ``;
     var busStopDotHTML = ``;
-    setNumBusStops(relativeStopDistance.length);
     var tempBusData = [];
     for (var i = 0; i < relativeStopDistance.length; i++) {
       tempBusData.push([
@@ -87,7 +85,7 @@ const Journey = ({
       </div>`;
     }
     if (id == 1) {
-      setBusStopData(tempBusData);
+      // setBusStopData(tempBusData);
     }
     document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
     document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML +=
@@ -211,12 +209,10 @@ const Journey = ({
     setIsRunning(false);
     setTriggerStart(false);
     setTriggerStop(true);
-    for (var i = 1; i <= numOfTrips; i++) {
+    for (var i = 1; i <= num_trips; i++) {
       add_travel_distance(0, i, busDispatchTimestamps[i]);
     }
   };
-
-  useEffect(() => {}, [saveHeadwayObj]);
 
   const updateLink = () => {
     triggerParentSave(saveHeadwayObj, id);
@@ -226,7 +222,7 @@ const Journey = ({
     if (headway != 0) {
       var current = headwayObj;
       var currentSave = saveHeadwayObj;
-      if (numBusPast == numOfTrips) {
+      if (numBusPast == num_trips) {
         current[busStopNo] = null;
         setHeadwayObj(current);
         return;
@@ -247,15 +243,15 @@ const Journey = ({
       }
     }
   };
-
+  useEffect(() => {}, [saveHeadwayObj]);
   useEffect(() => {
-    extractData(data);
+    distanceDataLoader(bus_stop_data);
     setDataObj(createDataObj(data));
   }, [data]);
 
   useEffect(() => {
     loadBusStops();
-  }, [relativeStopDistance, totalDistance, numOfTrips]);
+  }, [relativeStopDistance, totalDistance, num_trips]);
 
   useEffect(() => {
     if (start) {
@@ -273,6 +269,10 @@ const Journey = ({
       stop();
     }
   }, [ended]);
+
+  useEffect(() => {
+    console.log("line data parse completed...");
+  }, [dataObj]);
 
   useEffect(() => {
     if (isRunning) {
@@ -358,17 +358,17 @@ const Journey = ({
           >
             &nbsp;
           </div>
-          {[...Array(numOfTrips)].map((x, i) => (
-            <div key={[...Array(numOfTrips)].length - i}>
+          {[...Array(num_trips)].map((x, i) => (
+            <div key={[...Array(num_trips)].length - i}>
               <div
                 className={`progress-tip-ref-${id}-${
-                  [...Array(numOfTrips)].length - i
+                  [...Array(num_trips)].length - i
                 } progress-tip`}
                 style={{ left: "0%" }}
               ></div>
               <div
                 className={`progress-tip-content-ref-${id}-${
-                  [...Array(numOfTrips)].length - i
+                  [...Array(num_trips)].length - i
                 } progress-tip-content`}
                 style={{ left: "-2.7%" }}
               >
@@ -376,16 +376,16 @@ const Journey = ({
                 {triggerStart
                   ? triggerStop
                     ? "-"
-                    : `${[...Array(numOfTrips)].length - i}`
+                    : `${[...Array(num_trips)].length - i}`
                   : "-"}
                 <p
                   className={`progress-tip-content-trip-no-ref-${id}-${
-                    [...Array(numOfTrips)].length - i
+                    [...Array(num_trips)].length - i
                   } progress-tip-dist`}
                 ></p>
                 <p
                   className={`progress-tip-content-dist-ref-${id}-${
-                    [...Array(numOfTrips)].length - i
+                    [...Array(num_trips)].length - i
                   } progress-tip-dist`}
                 >
                   Dist.: 0m / 0%
@@ -393,7 +393,7 @@ const Journey = ({
                 Elapsed:{" "}
                 <span
                   className={`progress-tip-content-elapsed-time-ref-${id}-${
-                    [...Array(numOfTrips)].length - i
+                    [...Array(num_trips)].length - i
                   } progress-tip-dist`}
                 >
                   {triggerStart ? (triggerStop ? "" : "") : "0m 0s"}
@@ -404,9 +404,9 @@ const Journey = ({
 
           <div className={`bus-stop-ref-${id}`}></div>
           <div className={`bus-stop-dot-ref-${id}`}></div>
-          {[...Array(numBusStops)].map((x, i) => (
+          {[...Array(num_stops)].map((x, i) => (
             <BusStop
-              key={relativeStopDistance[i]?.stopId}
+              key={i}
               id={relativeStopDistance[i]?.stopId}
               busStopNo={relativeStopDistance[i]?.busStopNo}
               globalTime={globalTime}
