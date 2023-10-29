@@ -43,7 +43,7 @@ def main():
             stranded_matrix=output_data["stranded_dict"],
             dispatch_list=output_data["dispatch_dict"],
             objective_value=output_data["objective_value"],
-            slack_penalty=output_data["slack_penalty"]
+            slack_penalty=output_data["slack_penalty"],
             ewt_value=output_data["ewt_value"]
         )
     except Exception as e:

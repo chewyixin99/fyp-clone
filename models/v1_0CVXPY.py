@@ -209,7 +209,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     model = cp.Problem(cp.Minimize(objective_function), constraints)
 
     # Solve the model
-    result = model.solve(solver=cp.OSQP, verbose=not silent, max_iter=100000)
+    result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.00001)
 
     # Output the results
     if not silent:
@@ -218,7 +218,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                         Trip {j:3}: Dispatch offset = {dispatch_offset[j].value:>6.0f}\
                         Time of Dispatch = {original_dispatch[j] + dispatch_offset[j].value:>6.0f}")
 
-        print("\nObjective Function Value:", result)
+        if not unoptimised:
+            print("\nObjective Function Value:", result)
 
     # OUTPUTS NOTE: to refactor once finalised
 
@@ -280,10 +281,15 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         total_awt.append(awt_for_stop)
 
     awt = sum(total_awt)/len(total_awt)
+    slack_penalty = slack.value * 10000
+    
     if not silent:
+        if unoptimised:
+            print(f"Objective Function Value: {sum(obj_fn_dict.values())}")
         print(f"Scheduled waiting time: {swt:.0f}")
         print(f"Actual waiting time: {awt:.0f}")
         print(f"Excess waiting time: {awt-swt:.0f}")
+
     variables_to_return = {
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
@@ -292,11 +298,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         "obj_fn_dict": obj_fn_dict,
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
-        "objective_value": result,
-        "slack_penalty": slack.value * 10000,
+        "objective_value": sum(obj_fn_dict.values()) if unoptimised else result, # assumes unoptimised cannot incur slack penalty
+        "slack_penalty": 0 if unoptimised else slack_penalty, # assumes unoptimised cannot incur slack penalty
         "ewt_value": awt - swt
     }
 
-    if unoptimised:
-        return run_model(data=data, silent=silent, deviated_dispatch_dict=variables_to_return["dispatch_dict"])   
     return variables_to_return
