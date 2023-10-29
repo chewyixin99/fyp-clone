@@ -14,10 +14,13 @@ class MMResultMatrices(BaseModel):
   busload_matrix: dict[str, int]
   arrival_matrix: dict[str, int]
   headway_matrix: dict[str, int]
+  obj_fn_matrix: dict[str, int]
   stranded_matrix: dict[str, int]
   dispatch_list: dict[str, int]
 
   objective_value: float
+  slack_penalty: float
+  ewt_value: float
 
 class MMResponse(BaseModel):
   status: int = 0
