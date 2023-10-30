@@ -9,10 +9,11 @@ import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
-import { AiOutlineSwap } from "react-icons/ai";
+import { AiOutlineSwap, AiOutlineForward } from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 import optimizedOutputJson from "../../public/v1_0CVXPY_optimised_output.json";
+import unoptimizedOutputJson from "../../public/v1_0CVXPY_unoptimised_output.json";
 
 const defaultIntervalTime = 1000;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -27,10 +28,10 @@ const mapContainerStyle = {
   maxWidth: "100%",
 };
 
-// const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
-// const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
-const optimizedFile = "";
-const unoptimizedFile = "";
+const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
+const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
+// const optimizedFile = "";
+// const unoptimizedFile = "";
 
 const CombinedPage = () => {
   // yixin states
@@ -42,24 +43,21 @@ const CombinedPage = () => {
 
   // jianlin states
   const [start, setStart] = useState(false);
-  const [saveHeadwayObj, setSaveHeadwayObj] = useState("");
-  const [saveHeadwayObjOptimised, setSaveHeadwayObjOptimised] = useState("");
+  const [unoptimisedOF, setUnoptimisedOF] = useState({});
+  const [optimisedOF, setOptimisedOF] = useState({});
   const [busStopData, setBusStopData] = useState([]);
+  const [skipToEndTrigger, setSkipToEndTrigger] = useState(false);
+  const [optCumulativeOF, setOptCumulativeOF] = useState(0);
+  const [unoptCumulativeOF, setUnoptCumulativeOF] = useState(0);
+  const [propsCumulativeOF, setPropsCumulativeOF] = useState({"1": 0, "2": 0});
   // end of jianlin states
 
   // jian lin functions
-  const triggerParentSave = (obj, id) => {
-    if (id == 1) {
-      // added json data to object to implement data immutability so that
-      // useEffect hook dependency can be triggered
-      setSaveHeadwayObj({ ["string"]: JSON.stringify(obj), ["obj"]: obj });
-    } else {
-      setSaveHeadwayObjOptimised({
-        ["string"]: JSON.stringify(obj),
-        ["obj"]: obj,
-      });
-    }
+  const onSkipToEndClick = () => {
+    setSkipToEndTrigger(true);
   };
+  useEffect(() => {
+  }, [optCumulativeOF, unoptCumulativeOF,propsCumulativeOF]);
   // end of jian lin functions
 
   // combined
@@ -71,6 +69,10 @@ const CombinedPage = () => {
   const [toggle, setToggle] = useState({
     maps: false,
     line: true,
+  });
+  const [toggleStats, setToggleStates] = useState({
+    output: false,
+    dispatch: true,
   });
   const [dispatchTimes, setDispatchTimes] = useState({});
   // loading states
@@ -84,6 +86,13 @@ const CombinedPage = () => {
     setToggle({
       maps: !toggle.maps,
       line: !toggle.line,
+    });
+  };
+
+  const toggleStatisticsVisibility = () => {
+    setToggleStates({
+      output: !toggleStats.output,
+      dispatch: !toggleStats.dispatch,
     });
   };
 
@@ -331,6 +340,13 @@ const CombinedPage = () => {
         >
           <MdFilterCenterFocus />
         </button>
+        <button
+          onClick={onSkipToEndClick}
+          type="button"
+          className={`control-button`}
+        >
+          <AiOutlineForward />
+        </button>
         <div className="border-l-2 pl-3">{renderFetchStatus()}</div>
         <div className="border-l-2 pl-3">{renderParseStatus()}</div>
         <div className=" ml-10 flex">
@@ -343,27 +359,88 @@ const CombinedPage = () => {
             <AiOutlineSwap />
           </button>
         </div>
+        <div className=" ml-10 flex">
+          <div>Viewing {toggleStats.dispatch ? "Dispatch" : "Output"}</div>
+          <button
+            onClick={toggleStatisticsVisibility}
+            type="button"
+            className="control-button"
+          >
+            <AiOutlineSwap />
+          </button>
+        </div>
       </div>
-      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">
+      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[55vh]">
         {/* Metrics */}
         <div
           className="mx-auto my-2"
           style={{
             width: "75vw",
+            height: "100%",
             justifyContent: "center",
             display: "flex",
           }}
         >
           <Metrics
-            saveHeadwayObj={saveHeadwayObj}
-            saveHeadwayObjOptimised={saveHeadwayObjOptimised}
+            unoptimisedOF={unoptimisedOF}
+            optimisedOF={optimisedOF}
             busStopData={busStopData}
+            skipToEndTrigger={skipToEndTrigger}
+            setOptCumulativeOF={setOptCumulativeOF}
+            setUnoptCumulativeOF={setUnoptCumulativeOF}
+            setPropsCumulativeOF={setPropsCumulativeOF}
           />
         </div>
-        {/* Dispatch timings */}
-        <div className="my-5 w-20vw text-center mx-auto">
-          <DispatchTimings dispatchTimes={dispatchTimes} />
-        </div>
+        {toggleStats.dispatch ? (
+          <div className="my-5 w-20vw text-center mx-auto">
+            <DispatchTimings dispatchTimes={dispatchTimes} />
+          </div>
+        ) : (
+          <div className="my-5 w-20vw mx-auto">
+            <table className="table-auto">
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="text-red-600">Unoptimised Cumulative Headway Deviation</td>
+                  <td>{skipToEndTrigger ? unoptCumulativeOF : propsCumulativeOF["1"]}</td>
+                </tr>
+                <tr>
+                  <td className="text-red-600">Unoptimised Slack Penalty</td>
+                  <td>{unoptimizedOutputJson.slack_penalty}</td>
+                </tr>
+                <tr>
+                  <td className="text-red-600">Unoptimised Cumulative Objective Function</td>
+                  <td>{(skipToEndTrigger ? unoptCumulativeOF : propsCumulativeOF["1"]) + unoptimizedOutputJson.slack_penalty}</td>
+                </tr>
+                <tr>
+                  <td className="text-red-600">Unoptimised Estimated Wait Time</td>
+                  <td>{unoptimizedOutputJson.ewt_value}</td>
+                </tr>
+                <tr>
+                  <td className="text-lime-600">Optimised Cumulative Headway Deviation</td>
+                  <td>{skipToEndTrigger ? optCumulativeOF : propsCumulativeOF["2"]}</td>
+                </tr>
+                <tr>
+                  <td className="text-lime-600">Optimised Slack Penalty</td>
+                  <td>{optimizedOutputJson.slack_penalty}</td>
+                </tr>
+                <tr>
+                  <td className="text-lime-600">Optimised Cumulative Objective Function</td>
+                  <td>{(skipToEndTrigger ? optCumulativeOF : propsCumulativeOF["2"]) + optimizedOutputJson.slack_penalty}</td>
+                </tr>
+                <tr>
+                  <td className="text-lime-600">Optimised Estimated Wait Time</td>
+                  <td>{optimizedOutputJson.ewt_value}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       {/* Line */}
       <div
@@ -381,7 +458,9 @@ const CombinedPage = () => {
               start={start}
               data={journeyDataUnoptimized}
               globalTime={globalTime}
-              triggerParentSave={triggerParentSave}
+              // triggerParentSave={triggerParentSave}
+              setOptimisedOF={setOptimisedOF}
+              setUnoptimisedOF={setUnoptimisedOF}
               setBusStopData={setBusStopData}
             />
           </div>
@@ -397,8 +476,10 @@ const CombinedPage = () => {
               start={start}
               data={journeyData}
               globalTime={globalTime}
-              triggerParentSave={triggerParentSave}
+              // triggerParentSave={triggerParentSave}
               setBusStopData={setBusStopData}
+              setOptimisedOF={setOptimisedOF}
+              setUnoptimisedOF={setUnoptimisedOF}
             />
           </div>
         </div>
