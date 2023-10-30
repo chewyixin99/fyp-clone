@@ -18,7 +18,9 @@ const Journey = ({
   id,
   setBusStopData,
   setUnoptimisedOF,
-  setOptimisedOF
+  setOptimisedOF,
+  skipToEndTrigger,
+  resetChart
 }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
@@ -79,9 +81,7 @@ const Journey = ({
         0
       )}m (${relative_distance_percentage.toFixed(0)}%)
           <br />
-            Headway: <span class="headway-ref-${id}-${
-        relativeStopDistance[i]?.busStopNo
-      }">-</span>
+          
           </span>
         </div>
       </div>`;
@@ -103,6 +103,7 @@ const Journey = ({
     let min = Math.floor(seconds / 60);
     let sec = seconds % 60;
     return min + "m " + sec + "s";
+
   };
 
   const createDataObj = (data) => {
@@ -186,8 +187,10 @@ const Journey = ({
       "%";
 
     let elapsedSeconds = timestamp - busDispatchTimestamps[tripNo];
+    if (elapsedSeconds > 0) {
     progressTipContentElapsedTime.innerHTML =
       convert_seconds_to_time(elapsedSeconds);
+    }
   };
 
   const startRun = () => {
@@ -259,6 +262,12 @@ const Journey = ({
   };
   
   useEffect(() => {
+    setCurrentStop({})   
+    setOFObj({}) 
+  }, [resetChart]);
+
+
+  useEffect(() => {
     if (isRunning) {
       if (id == '1') {
         setUnoptimisedOF({['timingKey']: globalTime, ['obj']: OFObj})
@@ -312,75 +321,15 @@ const Journey = ({
     }
   }, [globalTime, dataObj, isRunning]);
 
+  useEffect(() => {
+    if (skipToEndTrigger){
+      setTriggerStop(true);
+      stop();
+    }
+  },[skipToEndTrigger])
   return (
     <div className="mx-auto">
       <div className="control-panel">
-        {/* <div className="sm:flex gap-2 justify-center">
-          <button
-            onClick={startRun}
-            id={`run_simulation`}
-            type="button"
-            className={`run_simulation inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              className="bi bi-play-fill"
-              viewBox="0 0 16 16"
-            >
-              <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
-            </svg>
-          </button>
-          <button
-            onClick={stop}
-            id={`stop_simulation`}
-            type="button"
-            className={`stop_simulation hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              className="bi bi-stop-fill"
-              viewBox="0 0 16 16"
-            >
-              <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z" />
-            </svg>
-          </button>
-          <button
-            onClick={pause}
-            id={`pause_simulation`}
-            type="button"
-            className={`pause_simulation hidden inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`}
-          >
-            {isRunning ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="currentColor"
-                className="bi bi-pause-fill"
-                viewBox="0 0 16 16"
-              >
-                <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="currentColor"
-                className="bi bi-play-fill"
-                viewBox="0 0 16 16"
-              >
-                <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
-              </svg>
-            )}
-          </button>
-        </div> */}
       </div>
       <div className="route-container">
         <div className="route-bar">
@@ -461,10 +410,12 @@ Journey.propTypes = {
   start: PropTypes.bool,
   data: PropTypes.array,
   globalTime: PropTypes.number,
-  id: PropTypes.number,
+  id: PropTypes.string,
   setBusStopData: PropTypes.func,
   setUnoptimisedOF: PropTypes.func,
   setOptimisedOF: PropTypes.func,
+  skipToEndTrigger: PropTypes.bool,
+  resetChart: PropTypes.bool
 };
 
 export default Journey;

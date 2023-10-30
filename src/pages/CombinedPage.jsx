@@ -49,12 +49,14 @@ const CombinedPage = () => {
   const [skipToEndTrigger, setSkipToEndTrigger] = useState(false);
   const [optCumulativeOF, setOptCumulativeOF] = useState(0);
   const [unoptCumulativeOF, setUnoptCumulativeOF] = useState(0);
-  const [propsCumulativeOF, setPropsCumulativeOF] = useState({"1": 0, "2": 0});
+  const [propsCumulativeOF, setPropsCumulativeOF] = useState({});
+  const [resetChart, setResetChart] = useState(false);
   // end of jianlin states
 
   // jian lin functions
   const onSkipToEndClick = () => {
     setSkipToEndTrigger(true);
+    setResetChart(false);
   };
   useEffect(() => {
   }, [optCumulativeOF, unoptCumulativeOF,propsCumulativeOF]);
@@ -212,7 +214,6 @@ const CombinedPage = () => {
         console.log(
           `optimised done parsing: optimised: ${processedData.journeyData.length} rows`
         );
-        console.log(processedData);
         setStopObjs(processedData.stopObjs);
         setJourneyData(processedData.journeyData);
         setLoadingParseOptimized(false);
@@ -228,7 +229,6 @@ const CombinedPage = () => {
         console.log(
           `unoptimised done parsing: unoptimised: ${processedData.journeyData.length} rows`
         );
-        console.log(processedData);
         setJourneyDataUnoptimized(processedData.journeyData);
         setLoadingParseUnoptimized(false);
       },
@@ -262,6 +262,7 @@ const CombinedPage = () => {
     console.log("start clicked");
     setEnded(false);
     setStart(true);
+    setResetChart(false);
   };
 
   const onPauseClick = () => {
@@ -272,6 +273,8 @@ const CombinedPage = () => {
     setStart(false);
     setEnded(true);
     setPaused(false);
+    setSkipToEndTrigger(false);
+    setResetChart(true);
   };
 
   const onResetZoomAndCenterClick = () => {
@@ -496,6 +499,7 @@ const CombinedPage = () => {
             setOptCumulativeOF={setOptCumulativeOF}
             setUnoptCumulativeOF={setUnoptCumulativeOF}
             setPropsCumulativeOF={setPropsCumulativeOF}
+            resetChart={resetChart}
           />
         </div>
         {toggleStats.dispatch ? (
@@ -514,7 +518,7 @@ const CombinedPage = () => {
               <tbody>
                 <tr>
                   <td className="text-red-600">Unoptimised Cumulative Headway Deviation</td>
-                  <td>{skipToEndTrigger ? unoptCumulativeOF : propsCumulativeOF["1"]}</td>
+                  <td>{skipToEndTrigger ? unoptCumulativeOF : propsCumulativeOF["1"] ? propsCumulativeOF["1"] : 0 }</td>
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Slack Penalty</td>
@@ -522,7 +526,7 @@ const CombinedPage = () => {
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Cumulative Objective Function</td>
-                  <td>{(skipToEndTrigger ? unoptCumulativeOF : propsCumulativeOF["1"]) + unoptimizedOutputJson.slack_penalty}</td>
+                  <td>{skipToEndTrigger ? unoptCumulativeOF + unoptimizedOutputJson.slack_penalty : propsCumulativeOF["1"] ? propsCumulativeOF["1"] : 0}</td>
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Estimated Wait Time</td>
@@ -530,7 +534,7 @@ const CombinedPage = () => {
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Cumulative Headway Deviation</td>
-                  <td>{skipToEndTrigger ? optCumulativeOF : propsCumulativeOF["2"]}</td>
+                  <td>{skipToEndTrigger ? optCumulativeOF : propsCumulativeOF["2"] ? propsCumulativeOF["2"] : 0}</td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Slack Penalty</td>
@@ -538,7 +542,7 @@ const CombinedPage = () => {
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Cumulative Objective Function</td>
-                  <td>{(skipToEndTrigger ? optCumulativeOF : propsCumulativeOF["2"]) + optimizedOutputJson.slack_penalty}</td>
+                  <td>{skipToEndTrigger ? optCumulativeOF + optimizedOutputJson.slack_penalty : propsCumulativeOF["2"] ? propsCumulativeOF["2"] : 0}</td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Estimated Wait Time</td>
@@ -565,10 +569,11 @@ const CombinedPage = () => {
               start={start}
               data={journeyDataUnoptimized}
               globalTime={globalTime}
-              // triggerParentSave={triggerParentSave}
+              skipToEndTrigger={skipToEndTrigger}
               setOptimisedOF={setOptimisedOF}
               setUnoptimisedOF={setUnoptimisedOF}
               setBusStopData={setBusStopData}
+              resetChart={resetChart}
             />
           </div>
           <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
@@ -583,10 +588,11 @@ const CombinedPage = () => {
               start={start}
               data={journeyData}
               globalTime={globalTime}
-              // triggerParentSave={triggerParentSave}
+              skipToEndTrigger={skipToEndTrigger}
               setBusStopData={setBusStopData}
               setOptimisedOF={setOptimisedOF}
               setUnoptimisedOF={setUnoptimisedOF}
+              resetChart={resetChart}
             />
           </div>
         </div>
