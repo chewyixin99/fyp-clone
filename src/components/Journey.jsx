@@ -1,11 +1,12 @@
-/* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
 import React from "react";
 import "../styling/bus-operations.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import BusStop from "./BusStop";
-import { num_trips, num_stops } from "/public/v1_0CVXPY_optimised_output.json"
+import { headway_matrix as headway_matrix_1, obj_fn_matrix as obj_fn_matrix_1} from "/public/v1_0CVXPY_unoptimised_output.json"
+import { num_trips, num_stops, headway_matrix as headway_matrix_2, obj_fn_matrix as obj_fn_matrix_2 } from "/public/v1_0CVXPY_optimised_output.json"
+
 import { bus_stop_data } from "/public/bus_stop_data.json"
 
 const Journey = ({
@@ -15,8 +16,9 @@ const Journey = ({
   data,
   globalTime,
   id,
-  triggerParentSave,
   setBusStopData,
+  setUnoptimisedOF,
+  setOptimisedOF
 }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
@@ -28,7 +30,8 @@ const Journey = ({
   const [dataObj, setDataObj] = useState({});
   const [deployedTrips, setDeployedTrips] = useState([]);
   const [headwayObj, setHeadwayObj] = useState({});
-  const [saveHeadwayObj, setSaveHeadwayObj] = useState({});
+  const [OFObj, setOFObj] = useState({});
+  const [currentStop, setCurrentStop] = useState({})
 
   const distanceDataLoader = (data) => {    
     var output = data.map((item) => {
@@ -43,7 +46,6 @@ const Journey = ({
       setBusStopData(output)
   }
   
-
   const loadBusStops = () => {
     var busStopHTML = ``;
     var busStopDotHTML = ``;
@@ -118,7 +120,6 @@ const Journey = ({
 
   const newRunFunction = (dataObj, localCount) => {
     var data = dataObj;
-
     if (data[localCount] != undefined) {
       for (var i = 0; i < data[localCount].length; i++) {
         if (data[localCount][i].currentStatus == "TRANSIT_TO") {
@@ -214,25 +215,30 @@ const Journey = ({
     }
   };
 
-  const updateLink = () => {
-    triggerParentSave(saveHeadwayObj, id);
-  };
+  const getHW = (currentStop) => {
+    var { modelId, busTripNo, busStopNo } = currentStop
+    var temp_key = busTripNo + ',' + busStopNo
+    if (modelId == '1') {
+      // unoptimised
+      return headway_matrix_1[temp_key]
+    }
+    return headway_matrix_2[temp_key]
+  }
 
-  const updateHeadway = (headway, stopId, busStopNo, tripNo, numBusPast) => {
-    if (headway != 0) {
+  const getOF = (currentStop) => {
+    var { busTripNo, busStopNo } = currentStop
+    var temp_key = busTripNo + ',' + busStopNo
+    if (id == '1') {
+      // unoptimised
+      return obj_fn_matrix_1[temp_key]
+    }
+    return obj_fn_matrix_2[temp_key]
+  }
+
+  const updateHeadway = (headway, stopId, busStopNo, busTripNo) => {
+    if (headway != 0 && isRunning) {
       var current = headwayObj;
-      var currentSave = saveHeadwayObj;
-      if (numBusPast == num_trips) {
-        current[busStopNo] = null;
-        setHeadwayObj(current);
-        return;
-      }
-      // does not overwrite past headway
-      currentSave[[tripNo, busStopNo]] = headway;
-      setSaveHeadwayObj(currentSave);
-      updateLink();
-      // overwrites past headway if new bus comes through
-      current[busStopNo] = headway;
+      current[[busTripNo, busStopNo]] = getHW(currentStop);
       setHeadwayObj(current);
 
       var headwayref = document.querySelector(
@@ -243,7 +249,33 @@ const Journey = ({
       }
     }
   };
-  useEffect(() => {}, [saveHeadwayObj]);
+
+  const updateObjectiveFunction = () => {
+    var { busTripNo, busStopNo } = currentStop
+    var currentOF = getOF(currentStop)
+    var currentSave = OFObj;
+    currentSave[[busTripNo, busStopNo]] = currentOF;
+    setOFObj(currentSave);
+  };
+  
+  useEffect(() => {
+    if (isRunning) {
+      if (id == '1') {
+        setUnoptimisedOF({['timingKey']: globalTime, ['obj']: OFObj})
+      } else {
+        setOptimisedOF({['timingKey']: globalTime, ['obj']: OFObj})
+      }
+    }
+  }, [OFObj, isRunning, currentStop]);
+
+  useEffect(() => {
+    if (isRunning && currentStop.busTripNo){
+      updateObjectiveFunction();
+    }
+
+  }, [currentStop,isRunning]);
+
+  useEffect(() => {}, [OFObj]);
   useEffect(() => {
     distanceDataLoader(bus_stop_data);
     setDataObj(createDataObj(data));
@@ -271,7 +303,7 @@ const Journey = ({
   }, [ended]);
 
   useEffect(() => {
-    console.log("line data parse completed...");
+    console.log("Bus Journey Chart data successfully loaded");
   }, [dataObj]);
 
   useEffect(() => {
@@ -407,12 +439,14 @@ const Journey = ({
           {[...Array(num_stops)].map((x, i) => (
             <BusStop
               key={i}
-              id={relativeStopDistance[i]?.stopId}
+              id={relativeStopDistance[i]?.stopId + 1}
               busStopNo={relativeStopDistance[i]?.busStopNo}
               globalTime={globalTime}
               start={start}
               dataObj={dataObj}
               updateHeadway={updateHeadway}
+              setCurrentStop={setCurrentStop}
+              modelId={id}
             />
           ))}
         </div>
@@ -425,7 +459,12 @@ Journey.propTypes = {
   paused: PropTypes.bool,
   ended: PropTypes.bool,
   start: PropTypes.bool,
-  triggerParentSave: PropTypes.func,
+  data: PropTypes.array,
+  globalTime: PropTypes.number,
+  id: PropTypes.number,
+  setBusStopData: PropTypes.func,
+  setUnoptimisedOF: PropTypes.func,
+  setOptimisedOF: PropTypes.func,
 };
 
 export default Journey;
