@@ -99,7 +99,7 @@ const Journey = ({
   };
 
   const convert_seconds_to_time = (seconds) => {
-    if (seconds == null) return "-";
+    if (isNaN(seconds) || seconds == null) return "-";
     let min = Math.floor(seconds / 60);
     let sec = seconds % 60;
     return min + "m " + sec + "s";
