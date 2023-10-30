@@ -529,7 +529,7 @@ const CombinedPage = () => {
                   <td>{skipToEndTrigger ? unoptCumulativeOF + unoptimizedOutputJson.slack_penalty : propsCumulativeOF["1"] ? propsCumulativeOF["1"] : 0}</td>
                 </tr>
                 <tr>
-                  <td className="text-red-600">Unoptimised Estimated Wait Time</td>
+                  <td className="text-red-600">Unoptimised Excess Wait Time</td>
                   <td>{unoptimizedOutputJson.ewt_value}</td>
                 </tr>
                 <tr>
@@ -545,7 +545,7 @@ const CombinedPage = () => {
                   <td>{skipToEndTrigger ? optCumulativeOF + optimizedOutputJson.slack_penalty : propsCumulativeOF["2"] ? propsCumulativeOF["2"] : 0}</td>
                 </tr>
                 <tr>
-                  <td className="text-lime-600">Optimised Estimated Wait Time</td>
+                  <td className="text-lime-600">Optimised Excess Wait Time</td>
                   <td>{optimizedOutputJson.ewt_value}</td>
                 </tr>
               </tbody>
