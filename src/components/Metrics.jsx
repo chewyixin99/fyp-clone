@@ -207,8 +207,6 @@ const Metrics = ({
   useEffect(() => {
     processObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
     processCumulativeObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
-    console.log("unoptimisedOF", unoptimisedOF);
-    console.log("optimisedOF", optimisedOF);
   }, [unoptimisedOF, optimisedOF]);
 
 
@@ -231,7 +229,6 @@ const Metrics = ({
   }, [resetChart]);
 
   useEffect(() => {
-    console.log(processedData);
   }, [processedCumulativeData, processedData]);
 
   const data = {
