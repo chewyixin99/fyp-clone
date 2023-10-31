@@ -9,7 +9,12 @@ import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
-import { AiOutlineSwap, AiOutlineForward, AiOutlineArrowUp, AiOutlineArrowDown } from "react-icons/ai";
+import {
+  AiOutlineSwap,
+  AiOutlineForward,
+  AiOutlineArrowUp,
+  AiOutlineArrowDown,
+} from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 import optimizedOutputJson from "../../public/v1_0CVXPY_optimised_output.json";
@@ -58,20 +63,29 @@ const CombinedPage = () => {
   const onSkipToEndClick = () => {
     setSkipToEndTrigger(true);
     setResetChart(false);
+    setEnded(true);
+    setStart(false);
+    setPaused(false);
   };
 
   const getPerformanceImprovement = () => {
-    var unopt = (skipToEndTrigger ? unoptCumulativeOF + unoptimizedOutputJson.slack_penalty : propsCumulativeOF["1"] ? propsCumulativeOF["1"] : 0)
-    var opt = (skipToEndTrigger ? optCumulativeOF + optimizedOutputJson.slack_penalty : propsCumulativeOF["2"] ? propsCumulativeOF["2"] : 0)
-    var result = ((unopt - opt) / unopt) * 100
+    let unopt = skipToEndTrigger
+      ? unoptCumulativeOF + unoptimizedOutputJson.slack_penalty
+      : propsCumulativeOF["1"]
+      ? propsCumulativeOF["1"]
+      : 0;
+    let opt = skipToEndTrigger
+      ? optCumulativeOF + optimizedOutputJson.slack_penalty
+      : propsCumulativeOF["2"]
+      ? propsCumulativeOF["2"]
+      : 0;
+    let result = ((unopt - opt) / unopt) * 100;
     if (!isNaN(result) && result != null && isFinite(result)) {
-      setPerformanceImprovement(result.toFixed(2))
+      setPerformanceImprovement(result.toFixed(2));
+    } else {
+      setPerformanceImprovement(0);
     }
-    else {
-      setPerformanceImprovement(0)
-    }
-
-  }
+  };
   useEffect(() => {
     getPerformanceImprovement();
   }, [optCumulativeOF, unoptCumulativeOF, propsCumulativeOF]);
@@ -177,6 +191,7 @@ const CombinedPage = () => {
       })
       .catch((e) => {
         setLoadingFetchOptimized(false);
+        setLoadingParseOptimized(false);
         setErrorFetch(true);
         console.log(e);
         setErrorMsgFetch(e.message);
@@ -211,6 +226,7 @@ const CombinedPage = () => {
       })
       .catch((e) => {
         setLoadingFetchUnoptimized(false);
+        setLoadingParseUnoptimized(false);
         setErrorFetch(true);
         console.log(e);
         setErrorMsgFetch(e.message);
@@ -302,8 +318,7 @@ const CombinedPage = () => {
   };
 
   const renderFetchStatus = () => {
-    const loadingFetch = loadingFetchOptimized || loadingFetchUnoptimized;
-    if (loadingFetch && !errorFetch) {
+    if (!errorFetch) {
       return (
         <div className="flex items-center pr-3">
           <div className="mr-3 flex items-center">
@@ -313,7 +328,7 @@ const CombinedPage = () => {
                 <span className="mx-3">optimised</span>
                 <PuffLoader
                   color="rgb(234, 88, 12)"
-                  loading={loadingFetch}
+                  loading={loadingFetchOptimized}
                   size={15}
                 />
               </div>
@@ -328,7 +343,7 @@ const CombinedPage = () => {
                 <span className="mx-3">unoptimised</span>
                 <PuffLoader
                   color="rgb(234, 88, 12)"
-                  loading={loadingFetch}
+                  loading={loadingFetchUnoptimized}
                   size={15}
                 />
               </div>
@@ -342,69 +357,55 @@ const CombinedPage = () => {
         </div>
       );
     }
-    if (errorFetch) {
-      return (
-        <div className="flex items-center text-red-600">
-          <div>{errorMsgFetch}</div>
-          <button onClick={onRefetchDataClick} className="control-button">
-            <RxReload />
-          </button>
-        </div>
-      );
-    }
     return (
-      <div className="flex items-center text-green-500">
-        <div>Data fetched</div>
-        <TiTick className="mx-3" />
+      <div className="flex items-center text-red-600">
+        <div>{errorMsgFetch}</div>
+        <button onClick={onRefetchDataClick} className="control-button">
+          <RxReload />
+        </button>
       </div>
     );
   };
 
   const renderParseStatus = () => {
-    const loading = loadingParseOptimized || loadingParseUnoptimized;
-    if (loading) {
-      return (
-        <div className="flex items-center pr-3">
-          <div className="mr-3 flex items-center">
-            Parsing data:{" "}
-            {loadingParseOptimized ? (
-              <div className="text-orange-600 flex items-center">
-                <span className="mx-3">optimised</span>
-                <PuffLoader
-                  color="rgb(234, 88, 12)"
-                  loading={loading}
-                  size={15}
-                />
-              </div>
-            ) : (
-              <div className="text-green-500 flex items-center">
-                <span className="mx-3">optimised</span>
-                <TiTick />
-              </div>
-            )}
-            {loadingParseUnoptimized ? (
-              <div className="text-orange-500 flex items-center">
-                <span className="mx-3">unoptimised</span>
-                <PuffLoader
-                  color="rgb(234, 88, 12)"
-                  loading={loading}
-                  size={15}
-                />
-              </div>
-            ) : (
-              <div className="text-green-600 flex items-center">
-                <span className="mx-3">unoptimised</span>
-                <TiTick />
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
+    // if (!errorFetch) {
+    //   // todo: put condition inside here once fully integrated
+    // }
     return (
-      <div className="flex items-center text-green-500">
-        <div>Data parsed</div>
-        <TiTick className="ml-3" />
+      <div className="flex items-center pr-3">
+        <div className="mr-3 flex items-center">
+          Parsing data:
+          {loadingParseOptimized ? (
+            <div className="text-orange-600 flex items-center">
+              <span className="mx-3">optimised</span>
+              <PuffLoader
+                color="rgb(234, 88, 12)"
+                loading={loadingParseOptimized}
+                size={15}
+              />
+            </div>
+          ) : (
+            <div className="text-green-500 flex items-center">
+              <span className="mx-3">optimised</span>
+              <TiTick />
+            </div>
+          )}
+          {loadingParseUnoptimized ? (
+            <div className="text-orange-500 flex items-center">
+              <span className="mx-3">unoptimised</span>
+              <PuffLoader
+                color="rgb(234, 88, 12)"
+                loading={loadingParseUnoptimized}
+                size={15}
+              />
+            </div>
+          ) : (
+            <div className="text-green-600 flex items-center">
+              <span className="mx-3">unoptimised</span>
+              <TiTick />
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -532,49 +533,90 @@ const CombinedPage = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td className="text-red-600">Unoptimised Cumulative Headway Deviation</td>
-                  <td>{skipToEndTrigger ? unoptCumulativeOF.toFixed(2) : propsCumulativeOF["1"] ? propsCumulativeOF["1"].toFixed(2) : 0}</td>
+                  <td className="text-red-600">
+                    Unoptimised Cumulative Headway Deviation
+                  </td>
+                  <td>
+                    {skipToEndTrigger
+                      ? unoptCumulativeOF.toFixed(2)
+                      : propsCumulativeOF["1"]
+                      ? propsCumulativeOF["1"].toFixed(2)
+                      : 0}
+                  </td>
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Slack Penalty</td>
                   <td>{unoptimizedOutputJson.slack_penalty}</td>
                 </tr>
                 <tr>
-                  <td className="text-red-600">Unoptimised Cumulative Objective Function</td>
-                  <td>{skipToEndTrigger ? (unoptCumulativeOF + unoptimizedOutputJson.slack_penalty).toFixed(2) : propsCumulativeOF["1"] ? propsCumulativeOF["1"].toFixed(2) : 0}</td>
+                  <td className="text-red-600">
+                    Unoptimised Cumulative Objective Function
+                  </td>
+                  <td>
+                    {skipToEndTrigger
+                      ? (
+                          unoptCumulativeOF +
+                          unoptimizedOutputJson.slack_penalty
+                        ).toFixed(2)
+                      : propsCumulativeOF["1"]
+                      ? propsCumulativeOF["1"].toFixed(2)
+                      : 0}
+                  </td>
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Excess Wait Time</td>
-                  <td>{(unoptimizedOutputJson.ewt_value).toFixed(2)}</td>
+                  <td>{unoptimizedOutputJson.ewt_value.toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td className="text-lime-600">Optimised Cumulative Headway Deviation</td>
-                  <td>{skipToEndTrigger ? optCumulativeOF.toFixed(2) : propsCumulativeOF["2"] ? propsCumulativeOF["2"].toFixed(2) : 0}</td>
+                  <td className="text-lime-600">
+                    Optimised Cumulative Headway Deviation
+                  </td>
+                  <td>
+                    {skipToEndTrigger
+                      ? optCumulativeOF.toFixed(2)
+                      : propsCumulativeOF["2"]
+                      ? propsCumulativeOF["2"].toFixed(2)
+                      : 0}
+                  </td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Slack Penalty</td>
                   <td>{optimizedOutputJson.slack_penalty.toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td className="text-lime-600">Optimised Cumulative Objective Function</td>
-                  <td>{skipToEndTrigger ? (optCumulativeOF + optimizedOutputJson.slack_penalty).toFixed(2) : propsCumulativeOF["2"] ? propsCumulativeOF["2"].toFixed(2) : 0}</td>
+                  <td className="text-lime-600">
+                    Optimised Cumulative Objective Function
+                  </td>
+                  <td>
+                    {skipToEndTrigger
+                      ? (
+                          optCumulativeOF + optimizedOutputJson.slack_penalty
+                        ).toFixed(2)
+                      : propsCumulativeOF["2"]
+                      ? propsCumulativeOF["2"].toFixed(2)
+                      : 0}
+                  </td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Excess Wait Time</td>
-                  <td>{(optimizedOutputJson.ewt_value).toFixed(2)}</td>
+                  <td>{optimizedOutputJson.ewt_value.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td className="text-blue-700">Performance Improvement</td>
                   <td>
-                    {performanceImprovement == 0 ? "" : (performanceImprovement > 0 ? (
-                      <div style={{display: "flex", alignItems: "center"}}>
-                        {performanceImprovement} % <AiOutlineArrowUp className="text-green-600 mx-1" />
+                    {performanceImprovement == 0 ? (
+                      ""
+                    ) : performanceImprovement > 0 ? (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        {performanceImprovement} %{" "}
+                        <AiOutlineArrowUp className="text-green-600 mx-1" />
                       </div>
                     ) : (
-                      <div style={{display: "flex", alignItems: "center"}}>
-                        {performanceImprovement} % <AiOutlineArrowDown className="text-red-600 mx-1" />
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        {performanceImprovement} %{" "}
+                        <AiOutlineArrowDown className="text-red-600 mx-1" />
                       </div>
-                    ))}
+                    )}
                   </td>
                 </tr>
               </tbody>
