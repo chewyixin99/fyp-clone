@@ -9,7 +9,7 @@ import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
-import { AiOutlineSwap, AiOutlineForward } from "react-icons/ai";
+import { AiOutlineSwap, AiOutlineForward, AiOutlineArrowUp, AiOutlineArrowDown } from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 import optimizedOutputJson from "../../public/v1_0CVXPY_optimised_output.json";
@@ -51,6 +51,7 @@ const CombinedPage = () => {
   const [unoptCumulativeOF, setUnoptCumulativeOF] = useState(0);
   const [propsCumulativeOF, setPropsCumulativeOF] = useState({});
   const [resetChart, setResetChart] = useState(false);
+  const [performanceImprovement, setPerformanceImprovement] = useState(0);
   // end of jianlin states
 
   // jian lin functions
@@ -58,8 +59,22 @@ const CombinedPage = () => {
     setSkipToEndTrigger(true);
     setResetChart(false);
   };
+
+  const getPerformanceImprovement = () => {
+    var unopt = (skipToEndTrigger ? unoptCumulativeOF + unoptimizedOutputJson.slack_penalty : propsCumulativeOF["1"] ? propsCumulativeOF["1"] : 0)
+    var opt = (skipToEndTrigger ? optCumulativeOF + optimizedOutputJson.slack_penalty : propsCumulativeOF["2"] ? propsCumulativeOF["2"] : 0)
+    var result = ((unopt - opt) / unopt) * 100
+    if (!isNaN(result) && result != null && isFinite(result)) {
+      setPerformanceImprovement(result.toFixed(2))
+    }
+    else {
+      setPerformanceImprovement(0)
+    }
+
+  }
   useEffect(() => {
-  }, [optCumulativeOF, unoptCumulativeOF,propsCumulativeOF]);
+    getPerformanceImprovement();
+  }, [optCumulativeOF, unoptCumulativeOF, propsCumulativeOF]);
   // end of jian lin functions
 
   // combined
@@ -518,7 +533,7 @@ const CombinedPage = () => {
               <tbody>
                 <tr>
                   <td className="text-red-600">Unoptimised Cumulative Headway Deviation</td>
-                  <td>{skipToEndTrigger ? unoptCumulativeOF : propsCumulativeOF["1"] ? propsCumulativeOF["1"] : 0 }</td>
+                  <td>{skipToEndTrigger ? unoptCumulativeOF.toFixed(2) : propsCumulativeOF["1"] ? propsCumulativeOF["1"].toFixed(2) : 0}</td>
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Slack Penalty</td>
@@ -526,27 +541,41 @@ const CombinedPage = () => {
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Cumulative Objective Function</td>
-                  <td>{skipToEndTrigger ? unoptCumulativeOF + unoptimizedOutputJson.slack_penalty : propsCumulativeOF["1"] ? propsCumulativeOF["1"] : 0}</td>
+                  <td>{skipToEndTrigger ? (unoptCumulativeOF + unoptimizedOutputJson.slack_penalty).toFixed(2) : propsCumulativeOF["1"] ? propsCumulativeOF["1"].toFixed(2) : 0}</td>
                 </tr>
                 <tr>
                   <td className="text-red-600">Unoptimised Excess Wait Time</td>
-                  <td>{unoptimizedOutputJson.ewt_value}</td>
+                  <td>{(unoptimizedOutputJson.ewt_value).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Cumulative Headway Deviation</td>
-                  <td>{skipToEndTrigger ? optCumulativeOF : propsCumulativeOF["2"] ? propsCumulativeOF["2"] : 0}</td>
+                  <td>{skipToEndTrigger ? optCumulativeOF.toFixed(2) : propsCumulativeOF["2"] ? propsCumulativeOF["2"].toFixed(2) : 0}</td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Slack Penalty</td>
-                  <td>{optimizedOutputJson.slack_penalty}</td>
+                  <td>{optimizedOutputJson.slack_penalty.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Cumulative Objective Function</td>
-                  <td>{skipToEndTrigger ? optCumulativeOF + optimizedOutputJson.slack_penalty : propsCumulativeOF["2"] ? propsCumulativeOF["2"] : 0}</td>
+                  <td>{skipToEndTrigger ? (optCumulativeOF + optimizedOutputJson.slack_penalty).toFixed(2) : propsCumulativeOF["2"] ? propsCumulativeOF["2"].toFixed(2) : 0}</td>
                 </tr>
                 <tr>
                   <td className="text-lime-600">Optimised Excess Wait Time</td>
-                  <td>{optimizedOutputJson.ewt_value}</td>
+                  <td>{(optimizedOutputJson.ewt_value).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td className="text-blue-700">Performance Improvement</td>
+                  <td>
+                    {performanceImprovement == 0 ? "" : (performanceImprovement > 0 ? (
+                      <div style={{display: "flex", alignItems: "center"}}>
+                        {performanceImprovement} % <AiOutlineArrowUp className="text-green-600 mx-1" />
+                      </div>
+                    ) : (
+                      <div style={{display: "flex", alignItems: "center"}}>
+                        {performanceImprovement} % <AiOutlineArrowDown className="text-red-600 mx-1" />
+                      </div>
+                    ))}
+                  </td>
                 </tr>
               </tbody>
             </table>
