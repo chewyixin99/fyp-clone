@@ -9,16 +9,11 @@ import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
-import {
-  AiOutlineSwap,
-  AiOutlineForward,
-  AiOutlineArrowUp,
-  AiOutlineArrowDown,
-} from "react-icons/ai";
+import { AiOutlineSwap, AiOutlineForward } from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 import optimizedOutputJson from "../../public/v1_0CVXPY_optimised_output.json";
-import unoptimizedOutputJson from "../../public/v1_0CVXPY_unoptimised_output.json";
+import PerformanceOutput from "../components/PerformanceOutput";
 
 const defaultIntervalTime = 1000;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -56,7 +51,6 @@ const CombinedPage = () => {
   const [unoptCumulativeOF, setUnoptCumulativeOF] = useState(0);
   const [propsCumulativeOF, setPropsCumulativeOF] = useState({});
   const [resetChart, setResetChart] = useState(false);
-  const [performanceImprovement, setPerformanceImprovement] = useState(0);
   // end of jianlin states
 
   // jian lin functions
@@ -67,28 +61,6 @@ const CombinedPage = () => {
     setStart(false);
     setPaused(false);
   };
-
-  const getPerformanceImprovement = () => {
-    let unopt = skipToEndTrigger
-      ? unoptCumulativeOF + unoptimizedOutputJson.slack_penalty
-      : propsCumulativeOF["1"]
-      ? propsCumulativeOF["1"]
-      : 0;
-    let opt = skipToEndTrigger
-      ? optCumulativeOF + optimizedOutputJson.slack_penalty
-      : propsCumulativeOF["2"]
-      ? propsCumulativeOF["2"]
-      : 0;
-    let result = ((unopt - opt) / unopt) * 100;
-    if (!isNaN(result) && result != null && isFinite(result)) {
-      setPerformanceImprovement(result.toFixed(2));
-    } else {
-      setPerformanceImprovement(0);
-    }
-  };
-  useEffect(() => {
-    getPerformanceImprovement();
-  }, [optCumulativeOF, unoptCumulativeOF, propsCumulativeOF]);
   // end of jian lin functions
 
   // combined
@@ -294,6 +266,7 @@ const CombinedPage = () => {
     setEnded(false);
     setStart(true);
     setResetChart(false);
+    setSkipToEndTrigger(false);
   };
 
   const onPauseClick = () => {
@@ -523,105 +496,12 @@ const CombinedPage = () => {
             <DispatchTimings dispatchTimes={dispatchTimes} />
           </div>
         ) : (
-          <div className="my-5 w-20vw mx-auto">
-            <table className="table-auto">
-              <thead>
-                <tr>
-                  <th>Variable</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="text-red-600">
-                    Unoptimised Cumulative Headway Deviation
-                  </td>
-                  <td>
-                    {skipToEndTrigger
-                      ? unoptCumulativeOF.toFixed(2)
-                      : propsCumulativeOF["1"]
-                      ? propsCumulativeOF["1"].toFixed(2)
-                      : 0}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="text-red-600">Unoptimised Slack Penalty</td>
-                  <td>{unoptimizedOutputJson.slack_penalty}</td>
-                </tr>
-                <tr>
-                  <td className="text-red-600">
-                    Unoptimised Cumulative Objective Function
-                  </td>
-                  <td>
-                    {skipToEndTrigger
-                      ? (
-                          unoptCumulativeOF +
-                          unoptimizedOutputJson.slack_penalty
-                        ).toFixed(2)
-                      : propsCumulativeOF["1"]
-                      ? propsCumulativeOF["1"].toFixed(2)
-                      : 0}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="text-red-600">Unoptimised Excess Wait Time</td>
-                  <td>{unoptimizedOutputJson.ewt_value.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td className="text-lime-600">
-                    Optimised Cumulative Headway Deviation
-                  </td>
-                  <td>
-                    {skipToEndTrigger
-                      ? optCumulativeOF.toFixed(2)
-                      : propsCumulativeOF["2"]
-                      ? propsCumulativeOF["2"].toFixed(2)
-                      : 0}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="text-lime-600">Optimised Slack Penalty</td>
-                  <td>{optimizedOutputJson.slack_penalty.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td className="text-lime-600">
-                    Optimised Cumulative Objective Function
-                  </td>
-                  <td>
-                    {skipToEndTrigger
-                      ? (
-                          optCumulativeOF + optimizedOutputJson.slack_penalty
-                        ).toFixed(2)
-                      : propsCumulativeOF["2"]
-                      ? propsCumulativeOF["2"].toFixed(2)
-                      : 0}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="text-lime-600">Optimised Excess Wait Time</td>
-                  <td>{optimizedOutputJson.ewt_value.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td className="text-blue-700">Performance Improvement</td>
-                  <td>
-                    {performanceImprovement == 0 ? (
-                      ""
-                    ) : performanceImprovement > 0 ? (
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        {performanceImprovement} %{" "}
-                        <AiOutlineArrowUp className="text-green-600 mx-1" />
-                      </div>
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        {performanceImprovement} %{" "}
-                        <AiOutlineArrowDown className="text-red-600 mx-1" />
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <PerformanceOutput
+            skipToEndTrigger={skipToEndTrigger}
+            propsCumulativeOF={propsCumulativeOF}
+            optCumulativeOF={optCumulativeOF}
+            unoptCumulativeOF={unoptCumulativeOF}
+          />
         )}
       </div>
       {/* Line */}

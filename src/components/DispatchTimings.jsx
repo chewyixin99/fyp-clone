@@ -160,7 +160,7 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
   };
 
   return (
-    <div>
+    <div className="text-xs">
       <div className="pb-3">Dispatch timings (sec)</div>
       <div className="overflow-y-scroll h-[30vh] border-2">
         <div>
