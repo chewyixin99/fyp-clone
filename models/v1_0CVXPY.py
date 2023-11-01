@@ -1,5 +1,3 @@
-# v1.0 is the original Q-hat proposed by K.Gkiotsalitis et al.
-
 import cvxpy as cp
 import numpy as np
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
