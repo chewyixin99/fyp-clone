@@ -28,7 +28,7 @@ async def get_result_matrices(request: MMResultRequest):
   '''  
   try:
     request.validate()
-    result = mm.get_mm_result_matrices(
+    result = await mm.get_mm_result_matrices(
       deviated_dispatch_dict=request.deviated_dispatch_dict,
       unoptimised=request.unoptimised
     )
@@ -65,7 +65,7 @@ async def get_result_feed(request: MMFeedRequest):
   '''
   try:
     request.validate()
-    result = mm.get_mm_result_feed(
+    result = await mm.get_mm_result_feed(
       polling_rate=request.polling_rate,
       deviated_dispatch_dict=request.deviated_dispatch_dict,
       unoptimised=request.unoptimised

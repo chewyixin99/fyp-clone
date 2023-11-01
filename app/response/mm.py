@@ -14,7 +14,7 @@ class MMResultMatrices(BaseModel):
   busload_matrix: dict[str, int]
   arrival_matrix: dict[str, int]
   headway_matrix: dict[str, int]
-  obj_fn_matrix: dict[str, int]
+  obj_fn_matrix: dict[str, float]
   stranded_matrix: dict[str, int]
   dispatch_list: dict[str, int]
 

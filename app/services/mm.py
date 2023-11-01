@@ -1,22 +1,23 @@
 import os
 import json
 
+from ..services.mm_cache import mm_cache_key_gen, set_mm_result_cache, get_mm_result_cache
 from ..mm.model import run_model
 from ..mm.utils.transformation import compress_dicts, json_to_feed
 
-def get_mm_result_matrices(
+async def get_mm_result_matrices(
   deviated_dispatch_dict: dict[str, any],
   unoptimised: bool
 ):
   '''
     Transform result to json and return result.
   '''
-  return get_mm_raw_result(
+  return await get_mm_raw_result(
     deviated_dispatch_dict=deviated_dispatch_dict,
     unoptimised=unoptimised
-  ) # TODO: PF-190 - retrieve this data from cache 
+  )
 
-def get_mm_result_feed(
+async def get_mm_result_feed(
   polling_rate: int,
   deviated_dispatch_dict: dict[str, any],
   unoptimised: bool
@@ -24,10 +25,10 @@ def get_mm_result_feed(
   '''
     Transform result to feed and return result.
   '''
-  output_data = get_mm_raw_result(
+  output_data = await get_mm_raw_result(
     deviated_dispatch_dict=deviated_dispatch_dict,
     unoptimised=unoptimised
-  ) # TODO: PF-190 - retrieve this data from cache 
+  )
 
   result = json_to_feed(
     polling_rate=polling_rate,
@@ -41,10 +42,10 @@ async def get_mm_result_feed_stream(
   deviated_dispatch_dict: dict[str, any],
   unoptimised: bool
 ):
-  output_data = get_mm_raw_result(
+  output_data = await get_mm_raw_result(
     deviated_dispatch_dict=deviated_dispatch_dict,
     unoptimised=unoptimised
-  ) # TODO: PF-190 - retrieve this data from cache 
+  )
 
   result = json_to_feed(
     polling_rate=polling_rate,
@@ -55,7 +56,7 @@ async def get_mm_result_feed_stream(
   for _, row in result.iterrows():
     yield json.dumps(row.to_dict()) + '\n'
 
-def get_mm_raw_result(
+async def get_mm_raw_result(
   deviated_dispatch_dict: dict[str, any],
   unoptimised: bool
 ):
@@ -63,16 +64,20 @@ def get_mm_raw_result(
     Coordinates running of model and returning of raw result.
     Checks if data has been cached. Unless there is cached data, run the model.
   '''
+  cache_key = mm_cache_key_gen(deviated_dispatch_dict, unoptimised)
+  result = await get_mm_result_cache(cache_key)
+  if result != None:
+    return result
+
   silent = False
   input_data = get_mm_input_data()
+
   output_data = run_model(
     data=input_data,
     deviated_dispatch_dict=deviated_dispatch_dict,
     silent=silent,
     unoptimised=unoptimised
-  ) # TODO: PF-190 - check cached data before running here
-
-  # TODO: PF-190 - save output to cache if model is ran
+  )
 
   result = compress_dicts(
     num_trips=input_data["num_trips"],
@@ -82,15 +87,20 @@ def get_mm_raw_result(
     coordinates_list=input_data["coordinates_list"],
     stop_ids_list=input_data["stop_ids_list"],
     stop_names_list=input_data["stop_names_list"],
+    weights_list=input_data["weights_list"],
     dwell_matrix=output_data["dwell_dict"],
     busload_matrix=output_data["busload_dict"],
     arrival_matrix=output_data["arrival_dict"],
     headway_matrix=output_data["headway_dict"],
+    obj_fn_matrix=output_data["obj_fn_dict"],
     stranded_matrix=output_data["stranded_dict"],
     dispatch_list=output_data["dispatch_dict"],
     objective_value=output_data["objective_value"],
+    slack_penalty=output_data["slack_penalty"],
+    ewt_value=output_data["ewt_value"]
   )
 
+  await set_mm_result_cache(cache_key, result)
   return result
 
 def get_mm_input_data():

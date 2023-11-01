@@ -3,7 +3,11 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 
+from contextlib import asynccontextmanager
+
 from .routers import admin, mm_mock, mm
+from .services.mm import get_mm_raw_result
+from .services.mm_cache import redis
 from .response.error import APIException
 from .response.standard import APIResponse
 
@@ -20,11 +24,29 @@ tags_metadata = [
   }
 ]
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  '''
+    This function caches an unoptimised and optimised base result without any deviations on server start.
+    We flush all keys from the cache at the end of the lifspan of the app.
+  '''
+  await get_mm_raw_result (
+    deviated_dispatch_dict={},
+    unoptimised=False
+  )
+  await get_mm_raw_result (
+    deviated_dispatch_dict={},
+    unoptimised=True
+  )
+  yield
+  redis.flushall()
+
 app = FastAPI(
   title="Star Command",
   summary="API endpoints to integrate the Visualizer, MM and Pippen's data.",
   openapi_tags=tags_metadata,
-  docs_url="/"
+  docs_url="/",
+  lifespan=lifespan
 )
 
 origins = ["*"]

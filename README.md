@@ -19,8 +19,15 @@ Star Command is the backend server that helps integrate our data as calls for ou
   pip install -r requirements.txt
 ```
 
+4. Install [redis](https://redis.io/docs/install/install-redis/).
+
 ## Running Star Command
-1.  To serve the server.
+1. Run your redis server.
+```
+  redis-server
+```
+
+2.  To serve the server.
 ```
   uvicorn app.main:app --reload 
 ```
