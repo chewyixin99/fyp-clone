@@ -82,6 +82,7 @@ const DispatchTimings = React.memo(
         },
         body: JSON.stringify(requestBody),
       };
+      console.log(requestBody);
 
       await fetch(urlCsv, options)
         .then((response) => {
@@ -153,7 +154,7 @@ const DispatchTimings = React.memo(
     return (
       <div className="text-xs my-5">
         <div className="pb-3">Dispatch timings (sec)</div>
-        {errorFetch ? (
+        {errorFetch && Object.keys(dispatchTimes).length === 0 ? (
           <div className="text-orange-500">{errorMsgFetch}</div>
         ) : (
           <div className="overflow-y-scroll h-[30vh] border-2">
