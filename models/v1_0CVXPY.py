@@ -51,13 +51,12 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
 
     # Transformation to dictionaries to be referred to by the constraints
     original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
-    prev_arrival = convert_list_to_dict(data["prev_arrival_list"], 1, num_stops) # MODIFIED keep for rolling horizons
-    prev_dwell = convert_list_to_dict(data["prev_dwell_list"], 1, num_stops-1) # doesn't seem to be used
+    prev_arrival = convert_list_to_dict(data["prev_arrival_list"], 1, num_stops)
+    prev_dwell = convert_list_to_dict(data["prev_dwell_list"], 1, num_stops-1)
     arrival_rate = convert_list_to_dict(data["arrival_rate_list"], 1, num_stops)
     alighting_percentage = convert_list_to_dict(data["alighting_percentage_list"], 2, num_stops)
     weights = convert_list_to_dict(data["weights_list"], 2, num_stops)
     bus_availability = convert_list_to_dict(data["bus_availability_list"], 1, num_trips)
-    initial_passengers = convert_list_to_dict(data["initial_passengers_list"], 1, num_stops)
     target_headway = convert_2dlist_to_dict(data["target_headway_2dlist"], 1, num_trips, 2, num_stops)
     interstation_travel = convert_2dlist_to_dict(data["interstation_travel_2dlist"], 1, num_trips, 1, num_stops-1)
 
@@ -171,7 +170,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                             - alighting_percentage[s-1] * busload[j,s-1])
 
     # Equation 16a, Constraint 35 additional constraints to implement soft constraint:
-    # essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
+    # essentially a smooth way to do max(abs(x[j]) - max_allowed_deviation, 0)
     constraints.append(slack >= (dispatch_offset[num_trips] - max_allowed_deviation))
 
     # Equation 16b, Constraint 35 additional constraints to implement soft constraint:
