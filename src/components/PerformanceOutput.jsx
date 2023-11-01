@@ -93,17 +93,18 @@ const PerformanceOutput = React.memo(
       let tmpUpdatedCumulativeHD;
       let tmpPerfImprovement;
       if (skipToEndTrigger) {
-        tmpUnoptCumulativeOF =
-          unoptCumulativeOF + unoptimizedOutputJson.slack_penalty;
+        tmpOptCumulativeHD = optCumulativeOF;
+        tmpUnoptCumulativeHD = unoptCumulativeOF;
+
         tmpOptCumulativeOF =
           optCumulativeOF + optimizedOutputJson.slack_penalty;
-        tmpUnoptCumulativeHD = unoptCumulativeOF;
-        tmpOptCumulativeHD = optCumulativeOF;
+        tmpUnoptCumulativeOF =
+          unoptCumulativeOF + unoptimizedOutputJson.slack_penalty;
 
+        tmpUpdatedCumulativeHD = optCumulativeOF;
         tmpUpdatedCumulativeOF = updatedOutputJson.slack_penalty
           ? optCumulativeOF + updatedOutputJson.slack_penalty
           : tmpOptCumulativeOF;
-        tmpUpdatedCumulativeHD = tmpUpdatedCumulativeOF;
       } else {
         tmpUnoptCumulativeOF = propsCumulativeOF["1"]
           ? propsCumulativeOF["1"]
