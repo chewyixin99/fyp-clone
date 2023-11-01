@@ -1,16 +1,20 @@
-import redis as r
 import hashlib
 import json
 import pickle
 
-redis = r.Redis(host='localhost', port=6379)
+from .cache import redis
 
-def mm_cache_key_gen(deviated_dispatch_dict: dict[str, any], unoptimised:bool) -> str:
+def mm_cache_key_gen(
+  deviated_dispatch_dict: dict[str, any],
+  unoptimised: bool,
+  uploaded_file: bool = False
+) -> str:
   '''
     Generates a hash based on a unique run of the MM.
   '''
   key_dict = deviated_dispatch_dict.copy()
   key_dict['unoptimised'] = unoptimised
+  key_dict['uploaded_file'] = uploaded_file
   encoded_dict = json.dumps(key_dict)
   return hashlib.sha256(encoded_dict.encode()).hexdigest()
 

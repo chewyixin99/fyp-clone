@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from ..response.standard import APIResponse
 from http import HTTPStatus
 
@@ -6,6 +6,11 @@ router = APIRouter(
   prefix="/admin",
   responses={404: {"model": APIResponse}}
 )
+
+metadata = {
+  "name": "Admin",
+  "description": "Administrative endpoints to query different statuses and stats of the server."
+}
 
 @router.get(
   "/healthcheck",

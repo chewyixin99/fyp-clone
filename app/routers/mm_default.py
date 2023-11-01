@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import Response, StreamingResponse
 
 from http import HTTPStatus
@@ -10,16 +10,22 @@ from ..response.mm import MMResultMatrices, MMResponse
 from ..response.error import APIException
 
 router = APIRouter(
-  prefix="/mm",
+  prefix="/mm_default",
   responses={404: {"model": APIResponse}}
 )
 
+metadata =  {
+  "name": "Mathematical Model (Default Data)",
+  "description": "Orchestrator endpoints to manage MM to generate results for the Visualizer. This makes use of a `pre-cleaned` dataset."
+}
+
 @router.post(
   "/result_matrices",
-  tags=["Mathematical Model"],
+  tags=["Mathematical Model (Default Data)"],
   responses={
     200: {"model": MMResponse},
-    500: {"model": APIResponse}
+    500: {"model": APIResponse},
+    400: {"model": APIResponse}
   }
 )
 async def get_result_matrices(request: MMResultRequest):
@@ -39,7 +45,6 @@ async def get_result_matrices(request: MMResultRequest):
     raise e
 
   except Exception as e:
-    print(e)
     raise APIException(
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
@@ -56,14 +61,15 @@ async def get_result_matrices(request: MMResultRequest):
 
 @router.post(
   "/result_feed",
-  tags=["Mathematical Model"],
+  tags=["Mathematical Model (Default Data)"],
   responses={
-    500: {"model": APIResponse}
+    500: {"model": APIResponse},
+    400: {"model": APIResponse}
   }
 )
 async def get_result_feed(request: MMFeedRequest):
   '''
-    Provides mock (static) csv files from the mathematical model for rendering by the Visualizer.
+    Provides a `.csv file` simulating the polling rate based off results from the mathematical model for rendering by the Visualizer.
   '''
   try:
     request.validate()
@@ -90,14 +96,15 @@ async def get_result_feed(request: MMFeedRequest):
 
 @router.post(
   "/result_feed_stream",
-  tags=["Mathematical Model"],
+  tags=["Mathematical Model (Default Data)"],
   responses={
-    500: {"model": APIResponse}
+    500: {"model": APIResponse},
+    400: {"model": APIResponse}
   }
 )
 async def get_result_feed_stream(request: MMFeedRequest):
   '''
-    Provides mock (static) csv files from the mathematical model for rendering by the Visualizer via a streaming response.
+    Provides a `JSON stream` simulating the polling rate based off results from the mathematical model for rendering by the Visualizer.
   '''
   try:
     request.validate()

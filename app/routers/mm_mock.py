@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
 import os
@@ -15,12 +15,18 @@ router = APIRouter(
   responses={404: {"model": APIResponse}}
 )
 
+metadata = {
+  "name": "Mathematical Model (Mock)",
+  "description": "Endpoints for mock data for Visualiser rendering. This does not take any form of results from the MM."
+}
+
 @router.post(
   "/result_matrices",
   tags=["Mathematical Model (Mock)"],
   responses={
     200: {"model": MMResponse},
-    500: {"model": APIResponse}
+    500: {"model": APIResponse},
+    400: {"model": APIResponse}
   }
 )
 async def get_mock_result_matrices(request: MMResultRequest):
@@ -60,7 +66,8 @@ async def get_mock_result_matrices(request: MMResultRequest):
   "/result_feed",
   tags=["Mathematical Model (Mock)"],
   responses={
-    500: {"model": APIResponse}
+    500: {"model": APIResponse},
+    400: {"model": APIResponse}
   }
 )
 async def get_mock_result_feed(request: MMFeedRequest):
