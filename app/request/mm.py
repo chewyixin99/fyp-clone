@@ -7,6 +7,7 @@ from ..response.error import APIException
 class MMResultRequest(BaseModel):
   unoptimised: bool = False
   deviated_dispatch_dict: dict[str, int] = {}
+  regenerate_results: bool = False
   
   def validate(self):
     if bool(dict):
@@ -23,6 +24,7 @@ class MMFeedRequest(BaseModel):
   unoptimised: bool = False
   polling_rate: int = 1
   deviated_dispatch_dict: dict[str, int] = {}
+  regenerate_results: bool = False
 
   def validate(self):
     if self.polling_rate == 0:

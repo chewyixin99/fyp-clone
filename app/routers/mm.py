@@ -30,7 +30,8 @@ async def get_result_matrices(request: MMResultRequest):
     request.validate()
     result = await mm.get_mm_result_matrices(
       deviated_dispatch_dict=request.deviated_dispatch_dict,
-      unoptimised=request.unoptimised
+      unoptimised=request.unoptimised,
+      regenerate_results=request.regenerate_results
     )
     data = MMResultMatrices(**result)
 
@@ -38,6 +39,7 @@ async def get_result_matrices(request: MMResultRequest):
     raise e
 
   except Exception as e:
+    print(e)
     raise APIException(
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
@@ -68,7 +70,8 @@ async def get_result_feed(request: MMFeedRequest):
     result = await mm.get_mm_result_feed(
       polling_rate=request.polling_rate,
       deviated_dispatch_dict=request.deviated_dispatch_dict,
-      unoptimised=request.unoptimised
+      unoptimised=request.unoptimised,
+      regenerate_results=request.regenerate_results
     )
 
   except APIException as e:
@@ -103,7 +106,8 @@ async def get_result_feed_stream(request: MMFeedRequest):
       content=mm.get_mm_result_feed_stream(
         polling_rate=request.polling_rate,
         deviated_dispatch_dict=request.deviated_dispatch_dict,
-        unoptimised=request.unoptimised
+        unoptimised=request.unoptimised,
+        regenerate_results=request.regenerate_results
       ),
       media_type="application/json"
     )

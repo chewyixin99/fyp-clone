@@ -32,11 +32,13 @@ async def lifespan(app: FastAPI):
   '''
   await get_mm_raw_result (
     deviated_dispatch_dict={},
-    unoptimised=False
+    unoptimised=False,
+    regenerate_results=True
   )
   await get_mm_raw_result (
     deviated_dispatch_dict={},
-    unoptimised=True
+    unoptimised=True,
+    regenerate_results=True
   )
   yield
   redis.flushall()

@@ -7,27 +7,31 @@ from ..mm.utils.transformation import compress_dicts, json_to_feed
 
 async def get_mm_result_matrices(
   deviated_dispatch_dict: dict[str, any],
-  unoptimised: bool
+  unoptimised: bool,
+  regenerate_results: bool
 ):
   '''
     Transform result to json and return result.
   '''
   return await get_mm_raw_result(
     deviated_dispatch_dict=deviated_dispatch_dict,
-    unoptimised=unoptimised
+    unoptimised=unoptimised,
+    regenerate_results=regenerate_results
   )
 
 async def get_mm_result_feed(
   polling_rate: int,
   deviated_dispatch_dict: dict[str, any],
-  unoptimised: bool
+  unoptimised: bool,
+  regenerate_results: bool
 ):
   '''
     Transform result to feed and return result.
   '''
   output_data = await get_mm_raw_result(
     deviated_dispatch_dict=deviated_dispatch_dict,
-    unoptimised=unoptimised
+    unoptimised=unoptimised,
+    regenerate_results=regenerate_results
   )
 
   result = json_to_feed(
@@ -40,11 +44,13 @@ async def get_mm_result_feed(
 async def get_mm_result_feed_stream(
   polling_rate: int,
   deviated_dispatch_dict: dict[str, any],
-  unoptimised: bool
+  unoptimised: bool,
+  regenerate_results: bool
 ):
   output_data = await get_mm_raw_result(
     deviated_dispatch_dict=deviated_dispatch_dict,
-    unoptimised=unoptimised
+    unoptimised=unoptimised,
+    regenerate_results=regenerate_results
   )
 
   result = json_to_feed(
@@ -58,7 +64,8 @@ async def get_mm_result_feed_stream(
 
 async def get_mm_raw_result(
   deviated_dispatch_dict: dict[str, any],
-  unoptimised: bool
+  unoptimised: bool,
+  regenerate_results: bool
 ):
   '''
     Coordinates running of model and returning of raw result.
@@ -66,7 +73,8 @@ async def get_mm_raw_result(
   '''
   cache_key = mm_cache_key_gen(deviated_dispatch_dict, unoptimised)
   result = await get_mm_result_cache(cache_key)
-  if result != None:
+
+  if result != None and not regenerate_results:
     return result
 
   silent = False
