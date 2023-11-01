@@ -53,6 +53,8 @@ const DispatchTimings = React.memo(
     };
 
     const handleSubmit = () => {
+      setErrorFetch(false);
+      setErrorFetch("");
       const tmpDispatchInput = dispatchInput;
       for (const trip of Object.keys(tmpDispatchInput)) {
         if (tmpDispatchInput[trip] == dispatchTimes[trip]) {
@@ -60,13 +62,19 @@ const DispatchTimings = React.memo(
         }
       }
       // send tmpDispatchInput to backend
-      fetchFromEndpoint(dispatchInput);
+      const validInput = validateInput(dispatchInput);
+      if (validInput > 0) {
+        setErrorFetch(true);
+        setErrorMsgFetch(
+          `Input is invalid for trip ${validInput}, inputs must be in ascending order.`
+        );
+      } else {
+        fetchFromEndpoint(dispatchInput);
+      }
     };
 
     const fetchFromEndpoint = async (dispatchInput) => {
       setLoadingFetch(true);
-      setErrorFetch(false);
-      setErrorMsgFetch("");
       const urlCsv = "http://127.0.0.1:8000/mm/result_feed";
       const urlResultMatrice = "http://127.0.0.1:8000/mm/result_matrices";
       const requestBody = {
@@ -123,30 +131,50 @@ const DispatchTimings = React.memo(
         });
     };
 
+    const validateInput = (dispatchInput) => {
+      console.log(dispatchInput);
+      let prevKey;
+      for (const key of Object.keys(dispatchInput)) {
+        if (!prevKey) {
+          prevKey = key;
+          continue;
+        }
+        if (dispatchInput[key] < dispatchInput[prevKey]) {
+          return parseInt(key);
+        }
+        prevKey = key;
+      }
+      return -1;
+    };
+
     const renderFetchButton = () => {
       return (
-        <div className="my-3 flex justify-end items-center">
-          <div className="text-orange-500">{errorMsgFetch}</div>
-          <button
-            onClick={handleSubmit}
-            className={`${
-              loadingFetch ? "control-button-disabled" : "control-button"
-            }`}
-          >
-            {loadingFetch ? "running model" : "update timings"}
-          </button>
-          <PuffLoader
-            color="rgb(234, 88, 12)"
-            loading={loadingFetch}
-            size={15}
-          />
-          {!loadingFetch &&
-          !errorFetch &&
-          Object.keys(updatedData).length !== 0 ? (
-            <TiTick className="text-green-500" />
-          ) : (
-            ""
-          )}
+        <div>
+          <div className="text-orange-500 mt-3 text-center">
+            {errorMsgFetch}
+          </div>
+          <div className="my-3 flex justify-end items-center">
+            <button
+              onClick={handleSubmit}
+              className={`${
+                loadingFetch ? "control-button-disabled" : "control-button"
+              }`}
+            >
+              {loadingFetch ? "running model" : "update timings"}
+            </button>
+            <PuffLoader
+              color="rgb(234, 88, 12)"
+              loading={loadingFetch}
+              size={15}
+            />
+            {!loadingFetch &&
+            !errorFetch &&
+            Object.keys(updatedData).length !== 0 ? (
+              <TiTick className="text-green-500" />
+            ) : (
+              ""
+            )}
+          </div>
         </div>
       );
     };
