@@ -7,6 +7,7 @@ const PerformanceOutput = React.memo(
     propsCumulativeOF, // 1 = unopt, 2 = opt cumulative OF value
     optCumulativeOF,
     unoptCumulativeOF,
+    updatedOutputJson,
   }) => {
     const [localPerformanceValues, setLocalPerformanceValues] = useState({});
     const [staticValues, setStaticValues] = useState({});
@@ -86,16 +87,23 @@ const PerformanceOutput = React.memo(
     const getPerformanceImprovement = () => {
       let tmpUnoptCumulativeOF;
       let tmpOptCumulativeOF;
+      let tmpUpdatedCumulativeOF;
       let tmpOptCumulativeHD;
       let tmpUnoptCumulativeHD;
+      let tmpUpdatedCumulativeHD;
       let tmpPerfImprovement;
       if (skipToEndTrigger) {
         tmpUnoptCumulativeOF =
           unoptCumulativeOF + unoptimizedOutputJson.slack_penalty;
         tmpOptCumulativeOF =
           optCumulativeOF + optimizedOutputJson.slack_penalty;
-        tmpOptCumulativeHD = optCumulativeOF;
         tmpUnoptCumulativeHD = unoptCumulativeOF;
+        tmpOptCumulativeHD = optCumulativeOF;
+
+        tmpUpdatedCumulativeOF = updatedOutputJson.slack_penalty
+          ? optCumulativeOF + updatedOutputJson.slack_penalty
+          : tmpOptCumulativeOF;
+        tmpUpdatedCumulativeHD = tmpUpdatedCumulativeOF;
       } else {
         tmpUnoptCumulativeOF = propsCumulativeOF["1"]
           ? propsCumulativeOF["1"]
@@ -103,16 +111,19 @@ const PerformanceOutput = React.memo(
         tmpOptCumulativeOF = propsCumulativeOF["2"]
           ? propsCumulativeOF["2"]
           : 0;
+        tmpUpdatedCumulativeOF = tmpOptCumulativeOF;
         tmpUnoptCumulativeHD = propsCumulativeOF["1"]
           ? propsCumulativeOF["1"]
           : 0;
         tmpOptCumulativeHD = propsCumulativeOF["2"]
           ? propsCumulativeOF["2"]
           : 0;
+        tmpUpdatedCumulativeHD = tmpOptCumulativeHD;
       }
 
       let result =
-        ((tmpUnoptCumulativeOF - tmpOptCumulativeOF) / tmpUnoptCumulativeOF) *
+        ((tmpUnoptCumulativeOF - tmpUpdatedCumulativeOF) /
+          tmpUnoptCumulativeOF) *
         100;
       if (!isNaN(result) && result != null && isFinite(result)) {
         tmpPerfImprovement = result;
@@ -125,11 +136,13 @@ const PerformanceOutput = React.memo(
           title: "Headway Deviation",
           opt: tmpOptCumulativeHD,
           unopt: tmpUnoptCumulativeHD,
+          updated: tmpUpdatedCumulativeHD,
         },
         objectiveFunction: {
           title: "Objective Function",
           opt: tmpOptCumulativeOF,
           unopt: tmpUnoptCumulativeOF,
+          updated: tmpUpdatedCumulativeOF,
         },
       });
       setStaticValues({
@@ -137,11 +150,17 @@ const PerformanceOutput = React.memo(
           title: "Excess Wait Time",
           opt: optimizedOutputJson.ewt_value,
           unopt: unoptimizedOutputJson.ewt_value,
+          updated: updatedOutputJson.ewt_value
+            ? updatedOutputJson.ewt_value
+            : optimizedOutputJson.ewt_value,
         },
         slackPenalty: {
           title: "Slack Penalty",
           opt: optimizedOutputJson.slack_penalty,
           unopt: unoptimizedOutputJson.slack_penalty,
+          updated: updatedOutputJson.slack_penalty
+            ? updatedOutputJson.slack_penalty
+            : optimizedOutputJson.slack_penalty,
         },
       });
     };
@@ -156,13 +175,13 @@ const PerformanceOutput = React.memo(
 
     const calculateDelta = (obj) => {
       // obj has opt and unopt value
-      return ((obj.unopt - obj.opt) / obj.unopt) * 100;
+      return ((obj.unopt - obj.updated) / obj.unopt) * 100;
     };
 
     const renderMetrics = (
       performanceValues,
       showDelta = false,
-      showActual = false
+      showUpdated = false
     ) => {
       if (error) {
         return <div className="text-red-500">{errorMsg}</div>;
@@ -172,11 +191,11 @@ const PerformanceOutput = React.memo(
       }
       const tableRows = [];
       let cellWidth;
-      if (showDelta && showActual) {
+      if (showDelta && showUpdated) {
         cellWidth = "w-[100px]";
       } else if (showDelta) {
         cellWidth = "w-[150px]";
-      } else if (showActual) {
+      } else if (showUpdated) {
         cellWidth = "w-[123px]";
       } else {
         cellWidth = "w-[185px]";
@@ -186,8 +205,8 @@ const PerformanceOutput = React.memo(
           <div className="text-center w-[125px] border"></div>
           <div className={`text-center border ${cellWidth}`}>Unoptimised</div>
           <div className={`text-center border ${cellWidth}`}>Optimised</div>
-          {showActual ? (
-            <div className={`text-center border ${cellWidth}`}>Actual</div>
+          {showUpdated ? (
+            <div className={`text-center border ${cellWidth}`}>Updated</div>
           ) : (
             ""
           )}
@@ -214,9 +233,9 @@ const PerformanceOutput = React.memo(
             <div className={`text-center border ${cellWidth}`}>
               {performanceValues[metric].opt.toFixed(2)}
             </div>
-            {showActual ? (
+            {showUpdated ? (
               <div className={`text-center border ${cellWidth}`}>
-                {performanceValues[metric].opt.toFixed(2)}
+                {performanceValues[metric].updated.toFixed(2)}
               </div>
             ) : (
               ""
@@ -260,7 +279,7 @@ const PerformanceOutput = React.memo(
           <div>
             {loadingOptimized || loadingUnoptimized
               ? ""
-              : renderMetrics(staticValues, false, false)}
+              : renderMetrics(staticValues, false, true)}
           </div>
         </div>
         <div className="my-5">
@@ -302,6 +321,7 @@ PerformanceOutput.propTypes = {
   propsCumulativeOF: PropTypes.object,
   optCumulativeOF: PropTypes.number,
   unoptCumulativeOF: PropTypes.number,
+  updatedOutputJson: PropTypes.object,
 };
 
 PerformanceOutput.displayName = "PerformanceOutput";

@@ -77,6 +77,7 @@ const CombinedPage = () => {
     dispatch: true,
   });
   const [dispatchTimes, setDispatchTimes] = useState({});
+  const [updatedOutputJson, setUpdatedOutputJson] = useState({});
   // loading states
   const [loadingFetchOptimized, setLoadingFetchOptimized] = useState(false);
   const [loadingFetchUnoptimized, setLoadingFetchUnoptimized] = useState(false);
@@ -125,7 +126,8 @@ const CombinedPage = () => {
         const originalTimesArr = data.original_dispatch_list;
         const optimizedDispatchTimes = data.dispatch_list;
         const tmpDispatchTimes = {};
-        const originalDispatchTimes = {};``
+        const originalDispatchTimes = {};
+        ``;
         for (let i = 0; i < originalTimesArr.length; i++) {
           originalDispatchTimes[i + 1] = parseInt(originalTimesArr[i]);
         }
@@ -181,7 +183,6 @@ const CombinedPage = () => {
         console.log(
           `fetched data: optimised: ${processedDataOptimised.journeyData.length} rows`
         );
-        console.log(processedDataOptimised);
         setStopObjs(processedDataOptimised.stopObjs);
         setJourneyData(processedDataOptimised.journeyData);
         setLoadingParseOptimized(false);
@@ -518,7 +519,10 @@ const CombinedPage = () => {
         </div>
         {toggleStats.dispatch ? (
           <div className="my-5 w-20vw mr-auto">
-            <DispatchTimings dispatchTimes={dispatchTimes} />
+            <DispatchTimings
+              dispatchTimes={dispatchTimes}
+              setUpdatedOutputJson={setUpdatedOutputJson}
+            />
           </div>
         ) : (
           <PerformanceOutput
@@ -526,6 +530,7 @@ const CombinedPage = () => {
             propsCumulativeOF={propsCumulativeOF}
             optCumulativeOF={optCumulativeOF}
             unoptCumulativeOF={unoptCumulativeOF}
+            updatedOutputJson={updatedOutputJson}
           />
         )}
       </div>
