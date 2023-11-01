@@ -12,6 +12,7 @@ const PerformanceOutput = React.memo(
     unoptCumulativeOF,
   }) => {
     const [localPerformanceValues, setLocalPerformanceValues] = useState({});
+    const [staticValues, setStaticValues] = useState({});
     const [performanceImprovement, setPerformanceImprovement] = useState(0);
 
     const getPerformanceImprovement = () => {
@@ -60,20 +61,22 @@ const PerformanceOutput = React.memo(
           opt: tmpOptCumulativeHD,
           unopt: tmpUnoptCumulativeHD,
         },
-        slackPenalty: {
-          title: "Slack Penalty",
-          opt: optimizedOutputJson.slack_penalty.toFixed(2),
-          unopt: unoptimizedOutputJson.slack_penalty.toFixed(2),
-        },
         objectiveFunction: {
           title: "Objective Function",
           opt: tmpOptCumulativeOF,
           unopt: tmpUnoptCumulativeOF,
         },
+      });
+      setStaticValues({
         excessWaitTime: {
           title: "Excess Wait Time",
           opt: optimizedOutputJson.ewt_value.toFixed(2),
           unopt: unoptimizedOutputJson.ewt_value.toFixed(2),
+        },
+        slackPenalty: {
+          title: "Slack Penalty",
+          opt: optimizedOutputJson.slack_penalty.toFixed(2),
+          unopt: unoptimizedOutputJson.slack_penalty.toFixed(2),
         },
       });
     };
@@ -86,16 +89,29 @@ const PerformanceOutput = React.memo(
       }
     };
 
-    const renderMetrics = () => {
-      if (Object.keys(localPerformanceValues).length === 0) {
+    const renderMetrics = (performanceValues, showDelta = false) => {
+      if (Object.keys(performanceValues).length === 0) {
         return;
       }
       const tableRows = [];
-      for (const metric of Object.keys(localPerformanceValues)) {
+      const cellWidth = showDelta ? "w-[100px]" : "w-[135px]";
+      tableRows.push(
+        <div className="flex font-semibold" key="header">
+          <div className="text-center w-[125px] border"></div>
+          <div className={`text-center border ${cellWidth}`}>Unoptimised</div>
+          <div className={`text-center border ${cellWidth}`}>Optimised</div>
+          {showDelta ? (
+            <div className="text-center w-[70px] border">Δ</div>
+          ) : (
+            ""
+          )}
+        </div>
+      );
+      for (const metric of Object.keys(performanceValues)) {
         const delta =
-          ((parseFloat(localPerformanceValues[metric].unopt) -
-            parseFloat(localPerformanceValues[metric].opt)) /
-            parseFloat(localPerformanceValues[metric].unopt)) *
+          ((parseFloat(performanceValues[metric].unopt) -
+            parseFloat(performanceValues[metric].opt)) /
+            parseFloat(performanceValues[metric].unopt)) *
           100;
         let textColor = getTextColor(delta);
         const deltaText =
@@ -103,17 +119,21 @@ const PerformanceOutput = React.memo(
         tableRows.push(
           <div className="flex" key={metric}>
             <div className="font-semibold text-center w-[125px] border">
-              {localPerformanceValues[metric].title}
+              {performanceValues[metric].title}
             </div>
-            <div className="text-center w-[100px] border">
-              {localPerformanceValues[metric].unopt}
+            <div className={`text-center border ${cellWidth}`}>
+              {performanceValues[metric].unopt}
             </div>
-            <div className="text-center w-[100px] border">
-              {localPerformanceValues[metric].opt}
+            <div className={`text-center border ${cellWidth}`}>
+              {performanceValues[metric].opt}
             </div>
-            <div className={`text-center w-[70px] border ${textColor}`}>
-              {metric === "slackPenalty" ? "-" : deltaText}
-            </div>
+            {showDelta ? (
+              <div className={`text-center w-[70px] border ${textColor}`}>
+                {metric === "slackPenalty" ? "-" : deltaText}
+              </div>
+            ) : (
+              ""
+            )}
           </div>
         );
       }
@@ -125,28 +145,21 @@ const PerformanceOutput = React.memo(
     }, [optCumulativeOF, unoptCumulativeOF, propsCumulativeOF]);
 
     return (
-      <div className="my-5 w-20vw mx-auto text-xs">
-        <div className="pb-3 text-center">Performance results</div>
-        {/* Headings */}
-        <div className="flex font-semibold">
-          <div className="text-center w-[125px] border"></div>
-          <div className="text-center w-[100px] border">Unoptimised</div>
-          <div className="text-center w-[100px] border">Optimised</div>
-          <div className="text-center w-[70px] border">
-            <span>Δ</span>
-          </div>
+      <div className="w-20vw mr-auto text-xs">
+        <div className="my-5">
+          <div className="mb-3 pb-1 border-b-2">Performance results</div>
+          {renderMetrics(localPerformanceValues, true)}
         </div>
-        {renderMetrics()}
-        <div className="flex">
-          <div className="text-center w-[125px] border font-semibold">
-            Perf improvement
+        <div className="my-5">
+          <div className="mb-3 pb-1 border-b-2">Static results</div>
+          <div>{renderMetrics(staticValues, false)}</div>
+        </div>
+        <div className="my-5">
+          <div className="mb-3 pb-1 border-b-2">
+            Overall performance results
           </div>
-          <div
-            className={`text-center w-[270px] border ${getTextColor(
-              parseFloat(performanceImprovement)
-            )}`}
-          >
-            {performanceImprovement + "%"}
+          <div className={`${getTextColor(performanceImprovement)}`}>
+            {performanceImprovement} %
           </div>
         </div>
       </div>
@@ -157,8 +170,8 @@ const PerformanceOutput = React.memo(
 PerformanceOutput.propTypes = {
   skipToEndTrigger: PropTypes.boolean,
   propsCumulativeOF: PropTypes.object,
-  optCumulativeOF: PropTypes.object,
-  unoptCumulativeOF: PropTypes.object,
+  optCumulativeOF: PropTypes.number,
+  unoptCumulativeOF: PropTypes.number,
 };
 
 PerformanceOutput.displayName = "PerformanceOutput";

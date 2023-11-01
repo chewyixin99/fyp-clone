@@ -137,7 +137,7 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
 
   const renderFetchButton = () => {
     return (
-      <div className="my-3 flex justify-end mr-3 items-center">
+      <div className="my-3 flex justify-end items-center">
         <div className="text-orange-500">{errorMsgFetch}</div>
         <button
           onClick={handleSubmit}
@@ -160,7 +160,7 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
   };
 
   return (
-    <div className="text-xs">
+    <div className="text-xs my-5">
       <div className="pb-3">Dispatch timings (sec)</div>
       <div className="overflow-y-scroll h-[30vh] border-2">
         <div>

@@ -38,7 +38,7 @@ const Metrics = ({
   setOptCumulativeOF,
   setUnoptCumulativeOF,
   setPropsCumulativeOF,
-  resetChart
+  resetChart,
 }) => {
   const [processedData, setProcessedData] = useState({});
   const [processedCumulativeData, setProcessedCumulativeData] = useState({});
@@ -197,7 +197,7 @@ const Metrics = ({
   useEffect(() => {
     if (busStopData.length > 0) {
       var processedBusStopData = busStopData.map((busStop) => {
-        return `${busStop.busStopNo},${busStop.stopId}`;
+        return `[${busStop.busStopNo}]  ${busStop.stopId}`;
       });
 
       setBusStopLabel(processedBusStopData.slice(1));
@@ -208,7 +208,6 @@ const Metrics = ({
     processObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
     processCumulativeObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
   }, [unoptimisedOF, optimisedOF]);
-
 
   useEffect(() => {
     if (skipToEndTrigger) {
@@ -228,8 +227,7 @@ const Metrics = ({
     }
   }, [resetChart]);
 
-  useEffect(() => {
-  }, [processedCumulativeData, processedData]);
+  useEffect(() => {}, [processedCumulativeData, processedData]);
 
   const data = {
     labels: busStopLabel,
@@ -321,7 +319,7 @@ Metrics.propTypes = {
   setPropsCumulativeOF: PropTypes.func,
   start: PropTypes.bool,
   ended: PropTypes.bool,
-  resetChart: PropTypes.bool
+  resetChart: PropTypes.bool,
 };
 
 export default Metrics;

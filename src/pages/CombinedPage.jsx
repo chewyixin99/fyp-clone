@@ -241,7 +241,7 @@ const CombinedPage = () => {
   // load initial data
   useEffect(() => {
     initDispatchTimes();
-    fetchFromEndpoint();
+    // fetchFromEndpoint();
     parseData();
   }, []);
 
@@ -469,13 +469,13 @@ const CombinedPage = () => {
           </button>
         </div>
       </div>
-      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[55vh]">
+      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">
         {/* Metrics */}
         <div
           className="mx-auto my-2"
           style={{
-            width: "75vw",
-            height: "100%",
+            width: "70vw",
+            height: "40vh",
             justifyContent: "center",
             display: "flex",
           }}
@@ -492,7 +492,7 @@ const CombinedPage = () => {
           />
         </div>
         {toggleStats.dispatch ? (
-          <div className="my-5 w-20vw text-center mx-auto">
+          <div className="my-5 w-20vw mr-auto">
             <DispatchTimings dispatchTimes={dispatchTimes} />
           </div>
         ) : (

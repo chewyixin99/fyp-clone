@@ -6,7 +6,6 @@ const Complexity = () => {
     const htmlComponent = document.getElementById("chart_1");
     htmlComponent.innerHTML = `${chart_1_content}`;
     console.log(htmlComponent);
-    console.log(chart_1_content);
   }, []);
 
   return (
