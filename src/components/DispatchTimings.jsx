@@ -12,18 +12,19 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
   const [errorFetch, setErrorFetch] = useState(false);
   const [errorMsgFetch, setErrorMsgFetch] = useState("");
   const [updatedData, setUpdatedData] = useState({});
+  const [updatedDispatchTimes, setUpdatedDispatchTimes] = useState({});
 
   useEffect(() => {
     setLocalDispatchTimes(dispatchTimes);
   }, [dispatchTimes]);
 
   const computeDispatchTimes = (data) => {
-    const newDispatchTimes = localDispatchTimes;
+    const newDispatchTimes = {};
     const allDispatchTimes = data.journeyData.filter((r) => {
       return r.currentStatus === "DISPATCHED_FROM";
     });
     for (const rec of allDispatchTimes) {
-      newDispatchTimes[rec.busTripNo].optimized = rec.timestamp;
+      newDispatchTimes[rec.busTripNo] = rec.timestamp;
     }
     return newDispatchTimes;
   };
@@ -86,7 +87,7 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
         const processedData = processCsvData(parsed);
         setUpdatedData(processedData);
         const newDispatchTimes = computeDispatchTimes(processedData);
-        setLocalDispatchTimes(newDispatchTimes);
+        setUpdatedDispatchTimes(newDispatchTimes);
       })
       .catch((e) => {
         setLoadingFetch(false);
@@ -195,7 +196,11 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
                   onChange={handleInputChange}
                   className="text-center w-[100px] border"
                   type="number"
-                  placeholder={optimizedTime}
+                  placeholder={
+                    Object.keys(updatedDispatchTimes).length === 0
+                      ? optimizedTime
+                      : updatedDispatchTimes[trip]
+                  }
                 />
               </div>
             );
