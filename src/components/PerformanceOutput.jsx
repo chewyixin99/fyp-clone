@@ -30,7 +30,7 @@ const PerformanceOutput = React.memo(
         regenerate_results: false,
       };
       const requestBodyUnoptimized = {
-        unoptimised: false,
+        unoptimised: true,
         deviated_dispatch_dict: {},
         regenerate_results: false,
       };
@@ -164,6 +164,9 @@ const PerformanceOutput = React.memo(
       showDelta = false,
       showActual = false
     ) => {
+      if (error) {
+        return <div className="text-red-500">{errorMsg}</div>;
+      }
       if (Object.keys(performanceValues).length === 0) {
         return;
       }

@@ -16,6 +16,13 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
 
   useEffect(() => {
     setLocalDispatchTimes(dispatchTimes);
+    if (Object.keys(dispatchTimes).length === 0) {
+      setErrorFetch(true);
+      setErrorMsgFetch("Something went wrong. Unable to load data.");
+    } else {
+      setErrorFetch(false);
+      setErrorMsgFetch("");
+    }
   }, [dispatchTimes]);
 
   const computeDispatchTimes = (data) => {
@@ -52,7 +59,6 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
       }
     }
     // send tmpDispatchInput to backend
-    console.log(tmpDispatchInput);
     fetchFromEndpoint(dispatchInput);
   };
 
@@ -163,50 +169,56 @@ const DispatchTimings = React.memo(({ dispatchTimes }) => {
   return (
     <div className="text-xs my-5">
       <div className="pb-3">Dispatch timings (sec)</div>
-      <div className="overflow-y-scroll h-[30vh] border-2">
-        <div>
-          <div className="flex font-semibold">
-            <div className="text-center w-[50px] border">#</div>
-            <div className="text-center w-[100px] border">Planned</div>
-            <div className="text-center w-[100px] border">
-              <span>Optimised</span>
-            </div>
-            <div className="text-center w-[100px] border">
-              <span>Actual</span>
+      {errorFetch ? (
+        <div className="text-orange-500">{errorMsgFetch}</div>
+      ) : (
+        <div className="overflow-y-scroll h-[30vh] border-2">
+          <div>
+            <div className="flex font-semibold">
+              <div className="text-center w-[50px] border">#</div>
+              <div className="text-center w-[100px] border">Planned</div>
+              <div className="text-center w-[100px] border">
+                <span>Optimised</span>
+              </div>
+              <div className="text-center w-[100px] border">
+                <span>Actual</span>
+              </div>
             </div>
           </div>
+          <div>
+            {Object.keys(localDispatchTimes).map((trip) => {
+              const plannedTime = parseInt(localDispatchTimes[trip].planned);
+              const optimizedTime = parseInt(
+                localDispatchTimes[trip].optimized
+              );
+              return (
+                <div className="flex" key={trip}>
+                  <div className="text-center w-[50px] border">
+                    {parseInt(trip)}
+                  </div>
+                  <div className="text-center w-[100px] border">
+                    {plannedTime}
+                  </div>
+                  <div className="text-center w-[100px] border">
+                    <span>{optimizedTime}</span>
+                  </div>
+                  <input
+                    id={trip}
+                    onChange={handleInputChange}
+                    className="text-center w-[100px] border"
+                    type="number"
+                    placeholder={
+                      Object.keys(updatedDispatchTimes).length === 0
+                        ? optimizedTime
+                        : updatedDispatchTimes[trip]
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div>
-          {Object.keys(localDispatchTimes).map((trip) => {
-            const plannedTime = parseInt(localDispatchTimes[trip].planned);
-            const optimizedTime = parseInt(localDispatchTimes[trip].optimized);
-            return (
-              <div className="flex" key={trip}>
-                <div className="text-center w-[50px] border">
-                  {parseInt(trip)}
-                </div>
-                <div className="text-center w-[100px] border">
-                  {plannedTime}
-                </div>
-                <div className="text-center w-[100px] border">
-                  <span>{optimizedTime}</span>
-                </div>
-                <input
-                  id={trip}
-                  onChange={handleInputChange}
-                  className="text-center w-[100px] border"
-                  type="number"
-                  placeholder={
-                    Object.keys(updatedDispatchTimes).length === 0
-                      ? optimizedTime
-                      : updatedDispatchTimes[trip]
-                  }
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      )}
       {renderFetchButton()}
     </div>
   );
