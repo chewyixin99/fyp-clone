@@ -1,8 +1,5 @@
-import optimizedOutputJson from "../../public/v1_0CVXPY_optimised_output.json";
-import unoptimizedOutputJson from "../../public/v1_0CVXPY_unoptimised_output.json";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { AiOutlineArrowUp, AiOutlineArrowDown } from "react-icons/ai";
 
 const PerformanceOutput = React.memo(
   ({
@@ -14,6 +11,77 @@ const PerformanceOutput = React.memo(
     const [localPerformanceValues, setLocalPerformanceValues] = useState({});
     const [staticValues, setStaticValues] = useState({});
     const [performanceImprovement, setPerformanceImprovement] = useState(0);
+    const [optimizedOutputJson, setOptimizedOutputJson] = useState({});
+    const [unoptimizedOutputJson, setUnoptimizedOutputJson] = useState({});
+    const [loadingOptimized, setLoadingOptimized] = useState(false);
+    const [loadingUnoptimized, setLoadingUnoptimized] = useState(false);
+    const [error, setError] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+
+    const initOutputJson = async () => {
+      setLoadingOptimized(true);
+      setLoadingUnoptimized(true);
+      setError(false);
+      setErrorMsg("");
+      const url = "http://127.0.0.1:8000/mm/result_matrices";
+      const requestBodyOptimized = {
+        unoptimised: false,
+        deviated_dispatch_dict: {},
+        regenerate_results: false,
+      };
+      const requestBodyUnoptimized = {
+        unoptimised: false,
+        deviated_dispatch_dict: {},
+        regenerate_results: false,
+      };
+      const options = {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      // fetch optimized json
+      await fetch(url, {
+        ...options,
+        body: JSON.stringify(requestBodyOptimized),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((responseJson) => {
+          setLoadingOptimized(false);
+          setOptimizedOutputJson(responseJson.data);
+        })
+        .catch((e) => {
+          setError(true);
+          setErrorMsg(`Optimised error: ${e.message}`);
+          setLoadingOptimized(false);
+          console.log(e);
+        });
+      // fetch unoptimized json
+      await fetch(url, {
+        ...options,
+        body: JSON.stringify(requestBodyUnoptimized),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((responseJson) => {
+          setLoadingUnoptimized(false);
+          setUnoptimizedOutputJson(responseJson.data);
+        })
+        .catch((e) => {
+          setError(true);
+          setErrorMsg(`Unoptimised error: ${e.message}`);
+          setLoadingUnoptimized(false);
+          console.log(e);
+        });
+    };
+
+    useEffect(() => {
+      initOutputJson();
+    }, []);
 
     const getPerformanceImprovement = () => {
       let tmpUnoptCumulativeOF;
@@ -51,7 +119,6 @@ const PerformanceOutput = React.memo(
       } else {
         tmpPerfImprovement = 0;
       }
-
       setPerformanceImprovement(tmpPerfImprovement);
       setLocalPerformanceValues({
         headwayDeviation: {
@@ -165,8 +232,19 @@ const PerformanceOutput = React.memo(
     };
 
     useEffect(() => {
-      getPerformanceImprovement();
-    }, [optCumulativeOF, unoptCumulativeOF, propsCumulativeOF]);
+      if (
+        Object.keys(unoptimizedOutputJson).length !== 0 &&
+        Object.keys(optimizedOutputJson).length !== 0
+      ) {
+        getPerformanceImprovement();
+      }
+    }, [
+      optCumulativeOF,
+      unoptCumulativeOF,
+      propsCumulativeOF,
+      optimizedOutputJson,
+      unoptimizedOutputJson,
+    ]);
 
     return (
       <div className="w-20vw mr-auto text-xs">
@@ -176,7 +254,11 @@ const PerformanceOutput = React.memo(
         </div>
         <div className="my-5">
           <div className="mb-3 pb-1 border-b-2">Static results</div>
-          <div>{renderMetrics(staticValues, false, false)}</div>
+          <div>
+            {loadingOptimized || loadingUnoptimized
+              ? ""
+              : renderMetrics(staticValues, false, false)}
+          </div>
         </div>
         <div className="my-5">
           <div className="mb-3 pb-1 border-b-2">
@@ -213,7 +295,7 @@ const PerformanceOutput = React.memo(
 );
 
 PerformanceOutput.propTypes = {
-  skipToEndTrigger: PropTypes.boolean,
+  skipToEndTrigger: PropTypes.bool,
   propsCumulativeOF: PropTypes.object,
   optCumulativeOF: PropTypes.number,
   unoptCumulativeOF: PropTypes.number,

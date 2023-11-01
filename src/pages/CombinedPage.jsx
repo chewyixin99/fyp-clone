@@ -12,7 +12,6 @@ import { PuffLoader } from "react-spinners";
 import { AiOutlineSwap, AiOutlineForward } from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
-import optimizedOutputJson from "../../public/v1_0CVXPY_optimised_output.json";
 import PerformanceOutput from "../components/PerformanceOutput";
 
 const defaultIntervalTime = 1000;
@@ -100,21 +99,47 @@ const CombinedPage = () => {
     });
   };
 
-  const initDispatchTimes = () => {
-    const originalTimesArr = optimizedOutputJson.original_dispatch_list;
-    const optimizedDispatchTimes = optimizedOutputJson.dispatch_list;
-    const tmpDispatchTimes = {};
-    const originalDispatchTimes = {};
-    for (let i = 0; i < originalTimesArr.length; i++) {
-      originalDispatchTimes[i + 1] = parseInt(originalTimesArr[i]);
-    }
-    for (const key of Object.keys(optimizedDispatchTimes)) {
-      tmpDispatchTimes[key] = {
-        planned: originalDispatchTimes[key],
-        optimized: optimizedDispatchTimes[key],
-      };
-    }
-    setDispatchTimes(tmpDispatchTimes);
+  const initDispatchTimes = async () => {
+    const url = "http://127.0.0.1:8000/mm/result_matrices";
+    const requestBody = {
+      unoptimised: false,
+      deviated_dispatch_dict: {},
+      regenerate_results: false,
+    };
+    const options = {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await fetch(url, {
+      ...options,
+      body: JSON.stringify(requestBody),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((responseJson) => {
+        const data = responseJson.data;
+        const originalTimesArr = data.original_dispatch_list;
+        const optimizedDispatchTimes = data.dispatch_list;
+        const tmpDispatchTimes = {};
+        const originalDispatchTimes = {};``
+        for (let i = 0; i < originalTimesArr.length; i++) {
+          originalDispatchTimes[i + 1] = parseInt(originalTimesArr[i]);
+        }
+        for (const key of Object.keys(optimizedDispatchTimes)) {
+          tmpDispatchTimes[key] = {
+            planned: originalDispatchTimes[key],
+            optimized: optimizedDispatchTimes[key],
+          };
+        }
+        setDispatchTimes(tmpDispatchTimes);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
 
   const fetchFromEndpoint = async () => {
@@ -241,8 +266,8 @@ const CombinedPage = () => {
   // load initial data
   useEffect(() => {
     initDispatchTimes();
-    // fetchFromEndpoint();
-    parseData();
+    fetchFromEndpoint();
+    // parseData();
   }, []);
 
   useEffect(() => {
