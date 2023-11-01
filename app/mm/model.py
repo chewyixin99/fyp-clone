@@ -1,5 +1,3 @@
-# v1.0 is the original Q-hat proposed by K.Gkiotsalitis et al.
-
 import cvxpy as cp
 import numpy as np
 from .utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
@@ -7,38 +5,44 @@ from typing import Dict, Any
 
 def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False) -> Dict[str, Any]:
     """
-    Solves a mathematical optimisation problem for bus dispatch scheduling.
+    Solves a mathematical optimisation problem for bus dispatch scheduling using the Q-hat model from K.Gkiotsalitis et al. (2020).
 
-    This function takes input data describing the bus dispatch problem and uses Q-hat optimisation
-    model to find an optimal dispatch schedule. It utilises various constraints and decision variables
-    to minimise a specified objective function.
+    This function implements the Q-hat optimisation model for bus dispatch scheduling, considering various constraints 
+    like bus availability, boarding/alighting times, and desired headways between buses. It aims to minimise a specified 
+    objective function related to dispatch timing deviations and passenger service levels.
 
     Args:
-        data (dict): A dictionary containing input data for the optimisation problem. It should
-            include the following keys:
-            - "num_trips": Number of bus trips.
-            - "num_stops": Number of bus stops.
-            - "boarding_duration": Boarding duration at each stop.
-            - "alighting_duration": Alighting duration at each stop.
-            - "max_allowed_deviation": Maximum allowed deviation for dispatch offsets.
-            - Other data lists and parameters needed for the optimisation problem.
+        data (dict): Input data for the optimisation problem, containing key-value pairs such as:
+            - "num_trips" (int): Number of bus trips.
+            - "num_stops" (int): Number of bus stops.
+            - "boarding_duration" (float): Duration for boarding at each stop.
+            - "alighting_duration" (float): Duration for alighting at each stop.
+            - "max_allowed_deviation" (float): Maximum allowed deviation for dispatch offsets.
+            - Additional lists and parameters needed for the optimisation model.
+
+        silent (bool, optional): If True, suppresses the output print statements. Defaults to False.
+
+        deviated_dispatch_dict (dict, optional): Dictionary specifying any deviations in dispatch times. Defaults to None.
+
+        unoptimised (bool, optional): If True, model focuses only on minimising dispatch offsets but still prevent overtaking. 
+                                      Defaults to False.
 
     Returns:
-        None
-
-    Prints:
-        - Solution details for dispatch offsets, times of dispatch, and objective function value.
-
-    Output:
-        - Writes the results (dwell times, busloads, arrival times, dwell times, dispatch times) to a JSON file.
+        Dict[str, Any]: A dictionary with optimisation results including dwell times, bus loads, arrival times, and dispatch 
+                        times keyed by trip and stop identifiers.
 
     Note:
-        This function uses IBM Decision Optimization CPLEX solver to find the optimal solution
-        to the bus dispatch scheduling problem.
+        The function employs CVXPY for modelling the optimisation problem and uses a solver (i.e., OSQP) to find the optimal 
+        schedule. The results, including the optimised dispatch offsets and related timings, are printed (if not silent) and 
+        returned as a dictionary.
+
+        If the problem is unfeasible with the initial settings, the solver's tolerance for optimality accuracy is relaxed and 
+        the model is solved again.
+
+        If 'deviated_dispatch_dict' is provided, the function considers these deviations in the optimisation problem.
     """
 
-    # model = Model(name="bus_dispatch", log_output=not silent)
-
+    # Initialisation of variables from input
     num_trips = data["num_trips"]
     num_stops = data["num_stops"]
     boarding_duration = data["boarding_duration"]
@@ -47,18 +51,17 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
 
     # Transformation to dictionaries to be referred to by the constraints
     original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
-    prev_arrival = convert_list_to_dict(data["prev_arrival_list"], 1, num_stops) # MODIFIED keep for rolling horizons
-    prev_dwell = convert_list_to_dict(data["prev_dwell_list"], 1, num_stops-1) # doesn't seem to be used
+    prev_arrival = convert_list_to_dict(data["prev_arrival_list"], 1, num_stops)
+    prev_dwell = convert_list_to_dict(data["prev_dwell_list"], 1, num_stops-1)
     arrival_rate = convert_list_to_dict(data["arrival_rate_list"], 1, num_stops)
     alighting_percentage = convert_list_to_dict(data["alighting_percentage_list"], 2, num_stops)
     weights = convert_list_to_dict(data["weights_list"], 2, num_stops)
     bus_availability = convert_list_to_dict(data["bus_availability_list"], 1, num_trips)
-    initial_passengers = convert_list_to_dict(data["initial_passengers_list"], 1, num_stops)
     target_headway = convert_2dlist_to_dict(data["target_headway_2dlist"], 1, num_trips, 2, num_stops)
     interstation_travel = convert_2dlist_to_dict(data["interstation_travel_2dlist"], 1, num_trips, 1, num_stops-1)
 
 
-# DECISION VARIABLES
+    # DECISION VARIABLES
     dispatch_offset = {i: cp.Variable(nonneg=False) for i in range(1, num_trips+1)}
     headway = {(i,j): cp.Variable(nonneg=True) for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
     arrival = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
@@ -166,15 +169,17 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                             + willing_board[j,s-1]
                             - alighting_percentage[s-1] * busload[j,s-1])
 
-    # Equation 16, Constraint 35 additional constraints to implement soft constraint:
-    # essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
+    # Equation 16a, Constraint 35 additional constraints to implement soft constraint:
+    # essentially a smooth way to do max(abs(x[j]) - max_allowed_deviation, 0)
     constraints.append(slack >= (dispatch_offset[num_trips] - max_allowed_deviation))
+
+    # Equation 16b, Constraint 35 additional constraints to implement soft constraint:
     constraints.append(slack >= (-dispatch_offset[num_trips] - max_allowed_deviation))
 
     # Equation 17, Constraint 35
     constraints.append(slack >= 0)
 
-    # Additional bookkeeping constraints to output arrival_matrix NOTE: TESTING
+    # Additional bookkeeping constraints to output arrival_matrix
     # Equation 18
     for j in range(1, num_trips+1):
         constraints.append(arrival[j, 2] ==
@@ -190,14 +195,14 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                                 + dwell[j,s-1]
                                 + interstation_travel[j,s-1])
 
-    # to evaluate deviated dispatches
+    # Evaluate deviated dispatches
     if deviated_dispatch_dict != None:
         for key in deviated_dispatch_dict:
             constraints.append(original_dispatch[int(key)] + dispatch_offset[int(key)] ==
                                 deviated_dispatch_dict[key])
 
     # OBJECTIVE FUNCTION
-    # for every second of deviation more than max_allowed_deviation, penalty is 10000
+    # For every second of deviation more than max_allowed_deviation, penalty is 10000
     objective_function = f_x + 10000 * slack
 
     if unoptimised:
@@ -208,8 +213,12 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
 
     model = cp.Problem(cp.Minimize(objective_function), constraints)
 
-    # Solve the model
-    result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.00001)
+    # Solve the model, if unfeasible, relax tolerance of optimality accuracy
+    try:
+        result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.00001)
+    except:
+        print(f"Model has failed, re-running with a higher tolerance for inaccuracy")
+        result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.0001)
 
     # Output the results
     if not silent:
@@ -220,8 +229,6 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
 
         if not unoptimised:
             print("\nObjective Function Value:", result)
-
-    # OUTPUTS NOTE: to refactor once finalised
 
     dwell_dict = {}
     for j in range(1, num_trips+1):
@@ -259,30 +266,27 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     for j in range(1, num_trips+1):
         dispatch_dict[f"{j}"] = round(np.round(original_dispatch[j] + dispatch_offset[j].value)) if dispatch_offset[j].value != None else 0
 
-    # TODO: refactor code after confirmation
+    # Calculate Scheduled Waiting Time
     swt = sum(target_headway.values())/len(target_headway)/2
 
+    # Calculate Actual Waiting Time
     total_awt = []
-
     for s in range(2, num_stops):
-
         total_wait_time = 0
         total_passengers = 0
 
         for j in range(1, num_trips+1):
-            
             num_passengers = headway_dict[f"{j},{s}"] * arrival_rate[s]
             average_wait_time = headway_dict[f"{j},{s}"]/2
             total_passengers += num_passengers
             total_wait_time += num_passengers * average_wait_time
         
         awt_for_stop = total_wait_time / total_passengers
-        # print(awt_for_stop)
         total_awt.append(awt_for_stop)
-
     awt = sum(total_awt)/len(total_awt)
+
     slack_penalty = slack.value * 10000
-    
+
     if not silent:
         if unoptimised:
             print(f"Objective Function Value: {sum(obj_fn_dict.values())}")
