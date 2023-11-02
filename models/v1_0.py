@@ -1,10 +1,11 @@
 # v1.0 is the original Q-hat proposed by K.Gkiotsalitis et al.
 
 from docplex.mp.model import Model
+import numpy as np
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: Dict[str, Any] = None) -> None:
+def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False, retry: bool = True) -> Dict[str, Any]:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling.
 
@@ -164,7 +165,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
             
     # Equation 16, Constraint 35 additional constraints to implement soft constraint:
     #essentially its a smooth way to do max(x[j] - max_allowed_deviation, 0)
-    model.add_constraint(slack >= (dispatch_offset[num_trips] - max_allowed_deviation), "Eq16") # restrict schedule-sliding
+    model.add_constraint(slack >= (dispatch_offset[num_trips] - max_allowed_deviation), "Eq16a") # restrict schedule-sliding
+
+    model.add_constraint(slack >= (-dispatch_offset[num_trips] - max_allowed_deviation), "Eq16b") # restrict schedule-sliding
 
     # Equation 17, Constraint 35
     model.add_constraint(slack >= 0, "Eq17")
@@ -186,13 +189,19 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
                                 + interstation_travel[j,s-1], "Eq19")
 
     # to evaluate rolled horizons
-    if glued_dispatch_dict != None:
-        for j in range(1, num_trips+1):
-            model.add_constraint(original_dispatch[j] + dispatch_offset[j] ==
-                                glued_dispatch_dict[f"{j}"])
+    if deviated_dispatch_dict != None:
+        for key in deviated_dispatch_dict:
+            model.add_constraint(original_dispatch[int(key)] + dispatch_offset[int(key)] ==
+                                deviated_dispatch_dict[key])
 
     # OBJECTIVE FUNCTION
-    objective_function = f_x + 1000 * slack # soft constraint using bigM = 1000 in case of infeasibility
+    objective_function = f_x + 10000 * slack # soft constraint using bigM = 1000 in case of infeasibility
+
+    if unoptimised:
+        value = 0
+        for j in range(1, num_trips+1):
+            value += abs(dispatch_offset[j])
+        objective_function = value
     # objective_function = sum(dispatch_offset) # to find smallest dispatch_offsets
     model.minimize(objective_function)
 
@@ -244,9 +253,12 @@ def run_model(data: Dict[str, Any], silent: bool = False, glued_dispatch_dict: D
         "busload_dict": busload_dict,
         "arrival_dict": arrival_dict,
         "headway_dict": headway_dict,
+        "obj_fn_dict": {},
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
         "objective_value": model.objective_value,
+        "slack_penalty": -1, # assumes unoptimised cannot incur slack penalty
+        "ewt_value": -1
     }
             
     return variables_to_return

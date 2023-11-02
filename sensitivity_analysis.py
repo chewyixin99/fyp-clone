@@ -7,8 +7,20 @@ from utils.transformation import convert_json_to_dict
 import numpy as np
 import time
 import plotly.express as px
+import chart_studio
+import chart_studio.plotly as py
 from tqdm import tqdm
 import os
+# from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+# load_dotenv()
+
+# Access variables
+chart_studio_username = os.getenv('CHART_STUDIO_USERNAME')
+chart_studio_api_key = os.getenv('CHART_STUDIO_API_KEY')
+chart_studio.tools.set_credentials_file(username=chart_studio_username, api_key=chart_studio_api_key)
 
 def get_input_subset(input_data, num_trips, num_stops):
     input_subset = {}
@@ -53,7 +65,7 @@ def get_all_timings(input_data):
             input_subset = get_input_subset(input_data, j+1, s+1)
             start = time.time()
             try:
-                run_model(data=input_subset, silent=True)
+                run_model(data=input_subset, silent=True, retry=False)
                 duration_taken = time.time() - start
                 timings_matrix[j, s] = duration_taken
                 if duration_taken > 2160: # 36 mins of waiting time
@@ -77,9 +89,6 @@ def visualise_heatmap(timings_matrix, model_name):
     fig.update_xaxes(tickvals=list(range(timings_matrix.shape[1])), ticktext=list(range(1, timings_matrix.shape[1] + 1)))
     fig.update_yaxes(tickvals=list(range(timings_matrix.shape[0])), ticktext=list(range(1, timings_matrix.shape[0] + 1)))
 
-    # show the heatmap
-    fig.show()
-
     return fig
 
 def visualise_3d(timings_matrix):
@@ -102,7 +111,7 @@ def visualise_3d(timings_matrix):
     fig = px.scatter_3d(x=x, y=y, z=z, color=z, color_continuous_scale='Viridis',
                         labels={'x': 'Number of Stops', 'y': 'Number of Trips', 'z': 'Run time (s)'})
 
-    fig.show()
+    return fig
 
 def save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path):
 
@@ -116,8 +125,10 @@ def save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matr
     if file_type == '.html':
         # save to an HTML file
         fig_2d.write_html(save_fig_path_2d)
-        fig_3d.write_html(save_fig_path_3d)
         print(f"successfully saved figures as a .html file at {save_fig_path_2d}!")
+        fig_3d.write_html(save_fig_path_3d)
+        print(f"successfully saved figures as a .html file at {save_fig_path_3d}!")
+        
 
     if file_type == '.json':
         # convert the figure to a JSON format
@@ -137,6 +148,7 @@ def save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matr
 def main():
     model = "v1_0CVXPY" # NOTE: to change to other models (not frequent)
     file_type = "html"
+    chart_studio_upload = True
     save_fig_path_2d = f"./data/sensitivity_analyses/{model}_2d.{file_type}"
     save_fig_path_3d = f"./data/sensitivity_analyses/{model}_3d.{file_type}"
     save_npy_path = f"./data/sensitivity_analyses/{model}.npy"
@@ -145,11 +157,14 @@ def main():
     # input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2909.json")
 
     timings_matrix = get_all_timings(input_data)
+    # timings_matrix = np.load(save_npy_path, allow_pickle=True)
     fig_2d = visualise_heatmap(timings_matrix, model)
     fig_3d = visualise_3d(timings_matrix)
     save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path)
 
-    # loaded_array = np.load(save_npy_path, allow_pickle=True)
+    if chart_studio_upload:
+        py.plot(fig_2d, filename=f'{model}_2d', auto_open=True)
+        py.plot(fig_3d, filename=f'{model}_3d', auto_open=True)
 
 if __name__ == "__main__":
     main()
