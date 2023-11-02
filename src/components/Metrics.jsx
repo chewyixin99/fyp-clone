@@ -41,7 +41,6 @@ const Metrics = React.memo(
     setPropsCumulativeOF,
     resetChart,
   }) => {
-    console.log("rerender");
     const [processedData, setProcessedData] = useState({});
     const [processedCumulativeData, setProcessedCumulativeData] = useState({});
     const [busStopLabel, setBusStopLabel] = useState([]);

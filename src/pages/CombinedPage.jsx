@@ -13,6 +13,7 @@ import { AiOutlineSwap, AiOutlineForward } from "react-icons/ai";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 import PerformanceOutput from "../components/PerformanceOutput";
+import UploadFile from "../components/UploadFile";
 
 const defaultIntervalTime = 1000;
 const defaultStepInterval = Math.floor(defaultIntervalTime / 10);
@@ -52,16 +53,6 @@ const CombinedPage = () => {
   const [resetChart, setResetChart] = useState(false);
   // end of jianlin states
 
-  // jian lin functions
-  const onSkipToEndClick = () => {
-    setSkipToEndTrigger(true);
-    setResetChart(false);
-    setEnded(true);
-    setStart(false);
-    setPaused(false);
-  };
-  // end of jian lin functions
-
   // combined
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(true);
@@ -85,20 +76,6 @@ const CombinedPage = () => {
   const [errorMsgFetch, setErrorMsgFetch] = useState("");
   const [loadingParseOptimized, setLoadingParseOptimized] = useState(false);
   const [loadingParseUnoptimized, setLoadingParseUnoptimized] = useState(false);
-
-  const toggleVisibility = () => {
-    setToggle({
-      maps: !toggle.maps,
-      line: !toggle.line,
-    });
-  };
-
-  const toggleStatisticsVisibility = () => {
-    setToggleStates({
-      output: !toggleStats.output,
-      dispatch: !toggleStats.dispatch,
-    });
-  };
 
   const initDispatchTimes = async () => {
     const url = "http://127.0.0.1:8000/mm_default/result_matrices";
@@ -287,6 +264,20 @@ const CombinedPage = () => {
     }
   }, [journeyData, journeyDataUnoptimized]);
 
+  const toggleVisibility = () => {
+    setToggle({
+      maps: !toggle.maps,
+      line: !toggle.line,
+    });
+  };
+
+  const toggleStatisticsVisibility = () => {
+    setToggleStates({
+      output: !toggleStats.output,
+      dispatch: !toggleStats.dispatch,
+    });
+  };
+
   const onStartClick = () => {
     console.log("start clicked");
     setEnded(false);
@@ -305,6 +296,13 @@ const CombinedPage = () => {
     setPaused(false);
     setSkipToEndTrigger(false);
     setResetChart(true);
+  };
+
+  const onSkipToEndClick = () => {
+    setSkipToEndTrigger(true);
+    setResetChart(false);
+    setEnded(true);
+    setPaused(false);
   };
 
   const onResetZoomAndCenterClick = () => {
@@ -437,7 +435,7 @@ const CombinedPage = () => {
   return (
     <div>
       {/* Control buttons */}
-      <div className="flex justify-center items-center py-5">
+      <div className="flex justify-center items-center py-5 text-xs">
         <button
           onClick={onStartClick}
           type="button"
@@ -474,7 +472,7 @@ const CombinedPage = () => {
         </button>
         <div className="border-l-2 pl-3">{renderFetchStatus()}</div>
         <div className="border-l-2 pl-3">{renderParseStatus()}</div>
-        <div className=" ml-10 flex">
+        <div className="ml-10 flex">
           <div>Viewing {toggle.maps ? "Maps" : "Line"}</div>
           <button
             onClick={toggleVisibility}
@@ -484,7 +482,7 @@ const CombinedPage = () => {
             <AiOutlineSwap />
           </button>
         </div>
-        <div className=" ml-10 flex">
+        <div className="ml-10 flex">
           <div>Viewing {toggleStats.dispatch ? "Dispatch" : "Output"}</div>
           <button
             onClick={toggleStatisticsVisibility}
@@ -493,6 +491,9 @@ const CombinedPage = () => {
           >
             <AiOutlineSwap />
           </button>
+        </div>
+        <div className="ml-10">
+          <UploadFile />
         </div>
       </div>
       <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">

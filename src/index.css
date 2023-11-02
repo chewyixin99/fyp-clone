@@ -49,6 +49,10 @@
     sm:text-lg 
     md:text-xl
   }
+
+  input[type="file"] {
+    display: none;
+  }
 }
 
 @layer components {
