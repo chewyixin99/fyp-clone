@@ -1,27 +1,76 @@
-import { useEffect } from "react";
-import chart_1_content from "../assets/complexity/v1_0CVXPY.html?raw";
+import { useState } from "react";
+
+const hideVis = {
+  heat_0: false,
+  plot_0: false,
+  heat_1: false,
+  plot_1: false,
+};
 
 const Complexity = () => {
-  useEffect(() => {
-    // const htmlComponent = document.getElementById("chart_1");
-    // htmlComponent.innerHTML = `${chart_1_content}`;
-    // console.log(htmlComponent);
-  }, []);
+  const [showChart, setShowChart] = useState({
+    heat_0: true,
+    plot_0: false,
+    heat_1: false,
+    plot_1: false,
+  });
+
+  const setToggle = (e) => {
+    e.preventDefault();
+    const id = e.target.id;
+    setShowChart({
+      ...hideVis,
+      [id]: true,
+    });
+  };
+
+  const renderToggle = () => {
+    return (
+      <div className="flex text-xs justify-end my-5">
+        <button onClick={setToggle} id="heat_0" className="mx-3 control-button">
+          v1_0CVXPY heat
+        </button>
+        <button onClick={setToggle} id="plot_0" className="mx-3 control-button">
+          v1_0CVXPY plot
+        </button>
+        <button onClick={setToggle} id="heat_1" className="mx-3 control-button">
+          v1_0 heat
+        </button>
+        <button onClick={setToggle} id="plot_1" className="mx-3 control-button">
+          v1_0C plot
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="mx-auto">
       <h4 className="mx-[10vw] my-3 py-3">Complexity analysis</h4>
-      {/* <div>
-        <div
-          id="chart_1"
-          dangerouslySetInnerHTML={{ __html: chart_1_content }}
-          className="h-[50vh]"
-        ></div>
-      </div> */}
+      {renderToggle()}
       <div className="border-y-2">
         <iframe
-          className="mx-auto w-[80vw] h-[80vh] pb-5"
-          src="//plotly.com/~biondi/1.embed"
+          className={`mx-auto w-[80vw] h-[80vh] my-5 ${
+            showChart.heat_0 ? "block" : "hidden"
+          }`}
+          src="//plotly.com/~biondi/6.embed"
+        ></iframe>
+        <iframe
+          className={`mx-auto w-[80vw] h-[80vh] my-5 ${
+            showChart.plot_0 ? "block" : "hidden"
+          }`}
+          src="//plotly.com/~biondi/8.embed"
+        ></iframe>
+        <iframe
+          className={`mx-auto w-[80vw] h-[80vh] my-5 ${
+            showChart.heat_1 ? "block" : "hidden"
+          }`}
+          src="//plotly.com/~biondi/10.embed"
+        ></iframe>
+        <iframe
+          className={`mx-auto w-[80vw] h-[80vh] my-5 ${
+            showChart.plot_1 ? "block" : "hidden"
+          }`}
+          src="//plotly.com/~biondi/12.embed"
         ></iframe>
       </div>
     </div>
