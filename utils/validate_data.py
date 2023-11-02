@@ -218,10 +218,10 @@ def validate_data(data):
     except Exception as e:
         return False, f"An error occurred: {e}"
 
+# TEST
+# input_file_path = '../data/inputs/actual/actual_input_2710.json'
 
-input_file_path = '../data/inputs/actual/actual_input_2710.json'
+# with open(input_file_path, "r") as f:
+#     data = json.load(f)
 
-with open(input_file_path, "r") as f:
-    data = json.load(f)
-
-print(validate_data(data))
+# print(validate_data(data))
