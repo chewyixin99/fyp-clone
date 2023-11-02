@@ -26,5 +26,5 @@ def check_health():
   return APIResponse(
     status=HTTPStatus.OK, 
     status_text=HTTPStatus.OK.phrase,
-    data=":D"
+    message=":D"
   )

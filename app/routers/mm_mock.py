@@ -52,13 +52,15 @@ async def get_mock_result_matrices(request: MMResultRequest):
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
         status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-        data="failed to generate data"
+        message="Failed to generate data.",
+        data=f"{str(e)}"
       )
     )
 
   return MMResponse(
     status=HTTPStatus.OK, 
     status_text=HTTPStatus.OK.phrase,
+    message="Successfully retrieved matrices.",
     data=data
   )
 
@@ -89,7 +91,7 @@ async def get_mock_result_feed(request: MMFeedRequest):
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
         status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-        data="failed to generate data"
+        message="Failed to generate data."
       )
     )
 

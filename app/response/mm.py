@@ -25,4 +25,5 @@ class MMResultMatrices(BaseModel):
 class MMResponse(BaseModel):
   status: int = 0
   status_text: str = ""
+  message: str = ""
   data: MMResultMatrices

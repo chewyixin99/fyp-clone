@@ -2,13 +2,14 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 
 from contextlib import asynccontextmanager
 
 from .routers import admin, mm_mock, mm_default, mm_upload
 from .services.mm import get_mm_raw_result
 from .cache import redis
-from .response.error import APIException
+from .response.error import APIException, ValidationException
 from .response.standard import APIResponse
 
 tags_metadata = [
@@ -65,4 +66,13 @@ def exception_handler(request: Request, exc: APIException):
   return JSONResponse(
     status_code=exc.response.status,
     content=jsonable_encoder(exc.response)
+  )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+  response = ValidationException(exc).process_and_respond()
+
+  return JSONResponse(
+    status_code=response.status,
+    content=jsonable_encoder(response)
   )

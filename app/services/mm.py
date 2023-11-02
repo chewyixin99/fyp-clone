@@ -96,7 +96,8 @@ async def get_mm_raw_result(
     data=input_data,
     deviated_dispatch_dict=deviated_dispatch_dict,
     silent=silent,
-    unoptimised=unoptimised
+    unoptimised=unoptimised,
+    retry=True
   )
 
   result = compress_dicts(
@@ -140,7 +141,7 @@ async def get_mm_input_data(
         response=APIResponse(
           status=HTTPStatus.BAD_REQUEST,
           status_text=HTTPStatus.BAD_REQUEST.phrase,
-          data="no uploaded file found"
+          message="No uploaded input data found."
         )
       )
 

@@ -3,7 +3,7 @@ import numpy as np
 from .utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False) -> Dict[str, Any]:
+def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False, retry: bool = True) -> Dict[str, Any]:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling using the Q-hat model from K.Gkiotsalitis et al. (2020).
 
@@ -48,6 +48,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     boarding_duration = data["boarding_duration"]
     alighting_duration = data["alighting_duration"]
     max_allowed_deviation = data["max_allowed_deviation"]
+    penalty_coefficient = data["penalty_coefficient"]
 
     # Transformation to dictionaries to be referred to by the constraints
     original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
@@ -202,8 +203,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                                 deviated_dispatch_dict[key])
 
     # OBJECTIVE FUNCTION
-    # For every second of deviation more than max_allowed_deviation, penalty is 10000
-    objective_function = f_x + 10000 * slack
+    # For every second of deviation more than max_allowed_deviation, penalty_coefficient is 10000 (can be changed in the JSON)
+    objective_function = f_x + penalty_coefficient * slack
 
     if unoptimised:
         value = 0
@@ -217,8 +218,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     try:
         result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.00001)
     except:
-        print(f"Model has failed, re-running with a higher tolerance for inaccuracy")
-        result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.0001)
+        if retry:
+            print(f"Model has failed, re-running with a higher tolerance for inaccuracy")
+            result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.0001)
 
     # Output the results
     if not silent:

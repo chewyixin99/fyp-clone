@@ -19,23 +19,32 @@ async def validate_and_cache_mm_input(file: UploadFile):
             APIResponse(
                 status=HTTPStatus.UNPROCESSABLE_ENTITY,
                 status_text=HTTPStatus.UNPROCESSABLE_ENTITY.phrase,
-                data="Empty file provided."
+                message="Empty file provided."
             )
         )
     
-    valid, err = validate_data(file_data)
+    try:
+        valid, err = validate_data(file_data)
+    except Exception as e:
+        raise APIException(
+            APIResponse(
+                status=HTTPStatus.UNPROCESSABLE_ENTITY,
+                status_text=HTTPStatus.UNPROCESSABLE_ENTITY.phrase,
+                data=f"{str(e)}"
+            )
+        )
+    
     if not valid:
         raise APIException(
             APIResponse(
                 status=HTTPStatus.UNPROCESSABLE_ENTITY,
                 status_text=HTTPStatus.UNPROCESSABLE_ENTITY.phrase,
-                data=f"{err}"
+                message=f"{err}"
             )
         )
 
     data_cache_key = uploaded_data_cache_key_gen()
     await set_uploaded_data_cache(data_cache_key, file_data)
-
 
 def validate_data(data: dict[str, any]) -> (bool, str):
     '''

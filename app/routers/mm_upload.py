@@ -5,6 +5,7 @@ from http import HTTPStatus
 
 from ..services import mm, mm_upload
 from ..request.mm import MMResultRequest, MMFeedRequest
+from ..request.mm_upload import MMUploadDataRequest
 from ..response.standard import APIResponse
 from ..response.mm import MMResultMatrices, MMResponse
 from ..response.error import APIException
@@ -20,7 +21,7 @@ metadata =  {
 }
 
 @router.post(
-  "/upload_data",
+  "/upload_data_file",
   tags=["Mathematical Model (User Uploaded Data)"],
   responses={
     200: {"model": APIResponse},
@@ -28,13 +29,17 @@ metadata =  {
     422: {"model": APIResponse}
   }
 )
-async def upload_input_json(file: UploadFile):
+async def upload_input_file(file: UploadFile):
+  '''
+    Accepts a single `.json` file through `form-data` with a key `file` and the file as its value.
+  ''' 
+
   if file.content_type != 'application/json':
     raise APIException(
       response=APIResponse(
         status=HTTPStatus.FORBIDDEN, 
         status_text=HTTPStatus.FORBIDDEN.phrase,
-        data="wrong file format received"
+        message="Wrong file format received."
       )
     )
 
@@ -54,19 +59,77 @@ async def upload_input_json(file: UploadFile):
     )
   except APIException as e:
     raise e
-  except:
+  except Exception as e:
     raise APIException(
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
         status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-        data="failed to compute results with provided input file"
+        message="Failed to compute results with provided input file.",
+        data=f"{str(e)}"
       )
     )
 
   return APIResponse(
     status=HTTPStatus.OK,
     status_text=HTTPStatus.OK.phrase,
-    data="successfully uploaded file"
+    message="Successfully uploaded file."
+  )
+
+@router.post(
+  "/upload_data_json",
+  tags=["Mathematical Model (User Uploaded Data)"],
+  responses={
+    200: {"model": APIResponse},
+    422: {"model": APIResponse}
+  }
+)
+async def upload_input_json(request: MMUploadDataRequest):
+  '''
+    Accepts the input file as parameters to the POST request.
+  ''' 
+
+  try:
+    await request.validate_and_cache_mm_input()
+  except APIException as e:
+    raise e
+  except Exception as e:
+    raise APIException(
+      response=APIResponse(
+        status=HTTPStatus.UNPROCESSABLE_ENTITY, 
+        status_text=HTTPStatus.UNPROCESSABLE_ENTITY.phrase,
+        data=f"{str(e)}"
+      )
+    )
+
+  try:
+    await mm.get_mm_raw_result (
+      deviated_dispatch_dict={},
+      unoptimised=False,
+      regenerate_results=True,
+      uploaded_file=True
+    )
+    await mm.get_mm_raw_result (
+      deviated_dispatch_dict={},
+      unoptimised=True,
+      regenerate_results=True,
+      uploaded_file=True
+    )
+  except APIException as e:
+    raise e
+  except Exception as e:
+    raise APIException(
+      response=APIResponse(
+        status=HTTPStatus.INTERNAL_SERVER_ERROR, 
+        status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
+        message="Failed to compute results with provided input data.",
+        data=f"{str(e)}"
+      )
+    )
+
+  return APIResponse(
+    status=HTTPStatus.OK,
+    status_text=HTTPStatus.OK.phrase,
+    message="Successfully uploaded data."
   )
 
 @router.post(
@@ -101,13 +164,15 @@ async def get_result_matrices(request: MMResultRequest):
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
         status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-        data="failed to generate data"
+        message="Failed to generate data.",
+        data=f"{str(e)}"
       )
     )
 
   return MMResponse(
     status=HTTPStatus.OK, 
     status_text=HTTPStatus.OK.phrase,
+    message="Successfully retrieved matrices.",
     data=data
   )
 
@@ -142,7 +207,8 @@ async def get_result_feed(request: MMFeedRequest):
       response=APIResponse(
         status=HTTPStatus.INTERNAL_SERVER_ERROR, 
         status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-        data="failed to generate data"
+        message="Failed to generate data.",
+        data=f"{str(e)}"
       )
     )
 

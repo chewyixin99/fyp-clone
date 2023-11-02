@@ -16,7 +16,7 @@ class MMResultRequest(BaseModel):
           response=APIResponse(
             status=HTTPStatus.BAD_REQUEST, 
             status_text=HTTPStatus.BAD_REQUEST.phrase,
-            data="invalid trip key provided"
+            message="Invalid trip key provided."
           )
         )
 
@@ -32,7 +32,7 @@ class MMFeedRequest(BaseModel):
         response=APIResponse(
           status=HTTPStatus.BAD_REQUEST, 
           status_text=HTTPStatus.BAD_REQUEST.phrase,
-          data="invalid polling rate provided"
+          message="Invalid polling rate provided."
         )
       )
 
@@ -42,6 +42,6 @@ class MMFeedRequest(BaseModel):
           response=APIResponse(
             status=HTTPStatus.BAD_REQUEST, 
             status_text=HTTPStatus.BAD_REQUEST.phrase,
-            data="invalid trip key provided"
+            message="Invalid trip key provided."
           )
         )
