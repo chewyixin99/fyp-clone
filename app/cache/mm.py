@@ -2,7 +2,7 @@ import hashlib
 import json
 import pickle
 
-from .cache import redis
+from . import redis
 
 def mm_cache_key_gen(
   deviated_dispatch_dict: dict[str, any],

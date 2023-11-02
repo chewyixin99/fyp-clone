@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 from .routers import admin, mm_mock, mm_default, mm_upload
 from .services.mm import get_mm_raw_result
-from .services.cache import redis
+from .cache import redis
 from .response.error import APIException
 from .response.standard import APIResponse
 
@@ -61,7 +61,7 @@ app.include_router(mm_default.router)
 app.include_router(mm_upload.router)
 
 @app.exception_handler(APIException)
-def exception_hanlder(request: Request, exc: APIException):
+def exception_handler(request: Request, exc: APIException):
   return JSONResponse(
     status_code=exc.response.status,
     content=jsonable_encoder(exc.response)

@@ -2,8 +2,8 @@ import os
 import json
 from http import HTTPStatus
 
-from ..services.mm_cache import mm_cache_key_gen, set_mm_result_cache, get_mm_result_cache
-from ..services.uploaded_data_cache import uploaded_data_cache_key_gen, get_uploaded_data_cache
+from ..cache.mm import mm_cache_key_gen, set_mm_result_cache, get_mm_result_cache
+from ..cache.uploaded_data import uploaded_data_cache_key_gen, get_uploaded_data_cache
 from ..mm.model import run_model
 from ..mm.utils.transformation import compress_dicts, json_to_feed
 

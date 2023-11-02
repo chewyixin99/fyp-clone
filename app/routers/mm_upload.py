@@ -1,11 +1,9 @@
 from fastapi import APIRouter, UploadFile
 from fastapi.responses import Response
 
-import json
 from http import HTTPStatus
 
-from ..services import mm
-from ..services.uploaded_data_cache import uploaded_data_cache_key_gen, set_uploaded_data_cache
+from ..services import mm, mm_upload
 from ..request.mm import MMResultRequest, MMFeedRequest
 from ..response.standard import APIResponse
 from ..response.mm import MMResultMatrices, MMResponse
@@ -26,27 +24,22 @@ metadata =  {
   tags=["Mathematical Model (User Uploaded Data)"],
   responses={
     200: {"model": APIResponse},
-    409: {"model": APIResponse},
-    500: {"model": APIResponse}
+    403: {"model": APIResponse},
+    422: {"model": APIResponse}
   }
 )
 async def upload_input_json(file: UploadFile):
   if file.content_type != 'application/json':
     raise APIException(
       response=APIResponse(
-        status=HTTPStatus.CONFLICT, 
-        status_text=HTTPStatus.CONFLICT.phrase,
+        status=HTTPStatus.FORBIDDEN, 
+        status_text=HTTPStatus.FORBIDDEN.phrase,
         data="wrong file format received"
       )
     )
 
-  # TODO: perform validation here with @Biondi's script
-
-  file_data = json.load(file.file)
-  data_cache_key = uploaded_data_cache_key_gen()
-  await set_uploaded_data_cache(data_cache_key, file_data)
-
   try:
+    await mm_upload.validate_and_cache_mm_input(file)
     await mm.get_mm_raw_result (
       deviated_dispatch_dict={},
       unoptimised=False,
@@ -59,6 +52,8 @@ async def upload_input_json(file: UploadFile):
       regenerate_results=True,
       uploaded_file=True
     )
+  except APIException as e:
+    raise e
   except:
     raise APIException(
       response=APIResponse(

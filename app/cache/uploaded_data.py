@@ -1,7 +1,7 @@
 import hashlib
 import pickle
 
-from .cache import redis
+from . import redis
 
 UPLOAD_DATA_CACHE_KEY = 'uploaded_data_key'
 
