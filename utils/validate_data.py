@@ -21,6 +21,7 @@ def validate_data(data):
             'max_allowed_deviation',
             'target_headway_2dlist',
             'interstation_travel_2dlist']
+
         for key in required_keys:
             if key not in data:
                 return False, f"Key '{key}' is missing from the data."
@@ -43,6 +44,9 @@ def validate_data(data):
 
         if len(data['original_dispatch_list']) != data['num_trips']:
             return False, f"'original_dispatch_list' should have {data['num_trips']} elements."
+
+        if not all(0 <= item for item in data['original_dispatch_list']):
+            return False, "'original_dispatch_list' should contain only positive numbers."
 
         # coordinates_list
         if not isinstance(data['coordinates_list'], list):
@@ -89,6 +93,9 @@ def validate_data(data):
         if len(data['prev_arrival_list']) != data['num_stops']:
             return False, f"'prev_arrival_list' should have {data['num_stops']} elements."
 
+        if not all(0 <= item for item in data['prev_arrival_list']):
+            return False, "'prev_arrival_list' should contain only positive numbers."
+
         # prev_dwell_list
         if not isinstance(data['prev_dwell_list'], list):
             return False, "'prev_dwell_list' should be a list."
@@ -98,6 +105,9 @@ def validate_data(data):
 
         if len(data['prev_dwell_list']) != data['num_stops'] - 1:
             return False, f"'prev_dwell_list' should have {data['num_stops'] - 1} elements."
+        
+        if not all(0 <= item for item in data['prev_dwell_list']):
+            return False, "'prev_dwell_list' should contain only positive numbers."
 
         # arrival_rate_list
         if not isinstance(data['arrival_rate_list'], list):
@@ -109,6 +119,9 @@ def validate_data(data):
         if len(data['arrival_rate_list']) != data['num_stops']:
             return False, f"'arrival_rate_list' should have {data['num_stops']} elements."
 
+        if not all(0 <= item <= 1 for item in data['arrival_rate_list']):
+            return False, "'arrival_rate_list' should contain only numbers between 0 and 1."
+
         # alighting_percentage_list
         if not isinstance(data['alighting_percentage_list'], list):
             return False, "'alighting_percentage_list' should be a list."
@@ -119,13 +132,22 @@ def validate_data(data):
         if len(data['alighting_percentage_list']) != data['num_stops'] - 1:
             return False, f"'alighting_percentage_list' should have {data['num_stops'] - 1} elements."
 
+        if not all(0 <= item <= 1 for item in data['alighting_percentage_list']):
+            return False, "'alighting_percentage_list' should contain only numbers between 0 and 1."
+
         # boarding_duration
         if not isinstance(data['boarding_duration'], int):
             return False, "'boarding_duration' should be an integer."
 
+        if not data['boarding_duration'] >= 0:
+            return False, "'boarding_duration' should be only positive numbers."
+
         #alighting_duration
         if not isinstance(data['alighting_duration'], int):
             return False, "'alighting_duration' should be an integer."
+
+        if not data['alighting_duration'] >= 0:
+            return False, "'alighting_duration' should be only positive numbers."
 
         #weights_list
         if not isinstance(data['weights_list'], list):
@@ -137,6 +159,9 @@ def validate_data(data):
         if len(data['weights_list']) != data['num_stops']:
             return False, f"'weights_list' should have {data['num_stops']} elements."
 
+        if not all(0 <= item <= 1 for item in data['weights_list']):
+            return False, "'weights_list' should contain only numbers between 0 and 1."
+
         # bus_availability_list
         if not isinstance(data['bus_availability_list'], list):
             return False, "'bus_availability_list' should be a list."
@@ -147,9 +172,15 @@ def validate_data(data):
         if len(data['bus_availability_list']) != data['num_trips']:
             return False, f"'bus_availability_list' should have {data['num_trips']} elements."
 
+        if not all(0 <= item for item in data['bus_availability_list']):
+            return False, "'bus_availability_list' should contain only positive numbers."
+
         # max_allowed_deviation
         if not isinstance(data['max_allowed_deviation'], int):
             return False, "'max_allowed_deviation' should be an integer."
+
+        if not data['max_allowed_deviation'] >= 0:
+            return False, "'max_allowed_deviation' should be only positive numbers."
 
         #target_headway_2dlist
         if not isinstance(data['target_headway_2dlist'], list):
@@ -188,9 +219,9 @@ def validate_data(data):
         return False, f"An error occurred: {e}"
 
 
-# input_file_path = '../data/inputs/actual/actual_input_2710.json'
+input_file_path = '../data/inputs/actual/actual_input_2710.json'
 
-# with open(input_file_path, "r") as f:
-#     data = json.load(f)
+with open(input_file_path, "r") as f:
+    data = json.load(f)
 
-# print(validate_data(data))
+print(validate_data(data))
