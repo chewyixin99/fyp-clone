@@ -142,14 +142,14 @@ def validate_data(data):
         if not data['boarding_duration'] >= 0:
             return False, "'boarding_duration' should be only positive numbers."
 
-        #alighting_duration
+        # alighting_duration
         if not isinstance(data['alighting_duration'], int):
             return False, "'alighting_duration' should be an integer."
 
         if not data['alighting_duration'] >= 0:
             return False, "'alighting_duration' should be only positive numbers."
 
-        #weights_list
+        # weights_list
         if not isinstance(data['weights_list'], list):
             return False, "'weights_list' should be a list."
 
@@ -182,7 +182,7 @@ def validate_data(data):
         if not data['max_allowed_deviation'] >= 0:
             return False, "'max_allowed_deviation' should be only positive numbers."
 
-        #target_headway_2dlist
+        # target_headway_2dlist
         if not isinstance(data['target_headway_2dlist'], list):
             return False, "'target_headway_2dlist' should be a list."
 

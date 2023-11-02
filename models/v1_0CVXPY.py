@@ -48,6 +48,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     boarding_duration = data["boarding_duration"]
     alighting_duration = data["alighting_duration"]
     max_allowed_deviation = data["max_allowed_deviation"]
+    penalty_coefficient = data["penalty_coefficient"]
 
     # Transformation to dictionaries to be referred to by the constraints
     original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
@@ -202,8 +203,8 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                                 deviated_dispatch_dict[key])
 
     # OBJECTIVE FUNCTION
-    # For every second of deviation more than max_allowed_deviation, penalty is 10000
-    objective_function = f_x + 10000 * slack
+    # For every second of deviation more than max_allowed_deviation, penalty_coefficient is 10000 (can be changed in the JSON)
+    objective_function = f_x + penalty_coefficient * slack
 
     if unoptimised:
         value = 0
