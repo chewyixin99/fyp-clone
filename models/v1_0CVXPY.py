@@ -3,7 +3,7 @@ import numpy as np
 from utils.transformation import convert_list_to_dict, convert_2dlist_to_dict
 from typing import Dict, Any
 
-def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False) -> Dict[str, Any]:
+def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict: Dict[str, Any] = None, unoptimised: bool = False, retry: bool = True) -> Dict[str, Any]:
     """
     Solves a mathematical optimisation problem for bus dispatch scheduling using the Q-hat model from K.Gkiotsalitis et al. (2020).
 
@@ -217,8 +217,9 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     try:
         result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.00001)
     except:
-        print(f"Model has failed, re-running with a higher tolerance for inaccuracy")
-        result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.0001)
+        if retry:
+            print(f"Model has failed, re-running with a higher tolerance for inaccuracy")
+            result = model.solve(solver=cp.OSQP, verbose=not silent, eps_rel=0.0001)
 
     # Output the results
     if not silent:
