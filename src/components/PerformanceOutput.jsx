@@ -24,7 +24,7 @@ const PerformanceOutput = React.memo(
       setLoadingUnoptimized(true);
       setError(false);
       setErrorMsg("");
-      const url = "http://127.0.0.1:8000/mm/result_matrices";
+      const url = "http://127.0.0.1:8000/mm_default/result_matrices";
       const requestBodyOptimized = {
         unoptimised: false,
         deviated_dispatch_dict: {},

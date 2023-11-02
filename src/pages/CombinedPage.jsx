@@ -101,7 +101,7 @@ const CombinedPage = () => {
   };
 
   const initDispatchTimes = async () => {
-    const url = "http://127.0.0.1:8000/mm/result_matrices";
+    const url = "http://127.0.0.1:8000/mm_default/result_matrices";
     const requestBody = {
       unoptimised: false,
       deviated_dispatch_dict: {},
@@ -150,7 +150,7 @@ const CombinedPage = () => {
     setLoadingParseOptimized(true);
     setLoadingParseUnoptimized(true);
     setErrorFetch(false);
-    const url = "http://127.0.0.1:8000/mm/result_feed";
+    const url = "http://127.0.0.1:8000/mm_default/result_feed";
     const requestBodyOptimised = {
       polling_rate: 1,
       unoptimised: false,

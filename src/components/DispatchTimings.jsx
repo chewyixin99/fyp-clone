@@ -75,8 +75,9 @@ const DispatchTimings = React.memo(
 
     const fetchFromEndpoint = async (dispatchInput) => {
       setLoadingFetch(true);
-      const urlCsv = "http://127.0.0.1:8000/mm/result_feed";
-      const urlResultMatrice = "http://127.0.0.1:8000/mm/result_matrices";
+      const urlCsv = "http://127.0.0.1:8000/mm_default/result_feed";
+      const urlResultMatrice =
+        "http://127.0.0.1:8000/mm_default/result_matrices";
       const requestBody = {
         unoptimised: false,
         polling_rate: 1,
