@@ -34,14 +34,13 @@ const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
 // const unoptimizedFile = "";
 
 const CombinedPage = () => {
-  // yixin states
+  // map states
   const [zoom, setZoom] = useState(defaultZoom);
   const [center, setCenter] = useState(defaultCenter);
   const [mapsGlobalTime, setMapsGlobalTime] = useState(0);
   const [stopObjs, setStopObjs] = useState([]);
-  // end of yixin states
 
-  // jianlin states
+  // metrics, line journey , performance result states
   const [start, setStart] = useState(false);
   const [unoptimisedOF, setUnoptimisedOF] = useState({});
   const [optimisedOF, setOptimisedOF] = useState({});
@@ -51,7 +50,6 @@ const CombinedPage = () => {
   const [unoptCumulativeOF, setUnoptCumulativeOF] = useState(0);
   const [propsCumulativeOF, setPropsCumulativeOF] = useState({});
   const [resetChart, setResetChart] = useState(false);
-  // end of jianlin states
 
   // combined
   const [paused, setPaused] = useState(false);
@@ -59,6 +57,9 @@ const CombinedPage = () => {
   const [journeyData, setJourneyData] = useState([]);
   const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
   const [globalTime, setGlobalTime] = useState(0);
+  const [dataInUse, setDataInUse] = useState("ORIGINAL");
+
+  // visualisation toggle states
   const [toggle, setToggle] = useState({
     maps: false,
     line: true,
@@ -67,15 +68,16 @@ const CombinedPage = () => {
     output: false,
     dispatch: true,
   });
+
+  // dispatch timing states
   const [dispatchTimes, setDispatchTimes] = useState({});
   const [updatedOutputJson, setUpdatedOutputJson] = useState({});
+
   // loading states
   const [loadingFetchOptimized, setLoadingFetchOptimized] = useState(false);
   const [loadingFetchUnoptimized, setLoadingFetchUnoptimized] = useState(false);
   const [errorFetch, setErrorFetch] = useState(false);
   const [errorMsgFetch, setErrorMsgFetch] = useState("");
-  const [loadingParseOptimized, setLoadingParseOptimized] = useState(false);
-  const [loadingParseUnoptimized, setLoadingParseUnoptimized] = useState(false);
 
   const initDispatchTimes = async () => {
     const url = "http://127.0.0.1:8000/mm_default/result_matrices";
@@ -124,8 +126,6 @@ const CombinedPage = () => {
   const fetchFromEndpoint = async () => {
     setLoadingFetchOptimized(true);
     setLoadingFetchUnoptimized(true);
-    setLoadingParseOptimized(true);
-    setLoadingParseUnoptimized(true);
     setErrorFetch(false);
     const url = "http://127.0.0.1:8000/mm_default/result_feed";
     const requestBodyOptimised = {
@@ -162,11 +162,9 @@ const CombinedPage = () => {
         );
         setStopObjs(processedDataOptimised.stopObjs);
         setJourneyData(processedDataOptimised.journeyData);
-        setLoadingParseOptimized(false);
       })
       .catch((e) => {
         setLoadingFetchOptimized(false);
-        setLoadingParseOptimized(false);
         setErrorFetch(true);
         console.log(e);
         setErrorMsgFetch(e.message);
@@ -197,55 +195,19 @@ const CombinedPage = () => {
           `fetched data: unoptimised: ${processedDataUnoptimised.journeyData.length} rows`
         );
         setJourneyDataUnoptimized(processedDataUnoptimised.journeyData);
-        setLoadingParseUnoptimized(false);
       })
       .catch((e) => {
         setLoadingFetchUnoptimized(false);
-        setLoadingParseUnoptimized(false);
         setErrorFetch(true);
         console.log(e);
         setErrorMsgFetch(e.message);
       });
   };
 
-  const parseData = async () => {
-    setLoadingParseOptimized(true);
-    setLoadingParseUnoptimized(true);
-    Papa.parse(optimizedFile, {
-      // options
-      download: true,
-      complete: (res) => {
-        const data = res.data.slice(1);
-        const processedData = processCsvData(data);
-        console.log(
-          `optimised done parsing: optimised: ${processedData.journeyData.length} rows`
-        );
-        setStopObjs(processedData.stopObjs);
-        setJourneyData(processedData.journeyData);
-        setLoadingParseOptimized(false);
-      },
-    });
-
-    Papa.parse(unoptimizedFile, {
-      // options
-      download: true,
-      complete: (res) => {
-        const data = res.data.slice(1);
-        const processedData = processCsvData(data);
-        console.log(
-          `unoptimised done parsing: unoptimised: ${processedData.journeyData.length} rows`
-        );
-        setJourneyDataUnoptimized(processedData.journeyData);
-        setLoadingParseUnoptimized(false);
-      },
-    });
-  };
-
   // load initial data
   useEffect(() => {
     initDispatchTimes();
     fetchFromEndpoint();
-    // parseData();
   }, []);
 
   useEffect(() => {
@@ -311,16 +273,18 @@ const CombinedPage = () => {
   };
 
   const onRefetchDataClick = () => {
+    initDispatchTimes();
     fetchFromEndpoint();
+    setDataInUse("ORIGINAL");
   };
 
   const renderFetchStatus = () => {
     if (!errorFetch) {
       return (
-        <div className="flex items-center pr-3">
+        <div className="flex items-center">
           <div className="mr-3 flex items-center">
-            Fetching data:
-            {loadingFetchOptimized ? (
+            Original data:
+            {loadingFetchOptimized || errorFetch ? (
               <div className="text-orange-600 flex items-center">
                 <span className="mx-3">optimised</span>
                 <PuffLoader
@@ -335,7 +299,7 @@ const CombinedPage = () => {
                 <TiTick />
               </div>
             )}
-            {loadingFetchUnoptimized ? (
+            {loadingFetchUnoptimized || errorFetch ? (
               <div className="text-orange-500 flex items-center">
                 <span className="mx-3">unoptimised</span>
                 <PuffLoader
@@ -350,6 +314,16 @@ const CombinedPage = () => {
                 <TiTick />
               </div>
             )}
+            <button
+              onClick={onRefetchDataClick}
+              className={`${
+                loadingFetchOptimized || loadingFetchUnoptimized
+                  ? "control-button-disabled"
+                  : "control-button"
+              }`}
+            >
+              <RxReload />
+            </button>
           </div>
         </div>
       );
@@ -360,49 +334,6 @@ const CombinedPage = () => {
         <button onClick={onRefetchDataClick} className="control-button">
           <RxReload />
         </button>
-      </div>
-    );
-  };
-
-  const renderParseStatus = () => {
-    // if (!errorFetch) {
-    //   // todo: put condition inside here once fully integrated
-    // }
-    return (
-      <div className="flex items-center pr-3">
-        <div className="mr-3 flex items-center">
-          Parsing data:
-          {loadingParseOptimized ? (
-            <div className="text-orange-600 flex items-center">
-              <span className="mx-3">optimised</span>
-              <PuffLoader
-                color="rgb(234, 88, 12)"
-                loading={loadingParseOptimized}
-                size={15}
-              />
-            </div>
-          ) : (
-            <div className="text-green-500 flex items-center">
-              <span className="mx-3">optimised</span>
-              <TiTick />
-            </div>
-          )}
-          {loadingParseUnoptimized ? (
-            <div className="text-orange-500 flex items-center">
-              <span className="mx-3">unoptimised</span>
-              <PuffLoader
-                color="rgb(234, 88, 12)"
-                loading={loadingParseUnoptimized}
-                size={15}
-              />
-            </div>
-          ) : (
-            <div className="text-green-600 flex items-center">
-              <span className="mx-3">unoptimised</span>
-              <TiTick />
-            </div>
-          )}
-        </div>
       </div>
     );
   };
@@ -435,65 +366,85 @@ const CombinedPage = () => {
   return (
     <div>
       {/* Control buttons */}
-      <div className="flex justify-center items-center py-5 text-xs">
-        <button
-          onClick={onStartClick}
-          type="button"
-          className={
-            paused || start ? "control-button-disabled" : "control-button"
-          }
-        >
-          <BiRun />
-        </button>
-        <button
-          onClick={onPauseClick}
-          type="button"
-          className={ended ? `control-button-disabled` : `control-button`}
-          disabled={ended}
-        >
-          {paused ? <BsFillPlayFill /> : <BsFillPauseFill />}
-        </button>
-        <button onClick={onEndClick} type="button" className={`control-button`}>
-          <BsRepeat />
-        </button>
-        <button
-          onClick={onResetZoomAndCenterClick}
-          type="button"
-          className="control-button"
-        >
-          <MdFilterCenterFocus />
-        </button>
-        <button
-          onClick={onSkipToEndClick}
-          type="button"
-          className={`control-button`}
-        >
-          <AiOutlineForward />
-        </button>
-        <div className="border-l-2 pl-3">{renderFetchStatus()}</div>
-        <div className="border-l-2 pl-3">{renderParseStatus()}</div>
-        <div className="ml-10 flex">
-          <div>Viewing {toggle.maps ? "Maps" : "Line"}</div>
+      <div>
+        {/* row 1 */}
+        <div className="flex justify-center items-center py-5 text-xs">
           <button
-            onClick={toggleVisibility}
+            onClick={onStartClick}
+            type="button"
+            className={
+              paused || start ? "control-button-disabled" : "control-button"
+            }
+          >
+            <BiRun />
+          </button>
+          <button
+            onClick={onPauseClick}
+            type="button"
+            className={ended ? `control-button-disabled` : `control-button`}
+            disabled={ended}
+          >
+            {paused ? <BsFillPlayFill /> : <BsFillPauseFill />}
+          </button>
+          <button
+            onClick={onEndClick}
+            type="button"
+            className={`control-button`}
+          >
+            <BsRepeat />
+          </button>
+          <button
+            onClick={onResetZoomAndCenterClick}
             type="button"
             className="control-button"
           >
-            <AiOutlineSwap />
+            <MdFilterCenterFocus />
           </button>
-        </div>
-        <div className="ml-10 flex">
-          <div>Viewing {toggleStats.dispatch ? "Dispatch" : "Output"}</div>
           <button
-            onClick={toggleStatisticsVisibility}
+            onClick={onSkipToEndClick}
             type="button"
-            className="control-button"
+            className={`control-button`}
           >
-            <AiOutlineSwap />
+            <AiOutlineForward />
           </button>
+          <div className="ml-3 flex items-center border-l-2 pl-3">
+            <div>Viewing {toggle.maps ? "Maps" : "Line"}</div>
+            <button
+              onClick={toggleVisibility}
+              type="button"
+              className="control-button"
+            >
+              <AiOutlineSwap />
+            </button>
+          </div>
+          <div className="ml-3 flex items-center">
+            <div>Viewing {toggleStats.dispatch ? "Dispatch" : "Output"}</div>
+            <button
+              onClick={toggleStatisticsVisibility}
+              type="button"
+              className="control-button"
+            >
+              <AiOutlineSwap />
+            </button>
+          </div>
         </div>
-        <div className="ml-10">
-          <UploadFile />
+        {/* row 2 */}
+        <div className="flex justify-center items-center py-5 text-xs">
+          <div className="mx-3 border-r-2">{renderFetchStatus()}</div>
+          <UploadFile
+            setStopObjs={setStopObjs}
+            setJourneyData={setJourneyData}
+            setJourneyDataUnoptimized={setJourneyDataUnoptimized}
+            setDispatchTimes={setDispatchTimes}
+            setDataInUse={setDataInUse}
+          />
+        </div>
+        {/* row 3 */}
+        <div className="flex justify-center items-center py-5 text-xs">
+          <div>
+            Currently viewing <span className="underline">{dataInUse}</span>{" "}
+            data
+          </div>
         </div>
       </div>
       <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">

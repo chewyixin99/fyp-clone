@@ -82,6 +82,7 @@ const DispatchTimings = React.memo(
         unoptimised: false,
         polling_rate: 1,
         deviated_dispatch_dict: dispatchInput,
+        regenerate_results: false,
       };
       const options = {
         method: "POST",
