@@ -253,7 +253,7 @@ const Metrics = React.memo(
             "Description: This mixed chart displays the objective function for each bus stop on the left Y-Axis and the cumulative objective function for each model (optimised & unoptimised) on the right Y-Axis.",
             "The objective function indicates how well the actual headway follows the target headway. The lower the objective function, the less significant bus bunching can be observed.",
             "",
-            "Goal: ↓ objective function = ↑ model optimisation = ↓ bus bunching.",
+            "Goal: ↓ objective function = ↓ bus bunching",
             "",
           ],
         },
@@ -269,7 +269,7 @@ const Metrics = React.memo(
           position: "right",
           title: {
             display: true,
-            text: "Bus Stops (Bus Stop No., Bus ID)",
+            text: "Bus Stops <[Bus Stop No.]  Bus Stop ID>",
             font: {
               size: 12,
             },

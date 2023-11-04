@@ -272,11 +272,11 @@ const PerformanceOutput = React.memo(
     return (
       <div className="w-20vw mr-auto text-xs">
         <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2">Performance results</div>
+          <div className="mb-3 pb-1 border-b-2">Performance Results</div>
           {renderMetrics(localPerformanceValues, true, true)}
         </div>
         <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2">Static results</div>
+          <div className="mb-3 pb-1 border-b-2">Static Results</div>
           <div>
             {loadingOptimized || loadingUnoptimized
               ? ""
@@ -285,10 +285,10 @@ const PerformanceOutput = React.memo(
         </div>
         <div className="my-5">
           <div className="mb-3 pb-1 border-b-2">
-            Overall performance results
+            Overall Performance Results
           </div>
           <div className="flex my-1">
-            <div>Objective function:</div>
+            <div>Objective Function:</div>
             <div className={`mx-2 ${getTextColor(performanceImprovement)}`}>
               {performanceImprovement.toFixed(2)} %
             </div>
@@ -297,7 +297,7 @@ const PerformanceOutput = React.memo(
             ""
           ) : (
             <div className="flex my-1">
-              <div>Excess wait time:</div>
+              <div>Excess Wait Time:</div>
               <div
                 className={`mx-2 ${getTextColor(
                   calculateDelta(staticValues.excessWaitTime)
@@ -310,7 +310,9 @@ const PerformanceOutput = React.memo(
         </div>
         <div className="text-gray-400 text-[10px]">
           <p>Headway Deviation + Slack Penalty* = Objective Function</p>
-          <p>Slack Penalty is only added at the end</p>
+          <br/>
+          <p>Slack Penalty* accounts for the deviation of the last bus at the last stop when compared to the</p>
+          <p>unoptimised model. This slack provides extra buffer for the mathematical model to optimise. </p>
         </div>
       </div>
     );
