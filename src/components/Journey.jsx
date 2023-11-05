@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 import React from "react";
-import "../styling/bus-operations.css";
+import "../styling/journey.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import BusStop from "./BusStop";
-import { headway_matrix as headway_matrix_1, obj_fn_matrix as obj_fn_matrix_1} from "/public/v1_0CVXPY_unoptimised_output.json"
-import { num_trips, num_stops, headway_matrix as headway_matrix_2, obj_fn_matrix as obj_fn_matrix_2 } from "/public/v1_0CVXPY_optimised_output.json"
+import { obj_fn_matrix as obj_fn_matrix_1} from "/public/v1_0CVXPY_unoptimised_output.json"
+import { num_trips, num_stops, obj_fn_matrix as obj_fn_matrix_2 } from "/public/v1_0CVXPY_optimised_output.json"
 
 import { bus_stop_data } from "/public/bus_stop_data.json"
 
@@ -20,7 +20,9 @@ const Journey = ({
   setUnoptimisedOF,
   setOptimisedOF,
   skipToEndTrigger,
-  resetChart
+  resetChart,
+  optimizedOutputJson,
+  unoptimizedOutputJson
 }) => {
   const [totalDistance, setTotalDistance] = useState(3100);
   const route_bar_width = 1600;
@@ -31,7 +33,6 @@ const Journey = ({
   const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
   const [dataObj, setDataObj] = useState({});
   const [deployedTrips, setDeployedTrips] = useState([]);
-  const [headwayObj, setHeadwayObj] = useState({});
   const [OFObj, setOFObj] = useState({});
   const [currentStop, setCurrentStop] = useState({})
 
@@ -218,16 +219,6 @@ const Journey = ({
     }
   };
 
-  const getHW = (currentStop) => {
-    var { modelId, busTripNo, busStopNo } = currentStop
-    var temp_key = busTripNo + ',' + busStopNo
-    if (modelId == '1') {
-      // unoptimised
-      return headway_matrix_1[temp_key]
-    }
-    return headway_matrix_2[temp_key]
-  }
-
   const getOF = (currentStop) => {
     var { busTripNo, busStopNo } = currentStop
     var temp_key = busTripNo + ',' + busStopNo
@@ -237,21 +228,6 @@ const Journey = ({
     }
     return obj_fn_matrix_2[temp_key]
   }
-
-  const updateHeadway = (headway, stopId, busStopNo, busTripNo) => {
-    if (headway != 0 && isRunning) {
-      var current = headwayObj;
-      current[[busTripNo, busStopNo]] = getHW(currentStop);
-      setHeadwayObj(current);
-
-      var headwayref = document.querySelector(
-        `.headway-ref-${id}-${busStopNo}`
-      );
-      if (headwayref != null) {
-        headwayref.innerHTML = convert_seconds_to_time(headway);
-      }
-    }
-  };
 
   const updateObjectiveFunction = () => {
     var { busTripNo, busStopNo } = currentStop
@@ -266,6 +242,7 @@ const Journey = ({
     setOFObj({}) 
   }, [resetChart]);
 
+  useEffect
 
   useEffect(() => {
     if (isRunning) {
@@ -393,7 +370,6 @@ const Journey = ({
               globalTime={globalTime}
               start={start}
               dataObj={dataObj}
-              updateHeadway={updateHeadway}
               setCurrentStop={setCurrentStop}
               modelId={id}
             />

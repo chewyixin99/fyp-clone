@@ -10,7 +10,7 @@ const LandingPage = () => {
       {/* Introduction */}
       <div className="p-3 text-center">
         <h6>
-          This project is part of SMU's Final Year Project (IS483), done by the
+          This project is part of SMU&apos;s Final Year Project (IS483), done by the
           following students:
         </h6>
         <div className="flex items-center my-5 justify-center">
@@ -169,7 +169,7 @@ const LandingPage = () => {
         <div className="border-l-2 p-3 my-3">
           <h4>Objective</h4>
           <p className="m-3">
-            The team's objective is to optimise bus dispatch through demand
+            The team&apos;s objective is to optimise bus dispatch through demand
             analysis and forecasting. Our main goal is to reduce{" "}
             <span className="highlight-text font-bold">headway</span>, which is
             the{" "}
@@ -197,7 +197,7 @@ const LandingPage = () => {
             The team hopes that our{" "}
             <span className="highlight-text">research-backed</span> model can be
             a <span className="highlight-text">universal</span> solution that
-            enables PIAPP's adoption of this solution{" "}
+            enables PIAPP&apos;s adoption of this solution{" "}
             <span className="highlight-text">at scale</span>.
           </p>
         </div>

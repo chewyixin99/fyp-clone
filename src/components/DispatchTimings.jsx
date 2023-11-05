@@ -195,10 +195,10 @@ const DispatchTimings = React.memo(
 
       return (
         <>
-          <div className="group relative w-max ms-1 flex items-center">
-            {text}
-            <BsQuestionCircle className="text-md ms-1" />
-            <div className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
+          <div className="group relative w-max ms-2 flex items-baseline">
+            <span className="text-base mb-2 leading-none tracking-tight">{text}</span>
+            <BsQuestionCircle className="text-xs ms-1" />
+            <div className={`text-white text-[11px] w-72 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
               {contentObj[text].map((item, index) => {
                 return (
                   <p key={index}>

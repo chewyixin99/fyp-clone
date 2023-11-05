@@ -9,81 +9,17 @@ const PerformanceOutput = React.memo(
     optCumulativeOF,
     unoptCumulativeOF,
     updatedOutputJson,
+    optimizedOutputJson,
+    unoptimizedOutputJson,
+    loadingOptimizedOutputJSON,
+    loadingUnoptimizedOutputJSON,
+    errorOutputJSON,
+    errorMsgOutputJSON,
   }) => {
     const [localPerformanceValues, setLocalPerformanceValues] = useState({});
     const [staticValues, setStaticValues] = useState({});
     const [performanceImprovement, setPerformanceImprovement] = useState(0);
-    const [optimizedOutputJson, setOptimizedOutputJson] = useState({});
-    const [unoptimizedOutputJson, setUnoptimizedOutputJson] = useState({});
-    const [loadingOptimized, setLoadingOptimized] = useState(false);
-    const [loadingUnoptimized, setLoadingUnoptimized] = useState(false);
-    const [error, setError] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
 
-    const initOutputJson = async () => {
-      setLoadingOptimized(true);
-      setLoadingUnoptimized(true);
-      setError(false);
-      setErrorMsg("");
-      const url = "http://127.0.0.1:8000/mm_default/result_matrices";
-      const requestBodyOptimized = {
-        unoptimised: false,
-        deviated_dispatch_dict: {},
-        regenerate_results: false,
-      };
-      const requestBodyUnoptimized = {
-        unoptimised: true,
-        deviated_dispatch_dict: {},
-        regenerate_results: false,
-      };
-      const options = {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-      // fetch optimized json
-      await fetch(url, {
-        ...options,
-        body: JSON.stringify(requestBodyOptimized),
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .then((responseJson) => {
-          setLoadingOptimized(false);
-          setOptimizedOutputJson(responseJson.data);
-        })
-        .catch((e) => {
-          setError(true);
-          setErrorMsg(`Optimised error: ${e.message}`);
-          setLoadingOptimized(false);
-          console.log(e);
-        });
-      // fetch unoptimized json
-      await fetch(url, {
-        ...options,
-        body: JSON.stringify(requestBodyUnoptimized),
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .then((responseJson) => {
-          setLoadingUnoptimized(false);
-          setUnoptimizedOutputJson(responseJson.data);
-        })
-        .catch((e) => {
-          setError(true);
-          setErrorMsg(`Unoptimised error: ${e.message}`);
-          setLoadingUnoptimized(false);
-          console.log(e);
-        });
-    };
-
-    useEffect(() => {
-      initOutputJson();
-    }, []);
 
     const getPerformanceImprovement = () => {
       let tmpUnoptCumulativeOF;
@@ -165,6 +101,7 @@ const PerformanceOutput = React.memo(
             : optimizedOutputJson.slack_penalty,
         },
       });
+
     };
 
     const getTextColor = (val) => {
@@ -185,8 +122,8 @@ const PerformanceOutput = React.memo(
       showDelta = false,
       showUpdated = false
     ) => {
-      if (error) {
-        return <div className="text-red-500">{errorMsg}</div>;
+      if (errorOutputJSON) {
+        return <div className="text-red-500">{errorMsgOutputJSON}</div>;
       }
       if (Object.keys(performanceValues).length === 0) {
         return;
@@ -273,10 +210,10 @@ const PerformanceOutput = React.memo(
 
       return (
         <>
-          <div className="group relative w-max ms-1 flex items-center">
-            {text}
-            <BsQuestionCircle className="text-md ms-1" />
-            <div className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
+          <div className="group relative w-max ms-2 flex items-baseline">
+          <span className="text-base mb-2 leading-none tracking-tight">{text}</span>
+            <BsQuestionCircle className="text-xs ms-1" />
+            <div className={`text-white text-[11px] w-72 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
               {contentObj[text].map((item, index) => {
                 return (
                   <p key={index}>
@@ -304,6 +241,7 @@ const PerformanceOutput = React.memo(
         Object.keys(optimizedOutputJson).length !== 0
       ) {
         getPerformanceImprovement();
+
       }
     }, [
       optCumulativeOF,
@@ -311,28 +249,35 @@ const PerformanceOutput = React.memo(
       propsCumulativeOF,
       optimizedOutputJson,
       unoptimizedOutputJson,
+      optimizedOutputJson,
+      unoptimizedOutputJson,
+      loadingOptimizedOutputJSON,
+      loadingUnoptimizedOutputJSON,
+      errorOutputJSON,
+      errorMsgOutputJSON,
+      skipToEndTrigger
     ]);
 
     return (
       <div className="w-20vw mr-auto text-xs">
         <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2">
+          <div className="">
             {renderTooltip("Performance Results","right")}
           </div>
           {renderMetrics(localPerformanceValues, true, true)}
         </div>
         <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2">
+          <div className="">
             {renderTooltip("Static Results","right")}
           </div>
           <div>
-            {loadingOptimized || loadingUnoptimized
+            {loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON
               ? ""
               : renderMetrics(staticValues, false, true)}
           </div>
         </div>
         <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2">
+          <div className="mb-3 pb-1 border-b-2 text-base mb-2 leading-none tracking-tight">
             Overall Performance Results
           </div>
           <div className="flex my-1">
@@ -367,6 +312,12 @@ PerformanceOutput.propTypes = {
   optCumulativeOF: PropTypes.number,
   unoptCumulativeOF: PropTypes.number,
   updatedOutputJson: PropTypes.object,
+  optimizedOutputJson: PropTypes.object,
+  unoptimizedOutputJson: PropTypes.object,
+  loadingOptimizedOutputJSON: PropTypes.bool,
+  loadingUnoptimizedOutputJSON: PropTypes.bool,
+  errorOutputJSON: PropTypes.bool,
+  errorMsgOutputJSON: PropTypes.string,
 };
 
 PerformanceOutput.displayName = "PerformanceOutput";

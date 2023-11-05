@@ -3,7 +3,11 @@ import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 import { normalizeStartTime, processCsvData } from "../util/mapHelper";
-import { BsFillPlayFill, BsFillPauseFill, BsFillStopFill } from "react-icons/bs";
+import {
+  BsFillPlayFill,
+  BsFillPauseFill,
+  BsFillStopFill,
+} from "react-icons/bs";
 import { BiRun } from "react-icons/bi";
 import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
@@ -79,10 +83,47 @@ const CombinedPage = () => {
   const [loadingFetchUnoptimized, setLoadingFetchUnoptimized] = useState(false);
   const [errorFetch, setErrorFetch] = useState(false);
   const [errorMsgFetch, setErrorMsgFetch] = useState("");
+  const [loadingOptimizedOutputJSON, setLoadingOptimizedOutputJSON] =
+    useState(false);
+  const [loadingUnoptimizedOutputJSON, setLoadingUnoptimizedOutputJSON] =
+    useState(false);
+  const [errorOutputJSON, setErrorOutputJSON] = useState(false);
+  const [errorMsgOutputJSON, setErrorMsgOutputJSON] = useState("");
 
-  const initDispatchTimes = async () => {
+  // output json states
+  const [optimizedOutputJson, setOptimizedOutputJson] = useState({});
+  const [unoptimizedOutputJson, setUnoptimizedOutputJson] = useState({});
+
+  const initDispatchTimes = (retrievedData) => {
+    const originalTimesArr = retrievedData.original_dispatch_list;
+    const optimizedDispatchTimes = retrievedData.dispatch_list;
+    const tmpDispatchTimes = {};
+    const originalDispatchTimes = {};
+    ``;
+    for (let i = 0; i < originalTimesArr.length; i++) {
+      originalDispatchTimes[i + 1] = parseInt(originalTimesArr[i]);
+    }
+    for (const key of Object.keys(optimizedDispatchTimes)) {
+      tmpDispatchTimes[key] = {
+        planned: originalDispatchTimes[key],
+        optimized: optimizedDispatchTimes[key],
+      };
+    }
+    setDispatchTimes(tmpDispatchTimes);
+  };
+
+  const initOutputJson = async () => {
+    setLoadingOptimizedOutputJSON(true);
+    setLoadingUnoptimizedOutputJSON(true);
+    setErrorOutputJSON(false);
+    setErrorMsgOutputJSON("");
     const url = "http://127.0.0.1:8000/mm_default/result_matrices";
-    const requestBody = {
+    const requestBodyUnoptimized = {
+      unoptimised: true,
+      deviated_dispatch_dict: {},
+      regenerate_results: false,
+    };
+    const requestBodyOptimized = {
       unoptimised: false,
       deviated_dispatch_dict: {},
       regenerate_results: false,
@@ -96,30 +137,40 @@ const CombinedPage = () => {
     };
     await fetch(url, {
       ...options,
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(requestBodyOptimized),
     })
       .then((response) => {
         return response.json();
       })
       .then((responseJson) => {
         const data = responseJson.data;
-        const originalTimesArr = data.original_dispatch_list;
-        const optimizedDispatchTimes = data.dispatch_list;
-        const tmpDispatchTimes = {};
-        const originalDispatchTimes = {};
-        ``;
-        for (let i = 0; i < originalTimesArr.length; i++) {
-          originalDispatchTimes[i + 1] = parseInt(originalTimesArr[i]);
-        }
-        for (const key of Object.keys(optimizedDispatchTimes)) {
-          tmpDispatchTimes[key] = {
-            planned: originalDispatchTimes[key],
-            optimized: optimizedDispatchTimes[key],
-          };
-        }
-        setDispatchTimes(tmpDispatchTimes);
+        initDispatchTimes(data);
+        setOptimizedOutputJson(data);
+        setLoadingOptimizedOutputJSON(false);
       })
       .catch((e) => {
+        setErrorOutputJSON(true);
+        setErrorMsgOutputJSON(`Optimised error: ${e.message}`);
+        setLoadingOptimizedOutputJSON(false);
+        console.log(e);
+      });
+
+    await fetch(url, {
+      ...options,
+      body: JSON.stringify(requestBodyUnoptimized),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((responseJson) => {
+        const data = responseJson.data;
+        setUnoptimizedOutputJson(data);
+        setLoadingUnoptimizedOutputJSON(false);
+      })
+      .catch((e) => {
+        setErrorOutputJSON(true);
+        setErrorMsgOutputJSON(`Unoptimised error: ${e.message}`);
+        setLoadingUnoptimizedOutputJSON(false);
         console.log(e);
       });
   };
@@ -207,7 +258,7 @@ const CombinedPage = () => {
 
   // load initial data
   useEffect(() => {
-    initDispatchTimes();
+    initOutputJson();
     fetchFromEndpoint();
   }, []);
 
@@ -274,7 +325,7 @@ const CombinedPage = () => {
   };
 
   const onRefetchDataClick = () => {
-    initDispatchTimes();
+    initOutputJson();
     fetchFromEndpoint();
     setDataInUse("ORIGINAL");
   };
@@ -343,14 +394,16 @@ const CombinedPage = () => {
   const renderTooltipTextless = (direction) => {
     var toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
     const contentArr = [
-        `ORIGINAL = Optimised dispatch timings from the model`,
-        `UPDATED = Re-rendered optimised dispatch timings based on user input`
-      ];
+      `ORIGINAL = Optimised dispatch timings from the model`,
+      `UPDATED = Re-rendered optimised dispatch timings based on user input`,
+    ];
     return (
       <>
         <div className="group relative w-max ms-1 flex items-center">
-          <BsQuestionCircle className="text-md ms-1" />
-          <div className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
+          <BsQuestionCircle className="text-xs" />
+          <div
+            className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
+          >
             {contentArr.map((item, index) => {
               return (
                 <p key={index}>
@@ -489,13 +542,12 @@ const CombinedPage = () => {
       </div>
       <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">
         {/* Metrics */}
+        <div className=" grid grid-cols-12 w-full">
         <div
-          className="mx-auto my-2"
+          className="my-2 col-span-8 ps-8 flex justify-center"
           style={{
             width: "70vw",
             height: "40vh",
-            justifyContent: "center",
-            display: "flex",
           }}
         >
           <Metrics
@@ -507,24 +559,36 @@ const CombinedPage = () => {
             setUnoptCumulativeOF={setUnoptCumulativeOF}
             setPropsCumulativeOF={setPropsCumulativeOF}
             resetChart={resetChart}
+            optimizedOutputJson={optimizedOutputJson}
+            unoptimizedOutputJson={unoptimizedOutputJson}
           />
         </div>
-        {toggleStats.dispatch ? (
+        <div className="col-span-4 flex justify-center ms-16">
+        <div style={{ display: toggleStats.dispatch ? "block" : "none" }}>
           <div className="my-5 w-20vw mr-auto">
             <DispatchTimings
               dispatchTimes={dispatchTimes}
               setUpdatedOutputJson={setUpdatedOutputJson}
             />
           </div>
-        ) : (
-          <PerformanceOutput
-            skipToEndTrigger={skipToEndTrigger}
-            propsCumulativeOF={propsCumulativeOF}
-            optCumulativeOF={optCumulativeOF}
-            unoptCumulativeOF={unoptCumulativeOF}
-            updatedOutputJson={updatedOutputJson}
-          />
-        )}
+        </div>
+        <div style={{ display: toggleStats.dispatch ? "none" : "block" }}>
+        <PerformanceOutput 
+          skipToEndTrigger={skipToEndTrigger}
+          propsCumulativeOF={propsCumulativeOF}
+          optCumulativeOF={optCumulativeOF}
+          unoptCumulativeOF={unoptCumulativeOF}
+          updatedOutputJson={updatedOutputJson}
+          optimizedOutputJson={optimizedOutputJson}
+          unoptimizedOutputJson={unoptimizedOutputJson}
+          loadingOptimizedOutputJSON={loadingOptimizedOutputJSON}
+          loadingUnoptimizedOutputJSON={loadingUnoptimizedOutputJSON}
+          errorOutputJSON={errorOutputJSON}
+          errorMsgOutputJSON={errorMsgOutputJSON}
+        />
+        </div>
+        </div>
+        </div>
       </div>
       {/* Line */}
       <div

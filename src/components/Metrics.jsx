@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { num_trips } from "../../public/actual_input_2710";
-import { obj_fn_matrix as obj_fn_matrix_2 } from "../../public/v1_0CVXPY_optimised_output";
-import { obj_fn_matrix as obj_fn_matrix_1 } from "../../public/v1_0CVXPY_unoptimised_output";
 
 import {
   Chart as ChartJS,
@@ -40,11 +37,13 @@ const Metrics = React.memo(
     setUnoptCumulativeOF,
     setPropsCumulativeOF,
     resetChart,
+    optimizedOutputJson,
+    unoptimizedOutputJson
   }) => {
     const [processedData, setProcessedData] = useState({});
     const [processedCumulativeData, setProcessedCumulativeData] = useState({});
     const [busStopLabel, setBusStopLabel] = useState([]);
-
+    const [numTrips, setNumTrips] = useState(0);
     const processObjectiveFn = (unoptimised, optimised) => {
       var obj = unoptimised;
       var objOptimised = optimised;
@@ -145,7 +144,7 @@ const Metrics = React.memo(
 
     const processedChartData = () => {
       var output = [];
-      var fillerArr2 = [...Array(num_trips)];
+      var fillerArr2 = [...Array(numTrips)];
       output.push({
         label: `Unoptimised Cumulative`,
         data: processedCumulativeData["1"],
@@ -173,7 +172,7 @@ const Metrics = React.memo(
           label: `Trip ${i + 1} Unoptimised`,
           data: processedData["1"] ? processedData["1"][i + 1] : [],
           backgroundColor:
-            (i % num_trips) % 2 == 0
+            (i % numTrips) % 2 == 0
               ? "rgb(240, 134, 156)"
               : "rgb(247, 178, 192)",
           stack: `Stack 1`,
@@ -187,7 +186,7 @@ const Metrics = React.memo(
           label: `Trip ${i + 1} Optimised`,
           data: processedData["2"] ? processedData["2"][i + 1] : [],
           backgroundColor:
-            (i % num_trips) % 2 == 0
+            (i % numTrips) % 2 == 0
               ? "rgb(45, 189, 189)"
               : "rgb(110, 219, 219)",
           stack: `Stack 2`,
@@ -209,16 +208,18 @@ const Metrics = React.memo(
     }, [busStopData]);
 
     useEffect(() => {
+      console.log(unoptimisedOF.obj);
       processObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
       processCumulativeObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
     }, [unoptimisedOF, optimisedOF]);
 
     useEffect(() => {
+      setNumTrips(unoptimizedOutputJson.num_trips)
       if (skipToEndTrigger) {
-        processObjectiveFn(obj_fn_matrix_1, obj_fn_matrix_2);
-        processCumulativeObjectiveFn(obj_fn_matrix_1, obj_fn_matrix_2);
+        processObjectiveFn(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
+        processCumulativeObjectiveFn(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
       }
-    }, [skipToEndTrigger]);
+    }, [skipToEndTrigger,optimizedOutputJson,unoptimizedOutputJson]);
 
     useEffect(() => {
       if (resetChart) {
@@ -325,6 +326,8 @@ Metrics.propTypes = {
   start: PropTypes.bool,
   ended: PropTypes.bool,
   resetChart: PropTypes.bool,
+  optimizedOutputJson: PropTypes.object,
+  unoptimizedOutputJson: PropTypes.object,
 };
 
 Metrics.displayName = "Metrics";

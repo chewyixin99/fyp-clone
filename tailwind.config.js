@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {},
+    fontFamily: {
+      'title' : ['Bungee', 'sans-serif']
+    }
   },
   plugins: [],
 }
