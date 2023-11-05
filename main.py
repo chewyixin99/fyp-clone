@@ -45,6 +45,8 @@ def main():
         stop_ids_list=input_data["stop_ids_list"],
         stop_names_list=input_data["stop_names_list"],
         weights_list=input_data["weights_list"],
+        max_allowed_deviation=input_data["max_allowed_deviation"],
+        penalty_coefficient=input_data["penalty_coefficient"],
         dwell_matrix=output_data["dwell_dict"],
         busload_matrix=output_data["busload_dict"],
         arrival_matrix=output_data["arrival_dict"],

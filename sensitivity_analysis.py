@@ -148,21 +148,24 @@ def save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matr
 def main():
     model = "v1_0CVXPY" # NOTE: to change to other models (not frequent)
     file_type = "html"
-    chart_studio_upload = True
+    CHART_STUDIO_UPLOAD = True
+    SAVE_FIGURES = True
+
     save_fig_path_2d = f"./data/sensitivity_analyses/{model}_2d.{file_type}"
     save_fig_path_3d = f"./data/sensitivity_analyses/{model}_3d.{file_type}"
     save_npy_path = f"./data/sensitivity_analyses/{model}.npy"
 
     input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2710.json")
-    # input_data = convert_json_to_dict("./data/inputs/mock/mock_input_2909.json")
 
     timings_matrix = get_all_timings(input_data)
     # timings_matrix = np.load(save_npy_path, allow_pickle=True)
     fig_2d = visualise_heatmap(timings_matrix, model)
     fig_3d = visualise_3d(timings_matrix)
-    save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path)
 
-    if chart_studio_upload:
+    if SAVE_FIGURES:
+        save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path)
+
+    if CHART_STUDIO_UPLOAD:
         py.plot(fig_2d, filename=f'{model}_2d', auto_open=True)
         py.plot(fig_3d, filename=f'{model}_3d', auto_open=True)
 
