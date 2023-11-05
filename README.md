@@ -19,15 +19,25 @@ Star Command is the backend server that helps integrate our data as calls for ou
   pip install -r requirements.txt
 ```
 
-4. Install [redis](https://redis.io/docs/install/install-redis/).
+4. Install [redis](https://redis.io/docs/install/install-redis/). 
 
 ## Running Star Command
 1. Run your redis server.
 ```
   redis-server
 ```
+2.  (Optional) Issues with running server. <br>
+If you are facing issues running the redis server, especially if you downloaded redis with the .msi installer, it could be due to your default port 6379 being in use. Follow these steps to fix:
+```
+1. cd to the bin directory of Redis, and run:
+   a. redis-cli.exe
+   b. shutdown
+   c. exit
+2. open another cmd window, cd to the bin directory of Redis, and run:
+   a. redis-server.exe
+```
 
-2.  To serve the server.
+3.  Run main server.
 ```
   uvicorn app.main:app --reload 
 ```
