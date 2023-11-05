@@ -3,13 +3,14 @@ import Journey from "../components/Journey";
 import Papa from "papaparse";
 import MapsPageRewrite from "../components/mapsPage/MapsPageRewrite";
 import { normalizeStartTime, processCsvData } from "../util/mapHelper";
-import { BsFillPlayFill, BsFillPauseFill, BsRepeat } from "react-icons/bs";
+import { BsFillPlayFill, BsFillPauseFill, BsFillStopFill } from "react-icons/bs";
 import { BiRun } from "react-icons/bi";
 import { MdFilterCenterFocus } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
 import { AiOutlineSwap, AiOutlineForward } from "react-icons/ai";
+import { BsQuestionCircle } from "react-icons/bs";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 import PerformanceOutput from "../components/PerformanceOutput";
@@ -316,6 +317,7 @@ const CombinedPage = () => {
             )}
             <button
               onClick={onRefetchDataClick}
+              title="Refetch data"
               className={`${
                 loadingFetchOptimized || loadingFetchUnoptimized
                   ? "control-button-disabled"
@@ -335,6 +337,38 @@ const CombinedPage = () => {
           <RxReload />
         </button>
       </div>
+    );
+  };
+
+  const renderTooltipTextless = (direction) => {
+    var toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
+    const contentArr = [
+        `ORIGINAL = Optimised dispatch timings from the model`,
+        `UPDATED = Re-rendered optimised dispatch timings based on user input`
+      ];
+    return (
+      <>
+        <div className="group relative w-max ms-1 flex items-center">
+          <BsQuestionCircle className="text-md ms-1" />
+          <div className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
+            {contentArr.map((item, index) => {
+              return (
+                <p key={index}>
+                  {item}
+                  {index === contentArr.length - 1 ? (
+                    ""
+                  ) : (
+                    <>
+                      <br />
+                      <br />
+                    </>
+                  )}
+                </p>
+              );
+            })}
+          </div>
+        </div>
+      </>
     );
   };
 
@@ -372,6 +406,7 @@ const CombinedPage = () => {
           <button
             onClick={onStartClick}
             type="button"
+            title="Start"
             className={
               paused || start ? "control-button-disabled" : "control-button"
             }
@@ -381,6 +416,7 @@ const CombinedPage = () => {
           <button
             onClick={onPauseClick}
             type="button"
+            title="Pause"
             className={ended ? `control-button-disabled` : `control-button`}
             disabled={ended}
           >
@@ -389,13 +425,15 @@ const CombinedPage = () => {
           <button
             onClick={onEndClick}
             type="button"
+            title="Stop"
             className={`control-button`}
           >
-            <BsRepeat />
+            <BsFillStopFill />
           </button>
           <button
             onClick={onResetZoomAndCenterClick}
             type="button"
+            title="Reset Map Zoom and Center"
             className="control-button"
           >
             <MdFilterCenterFocus />
@@ -403,6 +441,7 @@ const CombinedPage = () => {
           <button
             onClick={onSkipToEndClick}
             type="button"
+            title="Skip to end"
             className={`control-button`}
           >
             <AiOutlineForward />
@@ -418,7 +457,7 @@ const CombinedPage = () => {
             </button>
           </div>
           <div className="ml-3 flex items-center">
-            <div>Viewing {toggleStats.dispatch ? "Dispatch" : "Output"}</div>
+            <div>Viewing {toggleStats.dispatch ? "Dispatch" : "Results"}</div>
             <button
               onClick={toggleStatisticsVisibility}
               type="button"
@@ -445,6 +484,7 @@ const CombinedPage = () => {
             Currently viewing <span className="underline">{dataInUse}</span>{" "}
             data
           </div>
+          {renderTooltipTextless("left")}
         </div>
       </div>
       <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">
@@ -492,7 +532,7 @@ const CombinedPage = () => {
       >
         <div>
           <div className="my-2">
-            <h1 className="ms-24 mb-8 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
+            <h1 className="ms-12 mb-8 text-xl leading-none tracking-tight text-gray-900 md:text-xl lg:text-xl dark:text-white">
               Baseline Model
             </h1>
             <Journey
@@ -509,8 +549,8 @@ const CombinedPage = () => {
               resetChart={resetChart}
             />
           </div>
-          <h1 className="ms-24 mt-2 text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-2xl dark:text-white">
-            Optimized Model
+          <h1 className="ms-12 mt-2 text-xl leading-none tracking-tight text-gray-900 md:text-xl lg:text-xl dark:text-white">
+            Optimised Model
           </h1>
           <div className="mt-10">
             <Journey

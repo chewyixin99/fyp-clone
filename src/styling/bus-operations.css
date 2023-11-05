@@ -33,7 +33,7 @@
 }
 
 .route-bar {
-    background-color: #444 !important;
+    background-color: #374151 !important;
     width: 1600px;
     position: relative;
     height: 8px;
@@ -51,7 +51,7 @@
 }
 
 .bus-stop {
-    background-color: #444 !important;
+    background-color: #374151 !important;
     position: absolute;
     top: -5px;
     left: 0px;

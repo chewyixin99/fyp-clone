@@ -4,6 +4,7 @@ import { PuffLoader } from "react-spinners";
 import PropTypes from "prop-types";
 import { processCsvData } from "../util/mapHelper";
 import { TiTick } from "react-icons/ti";
+import { BsQuestionCircle } from "react-icons/bs";
 
 const DispatchTimings = React.memo(
   ({ dispatchTimes, setUpdatedOutputJson }) => {
@@ -162,7 +163,7 @@ const DispatchTimings = React.memo(
                 loadingFetch ? "control-button-disabled" : "control-button"
               }`}
             >
-              {loadingFetch ? "running model" : "update timings"}
+              {loadingFetch ? "Loading" : "Update"}
             </button>
             <PuffLoader
               color="rgb(234, 88, 12)"
@@ -181,9 +182,49 @@ const DispatchTimings = React.memo(
       );
     };
 
+    const renderTooltip = (text,direction) => {
+      var toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
+      const contentObj = {
+        "Dispatch Timings (sec)": [
+          `Planned = Unoptimised or real-life dispatch timings`,
+          `Optimised = Model-optimised dispatch timings`,
+          `Actual = Dispatch timings for the visualiser that is defaulted to Optimised values.
+          Update to Actual values will re-render the model.`,
+        ],
+      };
+
+      return (
+        <>
+          <div className="group relative w-max ms-1 flex items-center">
+            {text}
+            <BsQuestionCircle className="text-md ms-1" />
+            <div className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
+              {contentObj[text].map((item, index) => {
+                return (
+                  <p key={index}>
+                    {item}
+                    {index === contentObj[text].length - 1 ? (
+                      ""
+                    ) : (
+                      <>
+                        <br />
+                        <br />
+                      </>
+                    )}
+                  </p>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      );
+    };
+
     return (
       <div className="text-xs my-5">
-        <div className="pb-3">Dispatch timings (sec)</div>
+        <div className="pb-2 flex">
+          {renderTooltip("Dispatch Timings (sec)","right")}
+        </div>
         {errorFetch && Object.keys(dispatchTimes).length === 0 ? (
           <div className="text-orange-500">{errorMsgFetch}</div>
         ) : (

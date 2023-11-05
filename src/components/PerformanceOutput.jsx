@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
+import { BsQuestionCircle } from "react-icons/bs";
 
 const PerformanceOutput = React.memo(
   ({
@@ -254,6 +255,49 @@ const PerformanceOutput = React.memo(
       return tableRows;
     };
 
+    const renderTooltip = (text,direction) => {
+      var toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
+      const contentObj = {
+        "Performance Results": [
+          `Headway Deviation = Differences between the target headway and the actual headway that are accumulated throughout the bus service.`,
+          `Objective Function = Headway Deviation + Slack Penalty`,
+          `Updated = Re-rendered optimised model performance based on user input. Default value is optimised output.`,
+        ],
+        "Static Results": [
+          `Excess Wait Time = Average aggregation of the actual wait times for each bus stop beyond stipulation.`,
+          `E.g., Given a bus stop, if the stipulated wait time is 10 minutes, and the actual wait time is 12 minutes, the excess wait time is 2 minutes.`,
+          `Slack Penalty = This penalty accounts for the deviation of the last bus at the last stop when compared to the unoptimised model. 
+          This slack provides extra buffer for the mathematical model to optimise.`,
+        ],
+      };
+
+      return (
+        <>
+          <div className="group relative w-max ms-1 flex items-center">
+            {text}
+            <BsQuestionCircle className="text-md ms-1" />
+            <div className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
+              {contentObj[text].map((item, index) => {
+                return (
+                  <p key={index}>
+                    {item}
+                    {index === contentObj[text].length - 1 ? (
+                      ""
+                    ) : (
+                      <>
+                        <br />
+                        <br />
+                      </>
+                    )}
+                  </p>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      );
+    };
+
     useEffect(() => {
       if (
         Object.keys(unoptimizedOutputJson).length !== 0 &&
@@ -272,11 +316,15 @@ const PerformanceOutput = React.memo(
     return (
       <div className="w-20vw mr-auto text-xs">
         <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2">Performance Results</div>
+          <div className="mb-3 pb-1 border-b-2">
+            {renderTooltip("Performance Results","right")}
+          </div>
           {renderMetrics(localPerformanceValues, true, true)}
         </div>
         <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2">Static Results</div>
+          <div className="mb-3 pb-1 border-b-2">
+            {renderTooltip("Static Results","right")}
+          </div>
           <div>
             {loadingOptimized || loadingUnoptimized
               ? ""
@@ -307,12 +355,6 @@ const PerformanceOutput = React.memo(
               </div>
             </div>
           )}
-        </div>
-        <div className="text-gray-400 text-[10px]">
-          <p>Headway Deviation + Slack Penalty* = Objective Function</p>
-          <br/>
-          <p>Slack Penalty* accounts for the deviation of the last bus at the last stop when compared to the</p>
-          <p>unoptimised model. This slack provides extra buffer for the mathematical model to optimise. </p>
         </div>
       </div>
     );

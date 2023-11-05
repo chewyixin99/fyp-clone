@@ -142,6 +142,7 @@ const Metrics = React.memo(
         });
       }
     };
+
     const processedChartData = () => {
       var output = [];
       var fillerArr2 = [...Array(num_trips)];
