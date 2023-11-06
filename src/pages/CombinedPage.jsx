@@ -583,7 +583,7 @@ const CombinedPage = () => {
             <Metrics
               unoptimisedOF={unoptimisedOF}
               optimisedOF={optimisedOF}
-              busStopData={busStopData}
+              stopObjs={stopObjs}
               skipToEndTrigger={skipToEndTrigger}
               setOptCumulativeOF={setOptCumulativeOF}
               setUnoptCumulativeOF={setUnoptCumulativeOF}
@@ -639,11 +639,10 @@ const CombinedPage = () => {
               skipToEndTrigger={skipToEndTrigger}
               setOptimisedOF={setOptimisedOF}
               setUnoptimisedOF={setUnoptimisedOF}
-              setBusStopData={setBusStopData}
-              busStopData={busStopData}
               resetChart={resetChart}
               optimizedOutputJson={optimizedOutputJson}
               unoptimizedOutputJson={unoptimizedOutputJson}
+              stopObjs={stopObjs}
             />
           </div>
           <h1 className="ms-12 mt-2 mb-16 text-xl leading-none tracking-tight text-gray-900 md:text-xl lg:text-xl dark:text-white">
@@ -659,13 +658,12 @@ const CombinedPage = () => {
               data={journeyData}
               globalTime={globalTime}
               skipToEndTrigger={skipToEndTrigger}
-              setBusStopData={setBusStopData}
-              busStopData={busStopData}
               setOptimisedOF={setOptimisedOF}
               setUnoptimisedOF={setUnoptimisedOF}
               resetChart={resetChart}
               optimizedOutputJson={optimizedOutputJson}
               unoptimizedOutputJson={unoptimizedOutputJson}
+              stopObjs={stopObjs}
             />
           </div>
         </div>

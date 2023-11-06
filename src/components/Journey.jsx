@@ -13,14 +13,13 @@ const Journey = React.memo(
     data,
     globalTime,
     id,
-    setBusStopData,
-    busStopData,
     setUnoptimisedOF,
     setOptimisedOF,
     skipToEndTrigger,
     resetChart,
     optimizedOutputJson,
     unoptimizedOutputJson,
+    stopObjs
   }) => {
     const [totalDistance, setTotalDistance] = useState(3100);
     const route_bar_width = 1600;
@@ -53,31 +52,23 @@ const Journey = React.memo(
     // ------------ data processing functions start ------------
 
     // populate bus stops on HTML DOM based on bus data
-    const generateBusStopData = (data) => {
-      var output = [];
-        var distanceList = data.distances_list;
-        for (var i = 0; i < distanceList?.length; i++) {
-          output.push({
-            stopId: data.stop_ids_list[i],
-            stopName: data.stop_names_list[i],
-            busStopNo: i + 1,
-            distance: data.distances_list[i],
-          });
-        }
-        setTotalDistance(output[output.length - 1]?.distance);
-        setBusStopData(output);
-      
-    };
 
     const loadBusStops = () => {
+
+      document.querySelector(`.bus-stop-ref-${id}`).innerHTML = ``;
+      document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML = ``;
+
+      var totalDistance = stopObjs[stopObjs.length - 1]?.distance;
+      setTotalDistance(totalDistance);
+      
       var busStopHTML = ``;
       var busStopDotHTML = ``;
       var tempBusData = [];
-      for (var i = 0; i < busStopData.length; i++) {
-        tempBusData.push([busStopData[i].busStopNo, busStopData[i].stopId]);
+      for (var i = 0; i < stopObjs.length; i++) {
+        tempBusData.push([stopObjs[i].busStopNo, stopObjs[i].stopId]);
 
         var relative_distance_percentage =
-          (busStopData[i]?.distance / totalDistance) * 100;
+          (stopObjs[i]?.distance / totalDistance) * 100;
         var relative_distance =
           (route_bar_width * relative_distance_percentage) / 100;
         busStopHTML += `<div class="bus-stop" style="left:${
@@ -89,11 +80,11 @@ const Journey = React.memo(
         <div class="group relative">
           <button class="bus-stop-dot"></button>
           <span class="pointer-events-none max-w-xs absolute text-sm text-white bg-gray-700 p-2 rounded-lg -top-42 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100">
-            ID: ${busStopData[i]?.stopId}
+            ID: ${stopObjs[i]?.stopId}
             <br />
-            Name: ${busStopData[i]?.stopName}
+            Name: ${stopObjs[i]?.stopName}
             <br />
-            Distance: ${busStopData[i]?.distance.toFixed(
+            Distance: ${stopObjs[i]?.distance.toFixed(
               0
             )}m / ${totalDistance.toFixed(
           0
@@ -108,8 +99,7 @@ const Journey = React.memo(
         // setBusStopData(tempBusData);
       }
       document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
-      document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML +=
-        busStopDotHTML;
+      document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML += busStopDotHTML;
     };
 
     const createDataObj = (data) => {
@@ -259,8 +249,7 @@ const Journey = React.memo(
       setDataObj(createDataObj(data));
       setNumTrips(optimizedOutputJson.num_trips);
       setNumStops(optimizedOutputJson.num_stops);
-      generateBusStopData(optimizedOutputJson);
-    }, [data, optimizedOutputJson, unoptimizedOutputJson]);
+    }, [data, optimizedOutputJson]);
 
     // if bus arrives at a bus stop, update OF
     useEffect(() => {
@@ -280,10 +269,10 @@ const Journey = React.memo(
       }
     }, [OFObj, isRunning, currentStop]);
 
-    // load bus stop data
+      // load bus stop data
     useEffect(() => {
       loadBusStops();
-    }, [busStopData, totalDistance, numTrips]);
+    }, [stopObjs]);
 
     // playback hooks
     useEffect(() => {
@@ -302,7 +291,7 @@ const Journey = React.memo(
       if (isRunning) {
         newRunFunction(dataObj, globalTime);
       }
-    }, [globalTime, dataObj, isRunning]);
+    }, [globalTime, dataObj, isRunning, totalDistance]);
 
     // reset chart when stop button from parent is clicked
     useEffect(() => {
@@ -377,8 +366,8 @@ const Journey = React.memo(
             {[...Array(numStops)].map((x, i) => (
               <BusStop
                 key={i}
-                id={busStopData[i]?.stopId + 1}
-                busStopNo={busStopData[i]?.busStopNo}
+                id={stopObjs[i]?.stopId + 1}
+                busStopNo={stopObjs[i]?.busStopNo}
                 globalTime={globalTime}
                 start={start}
                 dataObj={dataObj}
@@ -400,14 +389,13 @@ Journey.propTypes = {
   data: PropTypes.array,
   globalTime: PropTypes.number,
   id: PropTypes.string,
-  setBusStopData: PropTypes.func,
   setUnoptimisedOF: PropTypes.func,
   setOptimisedOF: PropTypes.func,
   skipToEndTrigger: PropTypes.bool,
   resetChart: PropTypes.bool,
   optimizedOutputJson: PropTypes.object,
   unoptimizedOutputJson: PropTypes.object,
-  busStopData: PropTypes.array,
+  stopObjs: PropTypes.array
 };
 
 Journey.displayName = "Journey";

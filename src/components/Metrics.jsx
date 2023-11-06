@@ -29,14 +29,14 @@ const Metrics = React.memo(
   ({
     unoptimisedOF,
     optimisedOF,
-    busStopData,
     skipToEndTrigger,
     setOptCumulativeOF,
     setUnoptCumulativeOF,
     setPropsCumulativeOF,
     resetChart,
     optimizedOutputJson,
-    unoptimizedOutputJson
+    unoptimizedOutputJson,
+    stopObjs
   }) => {
     const [processedData, setProcessedData] = useState({});
     const [processedCumulativeData, setProcessedCumulativeData] = useState({});
@@ -196,14 +196,13 @@ const Metrics = React.memo(
     };
 
     useEffect(() => {
-      if (busStopData.length > 0) {
-        var processedBusStopData = busStopData.map((busStop) => {
+      if (stopObjs.length > 0) {
+        var processedBusStopData = stopObjs.map((busStop) => {
           return `[${busStop.busStopNo}]  ${busStop.stopId}`;
         });
-
         setBusStopLabel(processedBusStopData.slice(1));
       }
-    }, [busStopData]);
+    }, [stopObjs]);
 
     useEffect(() => {
       processObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
@@ -315,7 +314,6 @@ const Metrics = React.memo(
 Metrics.propTypes = {
   unoptimisedOF: PropTypes.object,
   optimisedOF: PropTypes.object,
-  busStopData: PropTypes.array,
   skipToEndTrigger: PropTypes.bool,
   setOptCumulativeOF: PropTypes.func,
   setUnoptCumulativeOF: PropTypes.func,
@@ -325,6 +323,7 @@ Metrics.propTypes = {
   resetChart: PropTypes.bool,
   optimizedOutputJson: PropTypes.object,
   unoptimizedOutputJson: PropTypes.object,
+  stopObjs: PropTypes.array
 };
 
 Metrics.displayName = "Metrics";
