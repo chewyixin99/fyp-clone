@@ -4,381 +4,394 @@ import "../styling/journey.css";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import BusStop from "./BusStop";
-import { obj_fn_matrix as obj_fn_matrix_1} from "/public/v1_0CVXPY_unoptimised_output.json"
-import { num_trips, num_stops, obj_fn_matrix as obj_fn_matrix_2 } from "/public/v1_0CVXPY_optimised_output.json"
 
-import { bus_stop_data } from "/public/bus_stop_data.json"
+const Journey = React.memo(
+  ({
+    start,
+    paused,
+    ended,
+    data,
+    globalTime,
+    id,
+    setBusStopData,
+    busStopData,
+    setUnoptimisedOF,
+    setOptimisedOF,
+    skipToEndTrigger,
+    resetChart,
+    optimizedOutputJson,
+    unoptimizedOutputJson,
+  }) => {
+    const [totalDistance, setTotalDistance] = useState(3100);
+    const route_bar_width = 1600;
+    const [isRunning, setIsRunning] = useState(false);
+    const [triggerStart, setTriggerStart] = useState(false);
+    const [triggerStop, setTriggerStop] = useState(false);
+    const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
+    const [dataObj, setDataObj] = useState({});
+    const [deployedTrips, setDeployedTrips] = useState([]);
+    const [OFObj, setOFObj] = useState({});
+    const [currentStop, setCurrentStop] = useState({});
+    const [numTrips, setNumTrips] = useState(0);
+    const [numStops, setNumStops] = useState(0);
 
-const Journey = ({
-  start,
-  paused,
-  ended,
-  data,
-  globalTime,
-  id,
-  setBusStopData,
-  setUnoptimisedOF,
-  setOptimisedOF,
-  skipToEndTrigger,
-  resetChart,
-  optimizedOutputJson,
-  unoptimizedOutputJson
-}) => {
-  const [totalDistance, setTotalDistance] = useState(3100);
-  const route_bar_width = 1600;
-  const [relativeStopDistance, setRelativeStopDistance] = useState([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [triggerStart, setTriggerStart] = useState(false);
-  const [triggerStop, setTriggerStop] = useState(false);
-  const [busDispatchTimestamps, setBusDispatchTimestamps] = useState({});
-  const [dataObj, setDataObj] = useState({});
-  const [deployedTrips, setDeployedTrips] = useState([]);
-  const [OFObj, setOFObj] = useState({});
-  const [currentStop, setCurrentStop] = useState({})
+    // ------------ helper functions start ------------
 
-  const distanceDataLoader = (data) => {    
-    var output = data.map((item) => {
-      return {
-        stopId: item.stopId,
-        stopName: item.stopName,
-        busStopNo: item.busStopNo,
-        distance: item.distance,
-      }});
-      setRelativeStopDistance(output)
-      setTotalDistance(output[output.length - 1]?.distance);
-      setBusStopData(output)
-  }
-  
-  const loadBusStops = () => {
-    var busStopHTML = ``;
-    var busStopDotHTML = ``;
-    var tempBusData = [];
-    for (var i = 0; i < relativeStopDistance.length; i++) {
-      tempBusData.push([
-        relativeStopDistance[i].busStopNo,
-        relativeStopDistance[i].stopId,
-      ]);
+    // convert distance travelled in meters to percentage
+    const formatDistance = (data) => {
+      return parseFloat(((data / totalDistance) * 100).toFixed(2));
+    };
+    // convert seconds to minutes and seconds
+    const convert_seconds_to_time = (seconds) => {
+      if (isNaN(seconds) || seconds == null) return "-";
+      let min = Math.floor(seconds / 60);
+      let sec = seconds % 60;
+      return min + "m " + sec + "s";
+    };
+    // ------------ helper functions end ------------
 
-      var relative_distance_percentage =
-        (relativeStopDistance[i]?.distance / totalDistance) * 100;
-      var relative_distance =
-        (route_bar_width * relative_distance_percentage) / 100;
-      busStopHTML += `<div class="bus-stop" style="left:${
-        relative_distance - 8.5
-      }px">&nbsp;</div>`;
-      busStopDotHTML += `<div class="bus-stop-dot" style="left:${
-        relative_distance - 3.5
-      }px">
+    // ------------ data processing functions start ------------
+
+    // populate bus stops on HTML DOM based on bus data
+    const generateBusStopData = (data) => {
+      var output = [];
+        var distanceList = data.distances_list;
+        for (var i = 0; i < distanceList?.length; i++) {
+          output.push({
+            stopId: data.stop_ids_list[i],
+            stopName: data.stop_names_list[i],
+            busStopNo: i + 1,
+            distance: data.distances_list[i],
+          });
+        }
+        setTotalDistance(output[output.length - 1]?.distance);
+        setBusStopData(output);
+      
+    };
+
+    const loadBusStops = () => {
+      var busStopHTML = ``;
+      var busStopDotHTML = ``;
+      var tempBusData = [];
+      for (var i = 0; i < busStopData.length; i++) {
+        tempBusData.push([busStopData[i].busStopNo, busStopData[i].stopId]);
+
+        var relative_distance_percentage =
+          (busStopData[i]?.distance / totalDistance) * 100;
+        var relative_distance =
+          (route_bar_width * relative_distance_percentage) / 100;
+        busStopHTML += `<div class="bus-stop" style="left:${
+          relative_distance - 8.5
+        }px">&nbsp;</div>`;
+        busStopDotHTML += `<div class="bus-stop-dot" style="left:${
+          relative_distance - 3.5
+        }px">
         <div class="group relative">
           <button class="bus-stop-dot"></button>
           <span class="pointer-events-none max-w-xs absolute text-sm text-white bg-gray-700 p-2 rounded-lg -top-42 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100">
-            ID: ${relativeStopDistance[i]?.stopId}
+            ID: ${busStopData[i]?.stopId}
             <br />
-            Name: ${relativeStopDistance[i]?.stopName}
+            Name: ${busStopData[i]?.stopName}
             <br />
-            Distance: ${relativeStopDistance[i]?.distance.toFixed(
+            Distance: ${busStopData[i]?.distance.toFixed(
               0
             )}m / ${totalDistance.toFixed(
-        0
-      )}m (${relative_distance_percentage.toFixed(0)}%)
+          0
+        )}m (${relative_distance_percentage.toFixed(0)}%)
           <br />
           
           </span>
         </div>
       </div>`;
-    }
-    if (id == 1) {
-      // setBusStopData(tempBusData);
-    }
-    document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
-    document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML +=
-      busStopDotHTML;
-  };
-
-  const formatDistance = (data) => {
-    return parseFloat(((data / totalDistance) * 100).toFixed(2));
-  };
-
-  const convert_seconds_to_time = (seconds) => {
-    if (isNaN(seconds) || seconds == null) return "-";
-    let min = Math.floor(seconds / 60);
-    let sec = seconds % 60;
-    return min + "m " + sec + "s";
-
-  };
-
-  const createDataObj = (data) => {
-    var dataObj = {};
-    data.map((item) => {
-      if (item.timestamp in dataObj) {
-        dataObj[item.timestamp].push(item);
-      } else {
-        dataObj[item.timestamp] = [item];
       }
-    });
+      if (id == 1) {
+        // setBusStopData(tempBusData);
+      }
+      document.querySelector(`.bus-stop-ref-${id}`).innerHTML += busStopHTML;
+      document.querySelector(`.bus-stop-dot-ref-${id}`).innerHTML +=
+        busStopDotHTML;
+    };
 
-    return dataObj;
-  };
+    const createDataObj = (data) => {
+      var dataObj = {};
+      data.map((item) => {
+        if (item.timestamp in dataObj) {
+          dataObj[item.timestamp].push(item);
+        } else {
+          dataObj[item.timestamp] = [item];
+        }
+      });
 
-  const newRunFunction = (dataObj, localCount) => {
-    var data = dataObj;
-    if (data[localCount] != undefined) {
-      for (var i = 0; i < data[localCount].length; i++) {
-        if (data[localCount][i].currentStatus == "TRANSIT_TO") {
-          add_travel_distance(
-            data[localCount][i].distance,
-            data[localCount][i].busTripNo,
-            data[localCount][i].timestamp
-          );
-        } else if (
-          data[localCount][i].currentStatus == "STOPPED_AT" &&
-          formatDistance(data[localCount][i].distance) == 100
-        ) {
-          add_travel_distance(
-            totalDistance,
-            data[localCount][i].busTripNo,
-            data[localCount][i].timestamp
-          );
-        } else if (data[localCount][i].currentStatus == "DWELL_AT") {
-          add_travel_distance(
-            data[localCount][i].distance,
-            data[localCount][i].busTripNo,
-            data[localCount][i].timestamp
-          );
-        } else if (data[localCount][i].currentStatus == "DISPATCHED_FROM") {
-          let currentObj = busDispatchTimestamps;
-          currentObj[data[localCount][i].busTripNo] =
-            data[localCount][i].timestamp;
-          setBusDispatchTimestamps(currentObj);
+      return dataObj;
+    };
 
-          add_travel_distance(
-            data[localCount][i].distance,
-            data[localCount][i].busTripNo,
-            data[localCount][i].timestamp
-          );
+    // ------------ data processing functions end ------------
 
-          var temp = deployedTrips;
-          temp.push(data[localCount][i].busTripNo);
-          setDeployedTrips(temp);
+    // ------------ main functions start ------------
+
+    // check feed object based on global time and update HTML DOM based on object data
+    
+    const newRunFunction = (dataObj, globalCount) => {
+      var data = dataObj;
+      if (data[globalCount] != undefined) {
+        for (var i = 0; i < data[globalCount].length; i++) {
+          if (data[globalCount][i].currentStatus == "TRANSIT_TO") {
+            add_travel_distance(
+              data[globalCount][i].distance,
+              data[globalCount][i].busTripNo,
+              data[globalCount][i].timestamp
+            );
+          } else if (
+            data[globalCount][i].currentStatus == "STOPPED_AT" &&
+            formatDistance(data[globalCount][i].distance) == 100
+          ) {
+            add_travel_distance(
+              totalDistance,
+              data[globalCount][i].busTripNo,
+              data[globalCount][i].timestamp
+            );
+          } else if (data[globalCount][i].currentStatus == "DWELL_AT") {
+            add_travel_distance(
+              data[globalCount][i].distance,
+              data[globalCount][i].busTripNo,
+              data[globalCount][i].timestamp
+            );
+          } else if (data[globalCount][i].currentStatus == "DISPATCHED_FROM") {
+            let currentObj = busDispatchTimestamps;
+            currentObj[data[globalCount][i].busTripNo] =
+              data[globalCount][i].timestamp;
+            setBusDispatchTimestamps(currentObj);
+
+            add_travel_distance(
+              data[globalCount][i].distance,
+              data[globalCount][i].busTripNo,
+              data[globalCount][i].timestamp
+            );
+
+            var temp = deployedTrips;
+            temp.push(data[globalCount][i].busTripNo);
+            setDeployedTrips(temp);
+          }
         }
       }
-    }
-  };
+    };
 
-  const add_travel_distance = (newDistance, tripNo, timestamp) => {
-    var progressTip = document.querySelector(
-      `.progress-tip-ref-${id}-${tripNo}`
-    );
-    var progressTipContent = document.querySelector(
-      `.progress-tip-content-ref-${id}-${tripNo}`
-    );
-    var progressTipContentDist = document.querySelector(
-      `.progress-tip-content-dist-ref-${id}-${tripNo}`
-    );
-    var progressTipContentElapsedTime = document.querySelector(
-      `.progress-tip-content-elapsed-time-ref-${id}-${tripNo}`
-    );
-    progressTip.style.left = formatDistance(newDistance) + "%";
-    progressTipContent.style.left = formatDistance(newDistance) - 2.7 + "%";
-    progressTipContentDist.innerHTML =
-      "Dist.: " +
-      newDistance.toFixed(0) +
-      "m / " +
-      formatDistance(newDistance).toFixed(0) +
-      "%";
+    // HTML DOM update function
+    const add_travel_distance = (newDistance, tripNo, timestamp) => {
+      var progressTip = document.querySelector(
+        `.progress-tip-ref-${id}-${tripNo}`
+      );
+      var progressTipContent = document.querySelector(
+        `.progress-tip-content-ref-${id}-${tripNo}`
+      );
+      var progressTipContentDist = document.querySelector(
+        `.progress-tip-content-dist-ref-${id}-${tripNo}`
+      );
+      var progressTipContentElapsedTime = document.querySelector(
+        `.progress-tip-content-elapsed-time-ref-${id}-${tripNo}`
+      );
+      progressTip.style.left = formatDistance(newDistance) + "%";
+      progressTipContent.style.left = formatDistance(newDistance) - 2.7 + "%";
+      progressTipContentDist.innerHTML =
+        "Dist.: " +
+        newDistance.toFixed(0) +
+        "m / " +
+        formatDistance(newDistance).toFixed(0) +
+        "%";
 
-    let elapsedSeconds = timestamp - busDispatchTimestamps[tripNo];
-    if (elapsedSeconds > 0) {
-    progressTipContentElapsedTime.innerHTML =
-      convert_seconds_to_time(elapsedSeconds);
-    }
-  };
-
-  const startRun = () => {
-    setIsRunning(true);
-    setTriggerStart(true);
-    setTriggerStop(false);
-  };
-
-  const pause = () => {
-    if (isRunning) {
-      setIsRunning(false);
-    } else {
-      if (triggerStart) {
-        setIsRunning(true);
+      let elapsedSeconds = timestamp - busDispatchTimestamps[tripNo];
+      if (elapsedSeconds > 0) {
+        progressTipContentElapsedTime.innerHTML =
+          convert_seconds_to_time(elapsedSeconds);
       }
-    }
-  };
+    };
 
-  const stop = () => {
-    setIsRunning(false);
-    setTriggerStart(false);
-    setTriggerStop(true);
-    for (var i = 1; i <= num_trips; i++) {
-      add_travel_distance(0, i, busDispatchTimestamps[i]);
-    }
-  };
+    const getOF = (currentStop) => {
+      var { busTripNo, busStopNo } = currentStop;
+      var temp_key = busTripNo + "," + busStopNo;
+      if (id == "1") {
+        return unoptimizedOutputJson.obj_fn_matrix[temp_key];
+      }
+      return optimizedOutputJson.obj_fn_matrix[temp_key];
+    };
 
-  const getOF = (currentStop) => {
-    var { busTripNo, busStopNo } = currentStop
-    var temp_key = busTripNo + ',' + busStopNo
-    if (id == '1') {
-      // unoptimised
-      return obj_fn_matrix_1[temp_key]
-    }
-    return obj_fn_matrix_2[temp_key]
-  }
+    const updateObjectiveFunction = () => {
+      var { busTripNo, busStopNo } = currentStop;
+      var currentOF = getOF(currentStop);
+      var currentSave = OFObj;
+      currentSave[[busTripNo, busStopNo]] = currentOF;
+      setOFObj(currentSave);
+    };
 
-  const updateObjectiveFunction = () => {
-    var { busTripNo, busStopNo } = currentStop
-    var currentOF = getOF(currentStop)
-    var currentSave = OFObj;
-    currentSave[[busTripNo, busStopNo]] = currentOF;
-    setOFObj(currentSave);
-  };
-  
-  useEffect(() => {
-    setCurrentStop({})   
-    setOFObj({}) 
-  }, [resetChart]);
+    // ------------ main functions end ------------
 
-  useEffect
+    // ------------ playback functions start ------------
 
-  useEffect(() => {
-    if (isRunning) {
-      if (id == '1') {
-        setUnoptimisedOF({['timingKey']: globalTime, ['obj']: OFObj})
+    const startRun = () => {
+      setIsRunning(true);
+      setTriggerStart(true);
+      setTriggerStop(false);
+    };
+
+    const pause = () => {
+      if (isRunning) {
+        setIsRunning(false);
       } else {
-        setOptimisedOF({['timingKey']: globalTime, ['obj']: OFObj})
+        if (triggerStart) {
+          setIsRunning(true);
+        }
       }
-    }
-  }, [OFObj, isRunning, currentStop]);
+    };
 
-  useEffect(() => {
-    if (isRunning && currentStop.busTripNo){
-      updateObjectiveFunction();
-    }
-
-  }, [currentStop,isRunning]);
-
-  useEffect(() => {}, [OFObj]);
-  useEffect(() => {
-    distanceDataLoader(bus_stop_data);
-    setDataObj(createDataObj(data));
-  }, [data]);
-
-  useEffect(() => {
-    loadBusStops();
-  }, [relativeStopDistance, totalDistance, num_trips]);
-
-  useEffect(() => {
-    if (start) {
-      startRun();
-    }
-  }, [start]);
-
-  useEffect(() => {
-    pause();
-  }, [paused]);
-
-  useEffect(() => {
-    if (ended) {
+    const stop = () => {
+      setIsRunning(false);
+      setTriggerStart(false);
       setTriggerStop(true);
-      stop();
-    }
-  }, [ended]);
+      for (var i = 1; i <= numTrips; i++) {
+        add_travel_distance(0, i, busDispatchTimestamps[i]);
+      }
+    };
 
-  useEffect(() => {
-    console.log("Bus Journey Chart data successfully loaded");
-  }, [dataObj]);
+    // ------------ playback functions end ------------
 
-  useEffect(() => {
-    if (isRunning) {
-      newRunFunction(dataObj, globalTime);
-    }
-  }, [globalTime, dataObj, isRunning]);
+    // initial setup hooks
+    useEffect(() => {
+      setDataObj(createDataObj(data));
+      setNumTrips(optimizedOutputJson.num_trips);
+      setNumStops(optimizedOutputJson.num_stops);
+      generateBusStopData(optimizedOutputJson);
+    }, [data, optimizedOutputJson, unoptimizedOutputJson]);
 
-  useEffect(() => {
-    if (skipToEndTrigger){
-      setTriggerStop(true);
-      stop();
-    }
-  },[skipToEndTrigger])
-  return (
-    <div className="mx-auto">
-      <div className="control-panel">
-      </div>
-      <div className="route-container">
-        <div className="route-bar">
-          <div
-            className={`route-travelled-ref route-travelled`}
-            style={{ width: "0%" }}
-          >
-            &nbsp;
-          </div>
-          {[...Array(num_trips)].map((x, i) => (
-            <div key={[...Array(num_trips)].length - i}>
-              <div
-                className={`progress-tip-ref-${id}-${
-                  [...Array(num_trips)].length - i
-                } progress-tip`}
-                style={{ left: "0%" }}
-              ></div>
-              <div
-                className={`progress-tip-content-ref-${id}-${
-                  [...Array(num_trips)].length - i
-                } progress-tip-content`}
-                style={{ left: "-2.7%" }}
-              >
-                Trip No.:{" "}
-                {triggerStart
-                  ? triggerStop
-                    ? "-"
-                    : `${[...Array(num_trips)].length - i}`
-                  : "-"}
-                <p
-                  className={`progress-tip-content-trip-no-ref-${id}-${
-                    [...Array(num_trips)].length - i
-                  } progress-tip-dist`}
-                ></p>
-                <p
-                  className={`progress-tip-content-dist-ref-${id}-${
-                    [...Array(num_trips)].length - i
-                  } progress-tip-dist`}
-                >
-                  Dist.: 0m / 0%
-                </p>
-                Elapsed:{" "}
-                <span
-                  className={`progress-tip-content-elapsed-time-ref-${id}-${
-                    [...Array(num_trips)].length - i
-                  } progress-tip-dist`}
-                >
-                  {triggerStart ? (triggerStop ? "" : "") : "0m 0s"}
-                </span>
-              </div>
+    // if bus arrives at a bus stop, update OF
+    useEffect(() => {
+      if (isRunning && currentStop.busTripNo) {
+        updateObjectiveFunction();
+      }
+    }, [currentStop, isRunning]);
+
+    // once updated OF and new current stop detected, send to parent
+    useEffect(() => {
+      if (isRunning) {
+        if (id == "1") {
+          setUnoptimisedOF({ ["timingKey"]: globalTime, ["obj"]: OFObj });
+        } else {
+          setOptimisedOF({ ["timingKey"]: globalTime, ["obj"]: OFObj });
+        }
+      }
+    }, [OFObj, isRunning, currentStop]);
+
+    // load bus stop data
+    useEffect(() => {
+      loadBusStops();
+    }, [busStopData, totalDistance, numTrips]);
+
+    // playback hooks
+    useEffect(() => {
+      if (ended) {
+        setTriggerStop(true);
+        stop();
+      } else if (paused) {
+        pause();
+      } else if (start) {
+        startRun();
+      }
+    }, [ended, paused, start]);
+
+    // main function hook
+    useEffect(() => {
+      if (isRunning) {
+        newRunFunction(dataObj, globalTime);
+      }
+    }, [globalTime, dataObj, isRunning]);
+
+    // reset chart when stop button from parent is clicked
+    useEffect(() => {
+      setCurrentStop({});
+      setOFObj({});
+    }, [resetChart]);
+
+    // reset chart when skip to end button from parent is clicked
+    useEffect(() => {
+      if (skipToEndTrigger) {
+        setTriggerStop(true);
+        stop();
+      }
+    }, [skipToEndTrigger]);
+
+    return (
+      <div className="mx-auto">
+        <div className="route-container">
+          <div className="route-bar">
+            <div
+              className={`route-travelled-ref route-travelled`}
+              style={{ width: "0%" }}
+            >
+              &nbsp;
             </div>
-          ))}
+            {[...Array(numTrips)].map((x, i) => (
+              <div key={[...Array(numTrips)].length - i}>
+                <div
+                  className={`progress-tip-ref-${id}-${
+                    [...Array(numTrips)].length - i
+                  } progress-tip`}
+                  style={{ left: "0%" }}
+                ></div>
+                <div
+                  className={`progress-tip-content-ref-${id}-${
+                    [...Array(numTrips)].length - i
+                  } progress-tip-content`}
+                  style={{ left: "-2.7%" }}
+                >
+                  Trip No.:{" "}
+                  {triggerStart
+                    ? triggerStop
+                      ? "-"
+                      : `${[...Array(numTrips)].length - i}`
+                    : "-"}
+                  <p
+                    className={`progress-tip-content-trip-no-ref-${id}-${
+                      [...Array(numTrips)].length - i
+                    } progress-tip-dist`}
+                  ></p>
+                  <p
+                    className={`progress-tip-content-dist-ref-${id}-${
+                      [...Array(numTrips)].length - i
+                    } progress-tip-dist`}
+                  >
+                    Dist.: 0m / 0%
+                  </p>
+                  Elapsed:{" "}
+                  <span
+                    className={`progress-tip-content-elapsed-time-ref-${id}-${
+                      [...Array(numTrips)].length - i
+                    } progress-tip-dist`}
+                  >
+                    {triggerStart ? (triggerStop ? "" : "") : "0m 0s"}
+                  </span>
+                </div>
+              </div>
+            ))}
 
-          <div className={`bus-stop-ref-${id}`}></div>
-          <div className={`bus-stop-dot-ref-${id}`}></div>
-          {[...Array(num_stops)].map((x, i) => (
-            <BusStop
-              key={i}
-              id={relativeStopDistance[i]?.stopId + 1}
-              busStopNo={relativeStopDistance[i]?.busStopNo}
-              globalTime={globalTime}
-              start={start}
-              dataObj={dataObj}
-              setCurrentStop={setCurrentStop}
-              modelId={id}
-            />
-          ))}
+            <div className={`bus-stop-ref-${id}`}></div>
+            <div className={`bus-stop-dot-ref-${id}`}></div>
+            {[...Array(numStops)].map((x, i) => (
+              <BusStop
+                key={i}
+                id={busStopData[i]?.stopId + 1}
+                busStopNo={busStopData[i]?.busStopNo}
+                globalTime={globalTime}
+                start={start}
+                dataObj={dataObj}
+                setCurrentStop={setCurrentStop}
+                modelId={id}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
 
 Journey.propTypes = {
   paused: PropTypes.bool,
@@ -391,7 +404,12 @@ Journey.propTypes = {
   setUnoptimisedOF: PropTypes.func,
   setOptimisedOF: PropTypes.func,
   skipToEndTrigger: PropTypes.bool,
-  resetChart: PropTypes.bool
+  resetChart: PropTypes.bool,
+  optimizedOutputJson: PropTypes.object,
+  unoptimizedOutputJson: PropTypes.object,
+  busStopData: PropTypes.array,
 };
+
+Journey.displayName = "Journey";
 
 export default Journey;

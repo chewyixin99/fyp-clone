@@ -294,6 +294,9 @@ const CombinedPage = () => {
 
   const onStartClick = () => {
     console.log("start clicked");
+    if (loadingFetchUnoptimized || loadingFetchOptimized) {
+      return;
+    }
     setEnded(false);
     setStart(true);
     setResetChart(false);
@@ -313,6 +316,9 @@ const CombinedPage = () => {
   };
 
   const onSkipToEndClick = () => {
+    if (loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON){
+      return;
+    }
     setSkipToEndTrigger(true);
     setResetChart(false);
     setEnded(true);
@@ -328,6 +334,11 @@ const CombinedPage = () => {
     initOutputJson();
     fetchFromEndpoint();
     setDataInUse("ORIGINAL");
+    setStart(false);
+    setEnded(true);
+    setPaused(false);
+    setSkipToEndTrigger(false);
+    setResetChart(true);
   };
 
   const renderFetchStatus = () => {
@@ -395,14 +406,14 @@ const CombinedPage = () => {
     var toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
     const contentArr = [
       `ORIGINAL = Optimised dispatch timings from the model`,
-      `UPDATED = Re-rendered optimised dispatch timings based on user input`,
+      `UPDATED = Re-rendered optimised dispatch timings based on uploaded file`,
     ];
     return (
       <>
         <div className="group relative w-max ms-1 flex items-center">
           <BsQuestionCircle className="text-xs" />
           <div
-            className={`text-white text-[11px] w-80 p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
+            className={`text-white text-[11px] max-w-[30vw] p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
           >
             {contentArr.map((item, index) => {
               return (
@@ -453,7 +464,7 @@ const CombinedPage = () => {
   return (
     <div>
       {/* Control buttons */}
-      <div>
+      <div className=""> 
         {/* row 1 */}
         <div className="flex justify-center items-center py-5 text-xs">
           <button
@@ -461,7 +472,7 @@ const CombinedPage = () => {
             type="button"
             title="Start"
             className={
-              paused || start ? "control-button-disabled" : "control-button"
+              paused || start || loadingFetchUnoptimized || loadingFetchOptimized ? "control-button-disabled" : "control-button"
             }
           >
             <BiRun />
@@ -495,7 +506,9 @@ const CombinedPage = () => {
             onClick={onSkipToEndClick}
             type="button"
             title="Skip to end"
-            className={`control-button`}
+            className={
+              loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON ? "control-button-disabled" : "control-button"
+            }
           >
             <AiOutlineForward />
           </button>
@@ -540,13 +553,14 @@ const CombinedPage = () => {
           {renderTooltipTextless("left")}
         </div>
       </div>
-      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center h-[45vh]">
+      <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center min-h-[45vh]">
         {/* Metrics */}
-        <div className=" grid grid-cols-12 w-full">
+        <div className="grid 2xl:grid-cols-12 xl:grid-cols-8 w-full">
         <div
-          className="my-2 col-span-8 ps-8 flex justify-center"
+          className="my-2 2xl:col-span-8 xl:col-span-8 ms-12 flex justify-center"
           style={{
-            width: "70vw",
+            minWidth: "100%",
+            maxWidth: "100%",
             height: "40vh",
           }}
         >
@@ -563,7 +577,7 @@ const CombinedPage = () => {
             unoptimizedOutputJson={unoptimizedOutputJson}
           />
         </div>
-        <div className="col-span-4 flex justify-center ms-16">
+        <div className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-4">
         <div style={{ display: toggleStats.dispatch ? "block" : "none" }}>
           <div className="my-5 w-20vw mr-auto">
             <DispatchTimings
@@ -596,7 +610,7 @@ const CombinedPage = () => {
       >
         <div>
           <div className="my-2">
-            <h1 className="ms-12 mb-8 text-xl leading-none tracking-tight text-gray-900 md:text-xl lg:text-xl dark:text-white">
+            <h1 className="ms-12 mb-16 text-xl leading-none tracking-tight text-gray-900 md:text-xl lg:text-xl dark:text-white">
               Baseline Model
             </h1>
             <Journey
@@ -610,10 +624,13 @@ const CombinedPage = () => {
               setOptimisedOF={setOptimisedOF}
               setUnoptimisedOF={setUnoptimisedOF}
               setBusStopData={setBusStopData}
+              busStopData={busStopData}
               resetChart={resetChart}
+              optimizedOutputJson={optimizedOutputJson}
+              unoptimizedOutputJson={unoptimizedOutputJson}
             />
           </div>
-          <h1 className="ms-12 mt-2 text-xl leading-none tracking-tight text-gray-900 md:text-xl lg:text-xl dark:text-white">
+          <h1 className="ms-12 mt-2 mb-16 text-xl leading-none tracking-tight text-gray-900 md:text-xl lg:text-xl dark:text-white">
             Optimised Model
           </h1>
           <div className="mt-10">
@@ -627,9 +644,12 @@ const CombinedPage = () => {
               globalTime={globalTime}
               skipToEndTrigger={skipToEndTrigger}
               setBusStopData={setBusStopData}
+              busStopData={busStopData}
               setOptimisedOF={setOptimisedOF}
               setUnoptimisedOF={setUnoptimisedOF}
               resetChart={resetChart}
+              optimizedOutputJson={optimizedOutputJson}
+              unoptimizedOutputJson={unoptimizedOutputJson}
             />
           </div>
         </div>

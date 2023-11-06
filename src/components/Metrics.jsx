@@ -8,7 +8,6 @@ import {
   LineElement,
   BarElement,
   Title,
-  Tooltip,
   Legend,
   PointElement,
   SubTitle,
@@ -22,7 +21,6 @@ ChartJS.register(
   LineElement,
   PointElement,
   Title,
-  Tooltip,
   Legend,
   SubTitle
 );
@@ -208,7 +206,6 @@ const Metrics = React.memo(
     }, [busStopData]);
 
     useEffect(() => {
-      console.log(unoptimisedOF.obj);
       processObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
       processCumulativeObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
     }, [unoptimisedOF, optimisedOF]);
