@@ -212,6 +212,7 @@ const CombinedPage = () => {
         console.log(
           `fetched data: optimised: ${processedDataOptimised.journeyData.length} rows`
         );
+        setDataInUse("ORIGINAL");
         setStopObjs(processedDataOptimised.stopObjs);
         setJourneyData(processedDataOptimised.journeyData);
       })
@@ -246,6 +247,7 @@ const CombinedPage = () => {
         console.log(
           `fetched data: unoptimised: ${processedDataUnoptimised.journeyData.length} rows`
         );
+        setDataInUse("ORIGINAL");
         setJourneyDataUnoptimized(processedDataUnoptimised.journeyData);
       })
       .catch((e) => {
@@ -316,7 +318,7 @@ const CombinedPage = () => {
   };
 
   const onSkipToEndClick = () => {
-    if (loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON){
+    if (loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON) {
       return;
     }
     setSkipToEndTrigger(true);
@@ -333,7 +335,6 @@ const CombinedPage = () => {
   const onRefetchDataClick = () => {
     initOutputJson();
     fetchFromEndpoint();
-    setDataInUse("ORIGINAL");
     setStart(false);
     setEnded(true);
     setPaused(false);
@@ -403,7 +404,7 @@ const CombinedPage = () => {
   };
 
   const renderTooltipTextless = (direction) => {
-    var toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
+    const toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
     const contentArr = [
       `ORIGINAL = Optimised dispatch timings from the model`,
       `UPDATED = Re-rendered optimised dispatch timings based on uploaded file`,
@@ -464,7 +465,7 @@ const CombinedPage = () => {
   return (
     <div>
       {/* Control buttons */}
-      <div className=""> 
+      <div className="">
         {/* row 1 */}
         <div className="flex justify-center items-center py-5 text-xs">
           <button
@@ -472,7 +473,18 @@ const CombinedPage = () => {
             type="button"
             title="Start"
             className={
-              paused || start || loadingFetchUnoptimized || loadingFetchOptimized ? "control-button-disabled" : "control-button"
+              paused ||
+              start ||
+              loadingFetchUnoptimized ||
+              loadingFetchOptimized
+                ? "control-button-disabled"
+                : "control-button"
+            }
+            disabled={
+              paused ||
+              start ||
+              loadingFetchUnoptimized ||
+              loadingFetchOptimized
             }
           >
             <BiRun />
@@ -507,7 +519,9 @@ const CombinedPage = () => {
             type="button"
             title="Skip to end"
             className={
-              loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON ? "control-button-disabled" : "control-button"
+              loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON
+                ? "control-button-disabled"
+                : "control-button"
             }
           >
             <AiOutlineForward />
@@ -556,52 +570,52 @@ const CombinedPage = () => {
       <div className="border-t-2 border-b-2 py-[1%] my-[1%] flex justify-center items-center min-h-[45vh]">
         {/* Metrics */}
         <div className="grid 2xl:grid-cols-12 xl:grid-cols-8 w-full">
-        <div
-          className="my-2 2xl:col-span-8 xl:col-span-8 ms-12 flex justify-center"
-          style={{
-            minWidth: "100%",
-            maxWidth: "100%",
-            height: "40vh",
-          }}
-        >
-          <Metrics
-            unoptimisedOF={unoptimisedOF}
-            optimisedOF={optimisedOF}
-            busStopData={busStopData}
-            skipToEndTrigger={skipToEndTrigger}
-            setOptCumulativeOF={setOptCumulativeOF}
-            setUnoptCumulativeOF={setUnoptCumulativeOF}
-            setPropsCumulativeOF={setPropsCumulativeOF}
-            resetChart={resetChart}
-            optimizedOutputJson={optimizedOutputJson}
-            unoptimizedOutputJson={unoptimizedOutputJson}
-          />
-        </div>
-        <div className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-4">
-        <div style={{ display: toggleStats.dispatch ? "block" : "none" }}>
-          <div className="my-5 w-20vw mr-auto">
-            <DispatchTimings
-              dispatchTimes={dispatchTimes}
-              setUpdatedOutputJson={setUpdatedOutputJson}
+          <div
+            className="my-2 2xl:col-span-8 xl:col-span-8 ms-12 flex justify-center"
+            style={{
+              minWidth: "100%",
+              maxWidth: "100%",
+              height: "40vh",
+            }}
+          >
+            <Metrics
+              unoptimisedOF={unoptimisedOF}
+              optimisedOF={optimisedOF}
+              busStopData={busStopData}
+              skipToEndTrigger={skipToEndTrigger}
+              setOptCumulativeOF={setOptCumulativeOF}
+              setUnoptCumulativeOF={setUnoptCumulativeOF}
+              setPropsCumulativeOF={setPropsCumulativeOF}
+              resetChart={resetChart}
+              optimizedOutputJson={optimizedOutputJson}
+              unoptimizedOutputJson={unoptimizedOutputJson}
             />
           </div>
-        </div>
-        <div style={{ display: toggleStats.dispatch ? "none" : "block" }}>
-        <PerformanceOutput 
-          skipToEndTrigger={skipToEndTrigger}
-          propsCumulativeOF={propsCumulativeOF}
-          optCumulativeOF={optCumulativeOF}
-          unoptCumulativeOF={unoptCumulativeOF}
-          updatedOutputJson={updatedOutputJson}
-          optimizedOutputJson={optimizedOutputJson}
-          unoptimizedOutputJson={unoptimizedOutputJson}
-          loadingOptimizedOutputJSON={loadingOptimizedOutputJSON}
-          loadingUnoptimizedOutputJSON={loadingUnoptimizedOutputJSON}
-          errorOutputJSON={errorOutputJSON}
-          errorMsgOutputJSON={errorMsgOutputJSON}
-        />
-        </div>
-        </div>
+          <div className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-4">
+            <div style={{ display: toggleStats.dispatch ? "block" : "none" }}>
+              <div className="my-5 w-20vw mr-auto">
+                <DispatchTimings
+                  dispatchTimes={dispatchTimes}
+                  setUpdatedOutputJson={setUpdatedOutputJson}
+                />
+              </div>
+            </div>
+            <div style={{ display: toggleStats.dispatch ? "none" : "block" }}>
+              <PerformanceOutput
+                skipToEndTrigger={skipToEndTrigger}
+                propsCumulativeOF={propsCumulativeOF}
+                optCumulativeOF={optCumulativeOF}
+                unoptCumulativeOF={unoptCumulativeOF}
+                updatedOutputJson={updatedOutputJson}
+                optimizedOutputJson={optimizedOutputJson}
+                unoptimizedOutputJson={unoptimizedOutputJson}
+                loadingOptimizedOutputJSON={loadingOptimizedOutputJSON}
+                loadingUnoptimizedOutputJSON={loadingUnoptimizedOutputJSON}
+                errorOutputJSON={errorOutputJSON}
+                errorMsgOutputJSON={errorMsgOutputJSON}
+              />
+            </div>
+          </div>
         </div>
       </div>
       {/* Line */}

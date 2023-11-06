@@ -67,6 +67,12 @@ const UploadFile = React.memo(
           return response.json();
         })
         .then((responseJson) => {
+          if (responseJson.status > 299) {
+            console.log(responseJson);
+            throw new Error(
+              responseJson.data ? responseJson.data : responseJson.message
+            );
+          }
           setFileUploaded(true);
         })
         .catch((e) => {
@@ -117,6 +123,7 @@ const UploadFile = React.memo(
           console.log(
             `fetched updated data: optimised: ${processedDataOptimized.journeyData.length} rows`
           );
+          setDataInUse("UPDATED");
           setStopObjs(processedDataOptimized.stopObjs);
           setJourneyData(processedDataOptimized.journeyData);
         })
@@ -150,6 +157,7 @@ const UploadFile = React.memo(
           console.log(
             `fetched updated data: unoptimised: ${processedDataUnoptimized.journeyData.length} rows`
           );
+          setDataInUse("UPDATED");
           setJourneyDataUnoptimized(processedDataUnoptimized.journeyData);
         })
         .catch((e) => {
@@ -215,7 +223,6 @@ const UploadFile = React.memo(
       setUpdateClicked(true);
       fetchUpdatedModelDataFeed();
       fetchUpdatedModelDataMatrice();
-      setDataInUse("UPDATED");
     };
 
     const renderFetchUpdatedDataStatus = () => {
@@ -341,7 +348,14 @@ const UploadFile = React.memo(
           <div className="control-button">
             <FiUpload />
           </div>
-          <input type="file" onChange={onUploadClick} accept=".json" />
+          <input
+            type="file"
+            onChange={onUploadClick}
+            onClick={(e) => {
+              e.target.value = null;
+            }}
+            accept=".json"
+          />
         </label>
         <div className="text-xs text-gray-500">{fileName}</div>
         <div>{renderStatus()}</div>
