@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Union
 
 class MMResultMatrices(BaseModel):
   num_trips: int
@@ -7,8 +8,13 @@ class MMResultMatrices(BaseModel):
   original_dispatch_list: list[int]
 
   coordinates_list: list[list[float]]
+  distances_list: list[float]
   stop_ids_list: list[str]
   stop_names_list: list[str]
+  weights_list: list[Union[int, float]]
+
+  max_allowed_deviation: int
+  penalty_coefficient: int
 
   dwell_matrix: dict[str, int]
   busload_matrix: dict[str, int]
