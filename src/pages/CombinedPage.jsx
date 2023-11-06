@@ -556,6 +556,8 @@ const CombinedPage = () => {
             setJourneyDataUnoptimized={setJourneyDataUnoptimized}
             setDispatchTimes={setDispatchTimes}
             setDataInUse={setDataInUse}
+            setOptimizedOutputJson={setOptimizedOutputJson}
+            setUnoptimizedOutputJson={setUnoptimizedOutputJson}
           />
         </div>
         {/* row 3 */}

@@ -14,6 +14,8 @@ const UploadFile = React.memo(
     setJourneyDataUnoptimized,
     setDispatchTimes,
     setDataInUse,
+    setOptimizedOutputJson,
+    setUnoptimizedOutputJson,
   }) => {
     const [fileName, setFileName] = useState("");
     const [file, setFile] = useState({});
@@ -182,6 +184,8 @@ const UploadFile = React.memo(
           "Content-Type": "application/json",
         },
       };
+
+      // optimised
       await fetch(urlMatrice, {
         ...options,
         body: JSON.stringify(requestBody),
@@ -206,6 +210,29 @@ const UploadFile = React.memo(
             };
           }
           setDispatchTimes(tmpDispatchTimes);
+          setOptimizedOutputJson(data);
+          console.log(data);
+        })
+        .catch((e) => {
+          setErrorFetch(true);
+          setErrorFetchMsg(`${e.message}`);
+          console.log(e);
+        });
+
+      // unoptimised
+      await fetch(urlMatrice, {
+        ...options,
+        body: JSON.stringify({
+          ...requestBody,
+          unoptimised: true,
+        }),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((responseJson) => {
+          const data = responseJson.data;
+          setUnoptimizedOutputJson(data);
         })
         .catch((e) => {
           setErrorFetch(true);
@@ -370,6 +397,8 @@ UploadFile.propTypes = {
   setJourneyDataUnoptimized: PropTypes.func,
   setDispatchTimes: PropTypes.func,
   setDataInUse: PropTypes.func,
+  setOptimizedOutputJson: PropTypes.func,
+  setUnoptimizedOutputJson: PropTypes.func,
 };
 
 UploadFile.displayName = "UploadFile";
