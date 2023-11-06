@@ -11,11 +11,6 @@ import chart_studio
 import chart_studio.plotly as py
 from tqdm import tqdm
 import os
-# from dotenv import load_dotenv
-import os
-
-# Load environment variables from .env file
-# load_dotenv()
 
 # Access variables
 chart_studio_username = os.getenv('CHART_STUDIO_USERNAME')
@@ -25,7 +20,7 @@ chart_studio.tools.set_credentials_file(username=chart_studio_username, api_key=
 def get_input_subset(input_data, num_trips, num_stops):
     input_subset = {}
 
-    scalars = ["num_trips", "num_stops", "bus_capacity", "boarding_duration", "alighting_duration", "max_allowed_deviation"]
+    scalars = ["num_trips", "num_stops", "bus_capacity", "boarding_duration", "alighting_duration", "max_allowed_deviation", "penalty_coefficient"]
     trip_vectors = ["original_dispatch_list", "bus_availability_list"]
     stop_vectors = ["coordinates_list", "stop_ids_list", "stop_names_list", "prev_arrival_list", "prev_dwell_list", "arrival_rate_list", "alighting_percentage_list", "weights_list", "initial_passengers_list"]
     matrices = ["target_headway_2dlist", "interstation_travel_2dlist"]
@@ -42,13 +37,16 @@ def get_input_subset(input_data, num_trips, num_stops):
         input_subset[trip_vector] = input_data[trip_vector][:num_trips]
 
     for stop_vector in stop_vectors:
-        if stop_vector == "alighting_percentage_list":
+        if stop_vector == "alighting_percentage_list" or stop_vector == "prev_dwell_list":
             input_subset[stop_vector] = input_data[stop_vector][:num_stops-1]
         else:
             input_subset[stop_vector] = input_data[stop_vector][:num_stops]
 
     for matrix in matrices:
-        input_subset[matrix] = [trip[:num_stops] for trip in input_data[matrix][:num_trips]]
+        if matrix == "target_headway_2dlist":
+            input_subset[matrix] = [trip[:num_stops] for trip in input_data[matrix][:num_trips]]
+        else:
+            input_subset[matrix] = [trip[:num_stops-1] for trip in input_data[matrix][:num_trips]]
 
     return input_subset
 
