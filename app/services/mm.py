@@ -6,6 +6,8 @@ from ..cache.mm import mm_cache_key_gen, set_mm_result_cache, get_mm_result_cach
 from ..cache.uploaded_data import uploaded_data_cache_key_gen, get_uploaded_data_cache
 from ..mm.model import run_model
 from ..mm.utils.transformation import compress_dicts, json_to_feed
+from ..mm.utils.coordinates import calculate_haversine_distance
+from ..mm.exceptions.invalid_input import InvalidInput
 
 from ..response.standard import APIResponse
 from ..response.error import APIException
@@ -92,13 +94,42 @@ async def get_mm_raw_result(
   silent = False
   input_data = await get_mm_input_data(uploaded_file)
 
-  output_data = run_model(
-    data=input_data,
-    deviated_dispatch_dict=deviated_dispatch_dict,
-    silent=silent,
-    unoptimised=unoptimised,
-    retry=True
-  )
+  try:
+    output_data = run_model(
+      data=input_data,
+      deviated_dispatch_dict=deviated_dispatch_dict,
+      silent=silent,
+      unoptimised=unoptimised,
+      retry=True
+    )
+  except InvalidInput as e:
+    raise APIException(
+      response=APIResponse(
+        status=HTTPStatus.BAD_REQUEST,
+        status_text=HTTPStatus.BAD_REQUEST.phrase,
+        data=f"{str(e)}",
+        message="Failed to generate results, please examine feasibility of inputs."
+      )
+    )
+  except Exception as e:
+    raise APIException(
+      response=APIResponse(
+        status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        status_text=HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
+        data=f"{str(e)}",
+        message="Exception occured during result computation, please check validity of inputs provided."
+      )
+    )
+
+  # pre-calculating haversine distances for performance reasons
+  cumulative_distances = [0.0]
+  current_distance = 0
+  current_coordinate = input_data['coordinates_list'][0]
+
+  for coordinate in input_data['coordinates_list'][1:]:
+      current_distance += calculate_haversine_distance(coord1=current_coordinate, coord2=coordinate)
+      cumulative_distances.append(current_distance)
+      current_coordinate = coordinate
 
   result = compress_dicts(
     num_trips=input_data["num_trips"],
@@ -106,9 +137,12 @@ async def get_mm_raw_result(
     bus_capacity=input_data["bus_capacity"],
     original_dispatch_list=input_data["original_dispatch_list"],
     coordinates_list=input_data["coordinates_list"],
+    distances_list=cumulative_distances,
     stop_ids_list=input_data["stop_ids_list"],
     stop_names_list=input_data["stop_names_list"],
     weights_list=input_data["weights_list"],
+    max_allowed_deviation=input_data["max_allowed_deviation"],
+    penalty_coefficient=input_data["penalty_coefficient"],
     dwell_matrix=output_data["dwell_dict"],
     busload_matrix=output_data["busload_dict"],
     arrival_matrix=output_data["arrival_dict"],
