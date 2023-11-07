@@ -7,6 +7,7 @@ import {
   BsFillPlayFill,
   BsFillPauseFill,
   BsFillStopFill,
+  BsQuestionCircle,
 } from "react-icons/bs";
 import { BiRun } from "react-icons/bi";
 import { MdFilterCenterFocus } from "react-icons/md";
@@ -14,7 +15,6 @@ import { TiTick } from "react-icons/ti";
 import { RxReload } from "react-icons/rx";
 import { PuffLoader } from "react-spinners";
 import { AiOutlineSwap, AiOutlineForward } from "react-icons/ai";
-import { BsQuestionCircle } from "react-icons/bs";
 import Metrics from "../components/Metrics";
 import DispatchTimings from "../components/DispatchTimings";
 import PerformanceOutput from "../components/PerformanceOutput";
@@ -33,11 +33,6 @@ const mapContainerStyle = {
   maxWidth: "100%",
 };
 
-const optimizedFile = "./v1_0CVXPY_poll1_optimised_feed.csv";
-const unoptimizedFile = "./v1_0CVXPY_poll1_unoptimised_feed.csv";
-// const optimizedFile = "";
-// const unoptimizedFile = "";
-
 const CombinedPage = () => {
   // map states
   const [zoom, setZoom] = useState(defaultZoom);
@@ -49,7 +44,6 @@ const CombinedPage = () => {
   const [start, setStart] = useState(false);
   const [unoptimisedOF, setUnoptimisedOF] = useState({});
   const [optimisedOF, setOptimisedOF] = useState({});
-  const [busStopData, setBusStopData] = useState([]);
   const [skipToEndTrigger, setSkipToEndTrigger] = useState(false);
   const [optCumulativeOF, setOptCumulativeOF] = useState(0);
   const [unoptCumulativeOF, setUnoptCumulativeOF] = useState(0);
@@ -62,14 +56,14 @@ const CombinedPage = () => {
   const [journeyData, setJourneyData] = useState([]);
   const [journeyDataUnoptimized, setJourneyDataUnoptimized] = useState([]);
   const [globalTime, setGlobalTime] = useState(0);
-  const [dataInUse, setDataInUse] = useState("ORIGINAL");
+  const [dataInUse, setDataInUse] = useState("");
 
   // visualisation toggle states
   const [toggle, setToggle] = useState({
     maps: false,
     line: true,
   });
-  const [toggleStats, setToggleStates] = useState({
+  const [toggleStates, setToggleStates] = useState({
     output: false,
     dispatch: true,
   });
@@ -265,7 +259,11 @@ const CombinedPage = () => {
   }, []);
 
   useEffect(() => {
-    if (journeyData.length !== 0 && journeyDataUnoptimized.length !== 0) {
+    if (
+      journeyData.length !== 0 &&
+      journeyDataUnoptimized.length !== 0 &&
+      dataInUse !== "UPDATED"
+    ) {
       // make it such that both optimized and unoptimized start and end at the same time
       const { normalizedOptimizedData, normalizedUnoptimizedData } =
         normalizeStartTime({
@@ -278,7 +276,7 @@ const CombinedPage = () => {
       setGlobalTime(normalizedOptimizedData[0].timestamp);
       setMapsGlobalTime(normalizedOptimizedData[0].timestamp);
     }
-  }, [journeyData, journeyDataUnoptimized]);
+  }, [journeyData, journeyDataUnoptimized, dataInUse]);
 
   const toggleVisibility = () => {
     setToggle({
@@ -289,8 +287,8 @@ const CombinedPage = () => {
 
   const toggleStatisticsVisibility = () => {
     setToggleStates({
-      output: !toggleStats.output,
-      dispatch: !toggleStats.dispatch,
+      output: !toggleStates.output,
+      dispatch: !toggleStates.dispatch,
     });
   };
 
@@ -537,7 +535,7 @@ const CombinedPage = () => {
             </button>
           </div>
           <div className="ml-3 flex items-center">
-            <div>Viewing {toggleStats.dispatch ? "Dispatch" : "Results"}</div>
+            <div>Viewing {toggleStates.dispatch ? "Dispatch" : "Results"}</div>
             <button
               onClick={toggleStatisticsVisibility}
               type="button"
@@ -558,6 +556,8 @@ const CombinedPage = () => {
             setDataInUse={setDataInUse}
             setOptimizedOutputJson={setOptimizedOutputJson}
             setUnoptimizedOutputJson={setUnoptimizedOutputJson}
+            setGlobalTime={setGlobalTime}
+            setMapsGlobalTime={setMapsGlobalTime}
           />
         </div>
         {/* row 3 */}
@@ -594,7 +594,7 @@ const CombinedPage = () => {
             />
           </div>
           <div className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-4">
-            <div style={{ display: toggleStats.dispatch ? "block" : "none" }}>
+            <div style={{ display: toggleStates.dispatch ? "block" : "none" }}>
               <div className="my-5 w-20vw mr-auto">
                 <DispatchTimings
                   dispatchTimes={dispatchTimes}
@@ -602,7 +602,7 @@ const CombinedPage = () => {
                 />
               </div>
             </div>
-            <div style={{ display: toggleStats.dispatch ? "none" : "block" }}>
+            <div style={{ display: toggleStates.dispatch ? "none" : "block" }}>
               <PerformanceOutput
                 skipToEndTrigger={skipToEndTrigger}
                 propsCumulativeOF={propsCumulativeOF}

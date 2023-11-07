@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiUpload } from "react-icons/fi";
 import { PuffLoader } from "react-spinners";
 import { TiTick } from "react-icons/ti";
-import { processCsvData } from "../util/mapHelper";
+import { normalizeStartTime, processCsvData } from "../util/mapHelper";
 import Papa from "papaparse";
 import { RxReload } from "react-icons/rx";
 import PropTypes from "prop-types";
@@ -16,6 +16,8 @@ const UploadFile = React.memo(
     setDataInUse,
     setOptimizedOutputJson,
     setUnoptimizedOutputJson,
+    setMapsGlobalTime,
+    setGlobalTime,
   }) => {
     const [fileName, setFileName] = useState("");
     const [file, setFile] = useState({});
@@ -27,6 +29,11 @@ const UploadFile = React.memo(
     const [errorFetch, setErrorFetch] = useState(false);
     const [errorFetchMsg, setErrorFetchMsg] = useState("");
     const [fileUploaded, setFileUploaded] = useState(false);
+    // local fetched data states
+    const [processedOptimizedData, setProcessedOptimizedData] = useState({});
+    const [processedUnoptimizedData, setProcessedUnoptimizedData] = useState(
+      {}
+    );
 
     const onUploadClick = (changeEvent) => {
       try {
@@ -125,9 +132,7 @@ const UploadFile = React.memo(
           console.log(
             `fetched updated data: optimised: ${processedDataOptimized.journeyData.length} rows`
           );
-          setDataInUse("UPDATED");
-          setStopObjs(processedDataOptimized.stopObjs);
-          setJourneyData(processedDataOptimized.journeyData);
+          setProcessedOptimizedData(processedDataOptimized);
         })
         .catch((e) => {
           setErrorFetch(true);
@@ -159,8 +164,7 @@ const UploadFile = React.memo(
           console.log(
             `fetched updated data: unoptimised: ${processedDataUnoptimized.journeyData.length} rows`
           );
-          setDataInUse("UPDATED");
-          setJourneyDataUnoptimized(processedDataUnoptimized.journeyData);
+          setProcessedUnoptimizedData(processedDataUnoptimized);
         })
         .catch((e) => {
           setErrorFetch(true);
@@ -240,6 +244,27 @@ const UploadFile = React.memo(
           console.log(e);
         });
     };
+
+    useEffect(() => {
+      if (
+        processedOptimizedData.journeyData &&
+        processedUnoptimizedData.journeyData
+      ) {
+        // make it such that both optimized and unoptimized start and end at the same time
+        const { normalizedOptimizedData, normalizedUnoptimizedData } =
+          normalizeStartTime({
+            optimizedData: processedOptimizedData.journeyData,
+            unoptimizedData: processedUnoptimizedData.journeyData,
+          });
+        // set states for time and journey datas
+        setStopObjs(processedOptimizedData.stopObjs);
+        setJourneyData(normalizedOptimizedData);
+        setJourneyDataUnoptimized(normalizedUnoptimizedData);
+        setGlobalTime(normalizedOptimizedData[0].timestamp);
+        setMapsGlobalTime(normalizedOptimizedData[0].timestamp);
+        setDataInUse("UPDATED");
+      }
+    }, [processedOptimizedData, processedUnoptimizedData]);
 
     const onTrainModelClick = () => {
       setUpdateClicked(false);
@@ -399,6 +424,8 @@ UploadFile.propTypes = {
   setDataInUse: PropTypes.func,
   setOptimizedOutputJson: PropTypes.func,
   setUnoptimizedOutputJson: PropTypes.func,
+  setMapsGlobalTime: PropTypes.func,
+  setGlobalTime: PropTypes.func,
 };
 
 UploadFile.displayName = "UploadFile";
