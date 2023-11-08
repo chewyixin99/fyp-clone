@@ -7,35 +7,35 @@ def validate_data(data):
     This function checks if the provided data dictionary contains all the necessary keys and if the data types of each key are correct. 
     It ensures that the lists have the appropriate lengths and that the values within them meet specific criteria (e.g., integers, positive numbers).
 
-Args:
-        data (dict): Input data for the validation, expected to contain key-value pairs such as:
-            - "num_trips" (int): Number of bus trips.
-            - "num_stops" (int): Number of bus stops.
-            - "original_dispatch_list" (list[int]): List of original dispatch timings. Length: num_trips.
-            - "coordinates_list" (list[list[float]]): List of coordinates for each stop. Length: num_stops.
-            - "stop_ids_list" (list[str]): List of stop identifiers. Length: num_stops.
-            - "stop_names_list" (list[str]): List of stop names. Length: num_stops.
-            - "prev_arrival_list" (list[int]): List of previous arrival times. Length: num_stops.
-            - "prev_dwell_list" (list[int]): List of previous dwell times. Length: num_stops - 1.
-            - "arrival_rate_list" (list[float]): List of arrival rates at each stop. Length: num_stops.
-            - "alighting_percentage_list" (list[float]): List of alighting percentages. Length: num_stops - 1.
-            - "boarding_duration" (int): Duration for boarding at each stop.
-            - "alighting_duration" (int): Duration for alighting at each stop.
-            - "weights_list" (list[float]): List of weights for each stop. Length: num_stops.
-            - "bus_availability_list" (list[int]): List indicating the availability of buses. Length: num_trips.
-            - "max_allowed_deviation" (int): Maximum allowed deviation for dispatch times.
-            - "target_headway_2dlist" (list[list[int]]): 2D list of target headways. Shape: num_trips x num_stops.
-            - "interstation_travel_2dlist" (list[list[int]]): 2D list of interstation travel times. Shape: num_trips x (num_stops - 1).
+    Args:
+            data (dict): Input data for the validation, expected to contain key-value pairs such as:
+                - "num_trips" (int): Number of bus trips.
+                - "num_stops" (int): Number of bus stops.
+                - "original_dispatch_list" (list[int]): List of original dispatch timings. Length: num_trips.
+                - "coordinates_list" (list[list[float]]): List of coordinates for each stop. Length: num_stops.
+                - "stop_ids_list" (list[str]): List of stop identifiers. Length: num_stops.
+                - "stop_names_list" (list[str]): List of stop names. Length: num_stops.
+                - "prev_arrival_list" (list[int]): List of previous arrival times. Length: num_stops.
+                - "prev_dwell_list" (list[int]): List of previous dwell times. Length: num_stops - 1.
+                - "arrival_rate_list" (list[float]): List of arrival rates at each stop. Length: num_stops.
+                - "alighting_percentage_list" (list[float]): List of alighting percentages. Length: num_stops - 1.
+                - "boarding_duration" (int): Duration for boarding at each stop.
+                - "alighting_duration" (int): Duration for alighting at each stop.
+                - "weights_list" (list[float]): List of weights for each stop. Length: num_stops.
+                - "bus_availability_list" (list[int]): List indicating the availability of buses. Length: num_trips.
+                - "max_allowed_deviation" (int): Maximum allowed deviation for dispatch times.
+                - "target_headway_2dlist" (list[list[int]]): 2D list of target headways. Shape: num_trips x num_stops.
+                - "interstation_travel_2dlist" (list[list[int]]): 2D list of interstation travel times. Shape: num_trips x (num_stops - 1).
 
 
-    Returns:
-        tuple: A tuple containing a boolean and a string. The boolean is True if the data is valid, False otherwise. The string contains a message 
-               either confirming the data is valid or specifying the type of validation error encountered.
+        Returns:
+            tuple: A tuple containing a boolean and a string. The boolean is True if the data is valid, False otherwise. The string contains a message 
+                either confirming the data is valid or specifying the type of validation error encountered.
 
-    Note:
-        - The function checks the existence of all required keys in the input dictionary and verifies the data type of each key.
-        - For lists, the function checks the length and the type of elements inside them, ensuring they are consistent with the expected format.
-        - The function uses a try-except block to catch any unexpected errors during the validation process.
+        Note:
+            - The function checks the existence of all required keys in the input dictionary and verifies the data type of each key.
+            - For lists, the function checks the length and the type of elements inside them, ensuring they are consistent with the expected format.
+            - The function uses a try-except block to catch any unexpected errors during the validation process.
     """
 
     try:
