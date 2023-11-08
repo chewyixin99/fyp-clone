@@ -7,25 +7,26 @@ def validate_data(data):
     This function checks if the provided data dictionary contains all the necessary keys and if the data types of each key are correct. 
     It ensures that the lists have the appropriate lengths and that the values within them meet specific criteria (e.g., integers, positive numbers).
 
-    Args:
+Args:
         data (dict): Input data for the validation, expected to contain key-value pairs such as:
             - "num_trips" (int): Number of bus trips.
             - "num_stops" (int): Number of bus stops.
-            - "original_dispatch_list" (list[int]): List of original dispatch timings.
-            - "coordinates_list" (list[list[float]]): List of coordinates for each stop.
-            - "stop_ids_list" (list[str]): List of stop identifiers.
-            - "stop_names_list" (list[str]): List of stop names.
-            - "prev_arrival_list" (list[int]): List of previous arrival times.
-            - "prev_dwell_list" (list[int]): List of previous dwell times.
-            - "arrival_rate_list" (list[float]): List of arrival rates at each stop.
-            - "alighting_percentage_list" (list[float]): List of alighting percentages.
+            - "original_dispatch_list" (list[int]): List of original dispatch timings. Length: num_trips.
+            - "coordinates_list" (list[list[float]]): List of coordinates for each stop. Length: num_stops.
+            - "stop_ids_list" (list[str]): List of stop identifiers. Length: num_stops.
+            - "stop_names_list" (list[str]): List of stop names. Length: num_stops.
+            - "prev_arrival_list" (list[int]): List of previous arrival times. Length: num_stops.
+            - "prev_dwell_list" (list[int]): List of previous dwell times. Length: num_stops - 1.
+            - "arrival_rate_list" (list[float]): List of arrival rates at each stop. Length: num_stops.
+            - "alighting_percentage_list" (list[float]): List of alighting percentages. Length: num_stops - 1.
             - "boarding_duration" (int): Duration for boarding at each stop.
             - "alighting_duration" (int): Duration for alighting at each stop.
-            - "weights_list" (list[float]): List of weights for each stop.
-            - "bus_availability_list" (list[int]): List indicating the availability of buses.
+            - "weights_list" (list[float]): List of weights for each stop. Length: num_stops.
+            - "bus_availability_list" (list[int]): List indicating the availability of buses. Length: num_trips.
             - "max_allowed_deviation" (int): Maximum allowed deviation for dispatch times.
-            - "target_headway_2dlist" (list[list[int]]): 2D list of target headways.
-            - "interstation_travel_2dlist" (list[list[int]]): 2D list of interstation travel times.
+            - "target_headway_2dlist" (list[list[int]]): 2D list of target headways. Shape: num_trips x num_stops.
+            - "interstation_travel_2dlist" (list[list[int]]): 2D list of interstation travel times. Shape: num_trips x (num_stops - 1).
+
 
     Returns:
         tuple: A tuple containing a boolean and a string. The boolean is True if the data is valid, False otherwise. The string contains a message 
