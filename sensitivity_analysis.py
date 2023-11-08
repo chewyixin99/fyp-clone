@@ -18,6 +18,24 @@ chart_studio_api_key = os.getenv('CHART_STUDIO_API_KEY')
 chart_studio.tools.set_credentials_file(username=chart_studio_username, api_key=chart_studio_api_key)
 
 def get_input_subset(input_data, num_trips, num_stops):
+    """
+    Generates a subset of the input data for a specific number of trips and stops.
+
+    This function takes the full input data and extracts a subset relevant to a specified number of trips and stops.
+    It considers various data types like scalars, vectors, and matrices, ensuring the subset aligns with the given parameters.
+
+    Args:
+        input_data (dict): The complete input data dictionary.
+        num_trips (int): The number of trips to include in the subset.
+        num_stops (int): The number of stops to include in the subset.
+
+    Returns:
+        dict: A dictionary representing the subset of input data for the specified number of trips and stops.
+
+    Note:
+        - The function categorises input data types (scalars, trip vectors, stop vectors, matrices) and slices them according to 'num_trips' and 'num_stops'.
+    """
+
     input_subset = {}
 
     scalars = ["num_trips", "num_stops", "bus_capacity", "boarding_duration", "alighting_duration", "max_allowed_deviation", "penalty_coefficient"]
@@ -51,6 +69,22 @@ def get_input_subset(input_data, num_trips, num_stops):
     return input_subset
 
 def get_all_timings(input_data):
+    """
+    Calculates the run time of the model for each combination of trips and stops.
+
+    This function iterates through all possible combinations of trips and stops, running the model for each combination,
+    and measuring the time taken for each run. It captures these times in a matrix.
+
+    Args:
+        input_data (dict): The full set of input data.
+
+    Returns:
+        np.ndarray: A 2D NumPy array where each element represents the time taken for the model to run with a specific combination of trips and stops.
+
+    Note:
+        - The function sets a threshold for the maximum waiting time (36 minutes). If exceeded, it stops further computation for that trip.
+        - The function uses tqdm for progress visualisation.
+    """
     num_trips = input_data["num_trips"]
     num_stops = input_data["num_stops"]
 
@@ -77,6 +111,23 @@ def get_all_timings(input_data):
     return timings_matrix
 
 def visualise_heatmap(timings_matrix, model_name):
+    """
+    Creates a heatmap visualisation of the model's computational complexity.
+
+    This function generates a heatmap based on the timings matrix, representing the computational complexity of the model
+    as a function of the number of trips and stops.
+
+    Args:
+        timings_matrix (np.ndarray): The matrix containing the timings for each combination of trips and stops.
+        model_name (str): The name of the model used for the runs.
+
+    Returns:
+        plotly.graph_objs._figure.Figure: A Plotly figure object representing the heatmap.
+
+    Note:
+        - The heatmap uses colour coding to represent run times, providing a visual representation of the model's computational complexity.
+    """
+
     # create the heatmap
     fig = px.imshow(timings_matrix, 
                     labels=dict(x="Stops", y="Trips", color="Value"),
@@ -90,6 +141,22 @@ def visualise_heatmap(timings_matrix, model_name):
     return fig
 
 def visualise_3d(timings_matrix):
+    """
+    Generates a 3D scatter plot visualisation of the model's computational complexity.
+
+    This function creates a 3D scatter plot using the timings matrix, plotting the number of trips, stops, and the corresponding run time.
+
+    Args:
+        timings_matrix (np.ndarray): The matrix containing the timings for each combination of trips and stops.
+
+    Returns:
+        plotly.graph_objs._figure.Figure: A Plotly figure object representing the 3D scatter plot.
+
+    Note:
+        - The function transforms the 2D timings matrix into a 3D coordinate system, where the Z-axis represents the run time.
+        - The visualisation aids in understanding how the computational complexity scales with the number of trips and stops.
+    """
+
     # create coordinate grids
     num_trips = np.arange(1, timings_matrix.shape[0] + 1)
     num_stops = np.arange(1, timings_matrix.shape[1] + 1)
@@ -112,6 +179,24 @@ def visualise_3d(timings_matrix):
     return fig
 
 def save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path):
+    """
+    Saves the generated figures and the timings matrix to specified paths.
+
+    This function saves the 2D heatmap and 3D scatter plot to HTML or JSON formats, and the timings matrix to a NumPy file.
+
+    Args:
+        fig_2d (plotly.graph_objs._figure.Figure): The 2D heatmap figure.
+        fig_3d (plotly.graph_objs._figure.Figure): The 3D scatter plot figure.
+        save_fig_path_2d (str): File path for saving the 2D heatmap.
+        save_fig_path_3d (str): File path for saving the 3D scatter plot.
+        timings_matrix (np.ndarray): The timings matrix.
+        save_npy_path (str): File path for saving the timings matrix.
+
+    Note:
+        - The function supports saving figures in HTML and JSON formats.
+        - The directory for saving the figures is created if it does not exist.
+        - It also saves the timings matrix as a .npy file for future use.
+    """
 
     directory_path = os.path.dirname(save_fig_path_2d)
 
@@ -144,28 +229,40 @@ def save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matr
     print(f"successfully saved matrix as a .npy file at {save_npy_path}!")
 
 def main():
-    model = "v1_0CVXPY" # NOTE: to change to other models (not frequent)
-    file_type = "html"
+    """
+    The main function to run the computational complexity analysis for a specified model.
+
+    This function sets up the paths for saving output, loads the input data, generates timings, and visualizes the results. It also provides options to
+    save the figures and upload them to Chart Studio.
+
+    Note:
+        - The model name and file type for saving figures can be specified.
+        - The function allows for the option to upload the figures to Chart Studio.
+        - It encapsulates the full workflow from data loading to visualisation and saving of results.
+    """
+
+    MODEL_NAME = "v1_0CVXPY" # NOTE: to change to other model names
+    FILE_TYPE = "html"
     CHART_STUDIO_UPLOAD = True
     SAVE_FIGURES = True
 
-    save_fig_path_2d = f"./data/sensitivity_analyses/{model}_2d.{file_type}"
-    save_fig_path_3d = f"./data/sensitivity_analyses/{model}_3d.{file_type}"
-    save_npy_path = f"./data/sensitivity_analyses/{model}.npy"
+    save_fig_path_2d = f"./data/sensitivity_analyses/{MODEL_NAME}_2d.{FILE_TYPE}"
+    save_fig_path_3d = f"./data/sensitivity_analyses/{MODEL_NAME}_3d.{FILE_TYPE}"
+    save_npy_path = f"./data/sensitivity_analyses/{MODEL_NAME}.npy"
 
     input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2710.json")
 
     timings_matrix = get_all_timings(input_data)
     # timings_matrix = np.load(save_npy_path, allow_pickle=True)
-    fig_2d = visualise_heatmap(timings_matrix, model)
+    fig_2d = visualise_heatmap(timings_matrix, MODEL_NAME)
     fig_3d = visualise_3d(timings_matrix)
 
     if SAVE_FIGURES:
         save_figure(fig_2d, fig_3d, save_fig_path_2d, save_fig_path_3d, timings_matrix, save_npy_path)
 
     if CHART_STUDIO_UPLOAD:
-        py.plot(fig_2d, filename=f'{model}_2d', auto_open=True)
-        py.plot(fig_3d, filename=f'{model}_3d', auto_open=True)
+        py.plot(fig_2d, filename=f'{MODEL_NAME}_2d', auto_open=True)
+        py.plot(fig_3d, filename=f'{MODEL_NAME}_3d', auto_open=True)
 
 if __name__ == "__main__":
     main()

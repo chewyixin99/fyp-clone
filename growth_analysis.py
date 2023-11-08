@@ -5,6 +5,24 @@ from sklearn.model_selection import cross_val_score
 import numpy as np
 
 def fit_regression(data, max_degree=5):
+    """
+    Fits a polynomial regression model to the given data up to a specified maximum degree.
+
+    This function tries polynomial models of increasing degrees up to 'max_degree' and selects the best model based on cross-validation scores.
+    The function prepares the input data for polynomial fitting, runs cross-validation on each model, and keeps track of the best-performing model.
+
+    Args:
+        data (np.ndarray): The 2D numpy array containing the data to fit the model to.
+        max_degree (int, optional): The maximum degree of the polynomial model to be tested. Defaults to 5.
+
+    Returns:
+        tuple: A tuple containing the best-fitting model, the polynomial feature transformer, and the degree of the best polynomial.
+
+    Note:
+        - The function uses mean squared error as the scoring metric for cross-validation.
+        - It prints the cross-validation score for each polynomial degree tried.
+        - The function masks out any -1 values in the data, assuming they represent invalid or not possible combinations.
+    """
 
     # prepare the data
     num_trips = np.arange(1, data.shape[0] + 1)
@@ -46,12 +64,41 @@ def fit_regression(data, max_degree=5):
     return best_model, best_poly, best_degree
 
 def predict_value(model, poly, num_stops, num_trips):
+    """
+    Predicts a value using the best-fitting polynomial regression model.
+
+    Given the number of stops and trips, this function uses the best-fitting model obtained from 'fit_regression' to make a prediction.
+
+    Args:
+        model (sklearn.linear_model._base.LinearRegression): The best-fitting polynomial regression model.
+        poly (sklearn.preprocessing._data.PolynomialFeatures): The polynomial feature transformer used in the model.
+        num_stops (int): The number of stops for the prediction.
+        num_trips (int): The number of trips for the prediction.
+
+    Returns:
+        float: The predicted value from the model for the given number of stops and trips.
+
+    Note:
+        - The function transforms the input features into a polynomial feature set before making the prediction.
+    """
+
 
     x_new = np.array([[num_stops, num_trips]])
     x_new_poly = poly.transform(x_new)
     return model.predict(x_new_poly)[0]
 
 def main():
+    """
+    The main function to execute the polynomial regression fitting and prediction.
+
+    This script loads the necessary data, fits a polynomial regression model, selects the best model, and then uses it for a prediction task. 
+    It also includes printing of model details and the prediction result.
+
+    Note:
+        - The script includes setting up numpy print options for formatting.
+        - It demonstrates the complete process from data loading, model fitting, to making a prediction.
+        - Example values for 'num_stops' and 'num_trips' are used for demonstration, which can be replaced with actual values as needed.
+    """
     np.set_printoptions(formatter={'float_kind': "{:.6f}".format})
 
     # load npy

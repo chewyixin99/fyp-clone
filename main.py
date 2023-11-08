@@ -2,33 +2,42 @@ import json
 import re
 import plotly.express as px
 import pandas as pd
-from models.v1_0CVXPY import run_model # NOTE: to change to other models (not frequent)
+from models.v1_0CVXPY import run_model # NOTE: to change to other models
 from utils.transformation import convert_json_to_dict, write_data_to_json, json_to_feed
 from utils.validate_data import validate_data
 from utils.coordinates import calculate_haversine_distance
 
 def main():
-    MODEL_NAME = "v1_0CVXPY" # NOTE: to change to other models (not frequent)
+    """
+    The main function to execute the bus dispatch scheduling model and process the output.
+
+    This script loads input data, validates it, runs the bus dispatch scheduling model, and then processes the output for further use. 
+    It calculates cumulative distances between stops and saves the output data in both JSON and CSV formats.
+
+    Note:
+        - The script allows for configuration of the model name, polling rate, and optimization settings.
+        - Data validation is performed before running the model to ensure data integrity.
+        - Haversine distances are pre-calculated for all coordinates in the input data.
+        - The script handles exceptions and provides informative messages in case of failure in any step.
+    """
+
+    MODEL_NAME = "v1_0CVXPY" # NOTE: to change to other models
     POLLING_RATE = 1
     UNOPTIMISED = False
     SILENT = False
     
-    if UNOPTIMISED:
-        string_prefix = 'un'
-    else:
-        string_prefix = ''
+    string_prefix = 'un' if UNOPTIMISED else ''
 
+    # data validation
     input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2710.json")
-
     is_data_valid = validate_data(input_data)
-
     if not is_data_valid:
         print("Data is not valid")
         return
-    
     else:
         print(f"Data is valid, running model {MODEL_NAME} now.")
 
+    # run model
     try:
         output_data = run_model(data=input_data, silent=SILENT, unoptimised=UNOPTIMISED, retry=True)
     except Exception as e:
