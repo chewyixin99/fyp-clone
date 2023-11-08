@@ -22,7 +22,7 @@ const Journey = React.memo(
     stopObjs
   }) => {
     const [totalDistance, setTotalDistance] = useState(3100);
-    const route_bar_width = 1600;
+    const route_bar_width = 1400;
     const [isRunning, setIsRunning] = useState(false);
     const [triggerStart, setTriggerStart] = useState(false);
     const [triggerStop, setTriggerStop] = useState(false);
@@ -79,7 +79,7 @@ const Journey = React.memo(
         }px">
         <div class="group relative">
           <button class="bus-stop-dot"></button>
-          <span class="pointer-events-none max-w-xs absolute text-sm text-white bg-gray-700 p-2 rounded-lg -top-42 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100">
+          <span class="pointer-events-none w-52 z-30 absolute text-sm text-white bg-gray-700 p-2 rounded-lg  ${id == '1' ? "-bottom-24" : "-top-24"} left-4 opacity-0 transition-opacity group-hover:opacity-100">
             ID: ${stopObjs[i]?.stopId}
             <br />
             Name: ${stopObjs[i]?.stopName}

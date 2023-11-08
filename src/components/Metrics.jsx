@@ -42,6 +42,8 @@ const Metrics = React.memo(
     const [processedCumulativeData, setProcessedCumulativeData] = useState({});
     const [busStopLabel, setBusStopLabel] = useState([]);
     const [numTrips, setNumTrips] = useState(0);
+
+    // process objective function per bus stop
     const processObjectiveFn = (unoptimised, optimised) => {
       var obj = unoptimised;
       var objOptimised = optimised;
@@ -78,6 +80,7 @@ const Metrics = React.memo(
       setProcessedData(collectedData);
     };
 
+    // process objective function over the whole journey
     const processCumulativeObjectiveFn = (unoptimised, optimised) => {
       var obj = unoptimised;
       var objOptimised = optimised;
@@ -140,6 +143,7 @@ const Metrics = React.memo(
       }
     };
 
+    // process data for chart
     const processedChartData = () => {
       var output = [];
       var fillerArr2 = [...Array(numTrips)];
@@ -238,8 +242,8 @@ const Metrics = React.memo(
     const options = {
       plugins: {
         title: {
-          display: true,
-          text: "Objective Function Bar Chart",
+          display: false,
+          text: "Objective Function Mixed Chart",
         },
         legend: {
           display: false,
@@ -248,9 +252,6 @@ const Metrics = React.memo(
         subtitle: {
           display: true,
           text: [
-            "Description: This mixed chart displays the objective function for each bus stop on the left Y-Axis and the cumulative objective function for each model (optimised & unoptimised) on the right Y-Axis.",
-            "The objective function indicates how well the actual headway follows the target headway. The lower the objective function, the less significant bus bunching can be observed.",
-            "",
             "Goal: ↓ objective function = ↓ bus bunching",
             "",
           ],

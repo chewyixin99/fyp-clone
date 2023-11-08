@@ -1,16 +1,10 @@
-.operations-container {
-    margin-top: 1rem !important;
-    padding: 1rem;
-    overflow: hidden;
-}
-
 .route-container {
     display: flex;
     padding: 1rem;
     padding-right: 0;
     align-items: baseline;
     margin-top: 2rem;
-    padding-left: 10rem;
+    padding-left: 2rem;
 }
 .service-route {
     background-color: aqua !important;
@@ -21,7 +15,6 @@
     margin-top: 1rem !important;
     border: 1px solid rgba(0, 0, 0, 0.349);
     padding: 1rem;
-    padding-left: 2rem;
     border-radius: 10px;
     max-height: 70vh;
     max-width: 100vw;
@@ -34,7 +27,7 @@
 
 .route-bar {
     background-color: #374151 !important;
-    width: 1600px;
+    width: 1400px;
     position: relative;
     height: 8px;
     z-index: 10;
@@ -63,7 +56,6 @@
 .bus-stop-dot {
     background-color: #14BFCC !important;
     position: absolute;
-    z-index: 10;
     top: 0px;
     height: 8px;
     width: 8px;

@@ -18,6 +18,7 @@ const UploadFile = React.memo(
     setUnoptimizedOutputJson,
     setMapsGlobalTime,
     setGlobalTime,
+    renderTooltip,
   }) => {
     const [fileName, setFileName] = useState("");
     const [file, setFile] = useState({});
@@ -396,6 +397,7 @@ const UploadFile = React.memo(
     return (
       <div className="flex items-center">
         <div>Upload file</div>
+        { renderTooltip("","uploadFile", "right", "xs","12")}
         <label>
           <div className="control-button">
             <FiUpload />
@@ -426,6 +428,7 @@ UploadFile.propTypes = {
   setUnoptimizedOutputJson: PropTypes.func,
   setMapsGlobalTime: PropTypes.func,
   setGlobalTime: PropTypes.func,
+  renderTooltip: PropTypes.func,
 };
 
 UploadFile.displayName = "UploadFile";

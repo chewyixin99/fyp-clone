@@ -228,9 +228,6 @@ const DispatchTimings = React.memo(
 
     return (
       <div className="text-xs my-5">
-        <div className="pb-2 flex">
-          {renderTooltip("Dispatch Timings (sec)", "right")}
-        </div>
         {errorFetch &&
         loadingFetch &&
         Object.keys(dispatchTimes).length === 0 ? (

@@ -262,13 +262,15 @@ const PerformanceOutput = React.memo(
     return (
       <div className="w-20vw mr-auto text-xs">
         <div className="my-5">
-          <div className="">
-            {renderTooltip("Performance Results", "right")}
-          </div>
+          <span className="text-base tracking-tight leading-8">
+            Key Metrics
+          </span>
           {renderMetrics(localPerformanceValues, true, true)}
         </div>
         <div className="my-5">
-          <div className="">{renderTooltip("Static Results", "right")}</div>
+          <span className="text-base tracking-tight leading-8">
+            Static Metrics
+          </span>{" "}
           <div>
             {loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON
               ? ""
