@@ -385,7 +385,7 @@ const CombinedPage = () => {
                   : "control-button"
               }`}
             >
-              <RxReload />
+              load
             </button>
           </div>
         </div>

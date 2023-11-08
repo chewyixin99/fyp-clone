@@ -20,7 +20,6 @@ const PerformanceOutput = React.memo(
     const [staticValues, setStaticValues] = useState({});
     const [performanceImprovement, setPerformanceImprovement] = useState(0);
 
-
     const getPerformanceImprovement = () => {
       let tmpUnoptCumulativeOF;
       let tmpOptCumulativeOF;
@@ -101,7 +100,6 @@ const PerformanceOutput = React.memo(
             : optimizedOutputJson.slack_penalty,
         },
       });
-
     };
 
     const getTextColor = (val) => {
@@ -192,18 +190,18 @@ const PerformanceOutput = React.memo(
       return tableRows;
     };
 
-    const renderTooltip = (text,direction) => {
+    const renderTooltip = (text, direction) => {
       var toolTipPosition = direction == "left" ? "left-full" : "right-1/4";
       const contentObj = {
         "Performance Results": [
-          `Headway Deviation = Differences between the target headway and the actual headway that are accumulated throughout the bus service.`,
+          `Headway Deviation = Squared differences between the target headway and the actual headway that are accumulated throughout the bus service.`,
           `Objective Function = Headway Deviation + Slack Penalty`,
           `Updated = Re-rendered optimised model performance based on user input. Default value is optimised output.`,
         ],
         "Static Results": [
           `Excess Wait Time = Average aggregation of the actual wait times for each bus stop beyond stipulation.`,
           `E.g., Given a bus stop, if the stipulated wait time is 10 minutes, and the actual wait time is 12 minutes, the excess wait time is 2 minutes.`,
-          `Slack Penalty = This penalty accounts for the deviation of the last bus at the last stop when compared to the unoptimised model. 
+          `Slack Penalty = The slack penalty accounts for the excess deviation of the last bus dispatched at the bus depot. 
           This slack provides extra buffer for the mathematical model to optimise.`,
         ],
       };
@@ -211,9 +209,13 @@ const PerformanceOutput = React.memo(
       return (
         <>
           <div className="group relative w-max ms-2 flex items-baseline">
-          <span className="text-base mb-2 leading-none tracking-tight">{text}</span>
+            <span className="text-base mb-2 leading-none tracking-tight">
+              {text}
+            </span>
             <BsQuestionCircle className="text-xs ms-1" />
-            <div className={`text-white text-[11px] max-w-[30vw] p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}>
+            <div
+              className={`text-white text-[11px] max-w-[30vw] p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
+            >
               {contentObj[text].map((item, index) => {
                 return (
                   <p key={index}>
@@ -241,7 +243,6 @@ const PerformanceOutput = React.memo(
         Object.keys(optimizedOutputJson).length !== 0
       ) {
         getPerformanceImprovement();
-
       }
     }, [
       optCumulativeOF,
@@ -255,21 +256,19 @@ const PerformanceOutput = React.memo(
       loadingUnoptimizedOutputJSON,
       errorOutputJSON,
       errorMsgOutputJSON,
-      skipToEndTrigger
+      skipToEndTrigger,
     ]);
 
     return (
       <div className="w-20vw mr-auto text-xs">
         <div className="my-5">
           <div className="">
-            {renderTooltip("Performance Results","right")}
+            {renderTooltip("Performance Results", "right")}
           </div>
           {renderMetrics(localPerformanceValues, true, true)}
         </div>
         <div className="my-5">
-          <div className="">
-            {renderTooltip("Static Results","right")}
-          </div>
+          <div className="">{renderTooltip("Static Results", "right")}</div>
           <div>
             {loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON
               ? ""

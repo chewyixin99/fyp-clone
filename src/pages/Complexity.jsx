@@ -28,16 +28,16 @@ const Complexity = () => {
     return (
       <div className="flex text-xs justify-end my-5">
         <button onClick={setToggle} id="heat_0" className="mx-3 control-button">
-          v1_0CVXPY heat
+          Open sourced (heat)
         </button>
         <button onClick={setToggle} id="plot_0" className="mx-3 control-button">
-          v1_0CVXPY plot
+          Open sourced (plot)
         </button>
         <button onClick={setToggle} id="heat_1" className="mx-3 control-button">
-          v1_0 heat
+          Commercial (heat)
         </button>
         <button onClick={setToggle} id="plot_1" className="mx-3 control-button">
-          v1_0C plot
+          Commercial (plot)
         </button>
       </div>
     );

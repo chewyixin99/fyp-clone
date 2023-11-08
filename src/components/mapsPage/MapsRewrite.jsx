@@ -194,7 +194,7 @@ const MapsRewrite = React.memo(
     return (
       <div className="border rounded-md">
         <div className="flex justify-between">
-          <h6 className="my-3 px-5 font-extrabold tracking-tight">{title}</h6>
+          <h6 className="my-3 px-5 tracking-tight">{title}</h6>
           <div className="my-3 px-5 flex items-center justify-between">
             <div className="flex items-center">
               <div className="mr-3">Dispatched</div>

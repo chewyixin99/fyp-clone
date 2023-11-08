@@ -165,7 +165,7 @@ const DispatchTimings = React.memo(
                 loadingFetch ? "control-button-disabled" : "control-button"
               }`}
             >
-              {loadingFetch ? "Loading" : "Update"}
+              {loadingFetch ? "optimising" : "reoptimise"}
             </button>
             <PuffLoader
               color="rgb(234, 88, 12)"

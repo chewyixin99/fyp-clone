@@ -342,7 +342,7 @@ const UploadFile = React.memo(
                     : "control-button"
                 }`}
               >
-                <RxReload />
+                load
               </button>
             </div>
           </div>
@@ -372,7 +372,7 @@ const UploadFile = React.memo(
             onClick={onTrainModelClick}
             disabled={loadingTrain}
           >
-            {loadingTrain ? "training..." : "train model"}
+            {loadingTrain ? "optimising..." : "optimise"}
           </button>
           <PuffLoader
             color="rgb(234, 88, 12)"
