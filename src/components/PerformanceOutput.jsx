@@ -99,9 +99,10 @@ const PerformanceOutput = React.memo(
           title: "Slack Penalty",
           opt: optimizedOutputJson.slack_penalty,
           unopt: unoptimizedOutputJson.slack_penalty,
-          updated: updatedOutputJson.slack_penalty
-            ? updatedOutputJson.slack_penalty
-            : optimizedOutputJson.slack_penalty,
+          updated:
+            updatedOutputJson.slack_penalty === undefined
+              ? optimizedOutputJson.slack_penalty
+              : updatedOutputJson.slack_penalty,
         },
       });
     };
