@@ -72,7 +72,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     willing_board = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
     busload = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
     stranded = {(i,j): cp.Variable() for i in range(1, num_trips+1) for j in range(1, num_stops+1)}
-    slack = cp.Variable()   
+    slack = cp.Variable(nonneg=True)   
 
     # CONSTRAINTS
     constraints = []
