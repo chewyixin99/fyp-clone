@@ -27,16 +27,40 @@ const Complexity = () => {
   const renderToggle = () => {
     return (
       <div className="flex text-xs justify-end my-5">
-        <button onClick={setToggle} id="heat_0" className="mx-3 control-button">
+        <button
+          onClick={setToggle}
+          id="heat_0"
+          className={`mx-3 ${
+            showChart.heat_0 ? "control-button-disabled" : "control-button"
+          }`}
+        >
           Open sourced (heat)
         </button>
-        <button onClick={setToggle} id="plot_0" className="mx-3 control-button">
+        <button
+          onClick={setToggle}
+          id="plot_0"
+          className={`mx-3 ${
+            showChart.plot_0 ? "control-button-disabled" : "control-button"
+          }`}
+        >
           Open sourced (plot)
         </button>
-        <button onClick={setToggle} id="heat_1" className="mx-3 control-button">
+        <button
+          onClick={setToggle}
+          id="heat_1"
+          className={`mx-3 ${
+            showChart.heat_1 ? "control-button-disabled" : "control-button"
+          }`}
+        >
           Commercial (heat)
         </button>
-        <button onClick={setToggle} id="plot_1" className="mx-3 control-button">
+        <button
+          onClick={setToggle}
+          id="plot_1"
+          className={`mx-3 ${
+            showChart.plot_1 ? "control-button-disabled" : "control-button"
+          }`}
+        >
           Commercial (plot)
         </button>
       </div>
