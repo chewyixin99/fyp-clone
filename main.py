@@ -39,7 +39,7 @@ def main():
 
     # run model
     try:
-        output_data = run_model(data=input_data, silent=SILENT, unoptimised=UNOPTIMISED, retry=True)
+        output_data = run_model(data=input_data, silent=SILENT, unoptimised=UNOPTIMISED, retry=True, deviated_dispatch_dict=None)
     except Exception as e:
         print("run_model failed")
         print(e)
