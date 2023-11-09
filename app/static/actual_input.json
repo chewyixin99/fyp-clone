@@ -691,7 +691,7 @@
         0
     ],
     "max_allowed_deviation": 600,
-    "penalty_coefficient": 100000,
+    "penalty_coefficient": 10000,
     "target_headway_2dlist": [
         [
             800,
