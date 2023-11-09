@@ -7,7 +7,7 @@ import { TiTick } from "react-icons/ti";
 import { BsQuestionCircle } from "react-icons/bs";
 
 const DispatchTimings = React.memo(
-  ({ dispatchTimes, setUpdatedOutputJson }) => {
+  ({ dispatchTimes, setUpdatedOutputJson, setDispatchUpdated }) => {
     const [localDispatchTimes, setLocalDispatchTimes] = useState(dispatchTimes);
     const [dispatchInput, setDispatchInput] = useState({});
     const [loadingFetch, setLoadingFetch] = useState(false);
@@ -109,8 +109,10 @@ const DispatchTimings = React.memo(
           setUpdatedData(processedData);
           const newDispatchTimes = computeDispatchTimes(processedData);
           setUpdatedDispatchTimes(newDispatchTimes);
+          setDispatchUpdated(true);
         })
         .catch((e) => {
+          setDispatchUpdated(false);
           setLoadingFetch(false);
           setErrorFetch(true);
           console.log(e);
@@ -127,8 +129,10 @@ const DispatchTimings = React.memo(
         })
         .then((responseJson) => {
           setUpdatedOutputJson(responseJson.data);
+          setDispatchUpdated(true);
         })
         .catch((e) => {
+          setDispatchUpdated(false);
           setLoadingFetch(false);
           setErrorFetch(true);
           console.log(e);
@@ -289,6 +293,7 @@ const DispatchTimings = React.memo(
 DispatchTimings.propTypes = {
   dispatchTimes: PropTypes.object,
   setUpdatedOutputJson: PropTypes.func,
+  setDispatchUpdated: PropTypes.func,
 };
 
 DispatchTimings.displayName = "DispatchTimings";

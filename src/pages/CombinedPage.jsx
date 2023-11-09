@@ -71,6 +71,7 @@ const CombinedPage = () => {
   // dispatch timing states
   const [dispatchTimes, setDispatchTimes] = useState({});
   const [updatedOutputJson, setUpdatedOutputJson] = useState({});
+  const [dispatchUpdated, setDispatchUpdated] = useState(false);
 
   // loading states
   const [loadingFetchOptimized, setLoadingFetchOptimized] = useState(false);
@@ -644,7 +645,10 @@ const CombinedPage = () => {
               </div>
             </div>
           </div>
-          <div className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-8 mb-12" style={{height: "30vh"}}>
+          <div
+            className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-8 mb-12"
+            style={{ height: "30vh" }}
+          >
             <div className="grid grid-cols-12 grid-rows-12 w-full">
               <div className="col-span-12 flex justify-center items-center mb-4">
                 {renderTooltip(
@@ -676,6 +680,7 @@ const CombinedPage = () => {
                     <DispatchTimings
                       dispatchTimes={dispatchTimes}
                       setUpdatedOutputJson={setUpdatedOutputJson}
+                      setDispatchUpdated={setDispatchUpdated}
                     />
                   </div>
                 </div>
@@ -694,6 +699,7 @@ const CombinedPage = () => {
                     loadingUnoptimizedOutputJSON={loadingUnoptimizedOutputJSON}
                     errorOutputJSON={errorOutputJSON}
                     errorMsgOutputJSON={errorMsgOutputJSON}
+                    dispatchUpdated={dispatchUpdated}
                   />
                 </div>
               </div>

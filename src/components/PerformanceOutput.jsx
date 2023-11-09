@@ -15,6 +15,7 @@ const PerformanceOutput = React.memo(
     loadingUnoptimizedOutputJSON,
     errorOutputJSON,
     errorMsgOutputJSON,
+    dispatchUpdated,
   }) => {
     const [localPerformanceValues, setLocalPerformanceValues] = useState({});
     const [staticValues, setStaticValues] = useState({});
@@ -265,16 +266,16 @@ const PerformanceOutput = React.memo(
           <span className="text-base tracking-tight leading-8">
             Key Metrics
           </span>
-          {renderMetrics(localPerformanceValues, true, true)}
+          {renderMetrics(localPerformanceValues, true, dispatchUpdated)}
         </div>
         <div className="my-5">
           <span className="text-base tracking-tight leading-8">
-            Static Metrics
-          </span>{" "}
+            Secondary Metrics
+          </span>
           <div>
             {loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON
               ? ""
-              : renderMetrics(staticValues, false, true)}
+              : renderMetrics(staticValues, false, dispatchUpdated)}
           </div>
         </div>
         <div className="my-5">
@@ -319,6 +320,7 @@ PerformanceOutput.propTypes = {
   loadingUnoptimizedOutputJSON: PropTypes.bool,
   errorOutputJSON: PropTypes.bool,
   errorMsgOutputJSON: PropTypes.string,
+  dispatchUpdated: PropTypes.bool,
 };
 
 PerformanceOutput.displayName = "PerformanceOutput";
