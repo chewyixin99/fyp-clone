@@ -292,7 +292,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         total_awt.append(awt_for_stop)
     awt = sum(total_awt)/len(total_awt)
 
-    slack_penalty = slack.value * 10000
+    slack_penalty = slack.value * penalty_coefficient
 
     if not silent:
         if unoptimised:
