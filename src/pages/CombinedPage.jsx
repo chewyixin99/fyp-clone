@@ -608,10 +608,10 @@ const CombinedPage = () => {
         </div>
       </div>
       {/* Metrics */}
-      <div className="border-t-2 border-b-2 xl:py-[1%] md:py-[2%] my-[1%] px-[1%] flex justify-center items-center min-h-[45vh]">
+      <div className="border-t-2 border-b-2 xl:py-[1%] md:pb-[10%] md:pt-[2%] my-[1%] px-[1%] flex justify-center items-center min-h-[45vh]">
         <div className="grid 2xl:grid-cols-12 xl:grid-cols-8 grid-rows-12 w-full">
           <div
-            className="2xl:col-span-8 xl:col-span-8 ms-12 flex justify-center ms-8 mb-12"
+            className="2xl:col-span-8 xl:col-span-8 ms-12 flex justify-center ms-8 xl:mb-12 md:mb-24"
             style={{
               minWidth: "100%",
               maxWidth: "100%",
