@@ -29,35 +29,35 @@ const PerformanceOutput = React.memo(
       let tmpUnoptCumulativeHD;
       let tmpUpdatedCumulativeHD;
       let tmpPerfImprovement;
-      if (skipToEndTrigger) {
-        tmpOptCumulativeHD = optCumulativeOF;
-        tmpUnoptCumulativeHD = unoptCumulativeOF;
+      // if (skipToEndTrigger) {
+      tmpOptCumulativeHD = optCumulativeOF;
+      tmpUnoptCumulativeHD = unoptCumulativeOF;
 
-        tmpOptCumulativeOF =
-          optCumulativeOF + optimizedOutputJson.slack_penalty;
-        tmpUnoptCumulativeOF =
-          unoptCumulativeOF + unoptimizedOutputJson.slack_penalty;
+      tmpOptCumulativeOF =
+        optCumulativeOF + optimizedOutputJson.slack_penalty;
+      tmpUnoptCumulativeOF =
+        unoptCumulativeOF + unoptimizedOutputJson.slack_penalty;
 
-        tmpUpdatedCumulativeHD = optCumulativeOF;
-        tmpUpdatedCumulativeOF = updatedOutputJson.slack_penalty
-          ? optCumulativeOF + updatedOutputJson.slack_penalty
-          : tmpOptCumulativeOF;
-      } else {
-        tmpUnoptCumulativeOF = propsCumulativeOF["1"]
-          ? propsCumulativeOF["1"]
-          : 0;
-        tmpOptCumulativeOF = propsCumulativeOF["2"]
-          ? propsCumulativeOF["2"]
-          : 0;
-        tmpUpdatedCumulativeOF = tmpOptCumulativeOF;
-        tmpUnoptCumulativeHD = propsCumulativeOF["1"]
-          ? propsCumulativeOF["1"]
-          : 0;
-        tmpOptCumulativeHD = propsCumulativeOF["2"]
-          ? propsCumulativeOF["2"]
-          : 0;
-        tmpUpdatedCumulativeHD = tmpOptCumulativeHD;
-      }
+      tmpUpdatedCumulativeHD = optCumulativeOF;
+      tmpUpdatedCumulativeOF = updatedOutputJson.slack_penalty
+        ? optCumulativeOF + updatedOutputJson.slack_penalty
+        : tmpOptCumulativeOF;
+      // } else {
+      //   tmpUnoptCumulativeOF = propsCumulativeOF["1"]
+      //     ? propsCumulativeOF["1"]
+      //     : 0;
+      //   tmpOptCumulativeOF = propsCumulativeOF["2"]
+      //     ? propsCumulativeOF["2"]
+      //     : 0;
+      //   tmpUpdatedCumulativeOF = tmpOptCumulativeOF;
+      //   tmpUnoptCumulativeHD = propsCumulativeOF["1"]
+      //     ? propsCumulativeOF["1"]
+      //     : 0;
+      //   tmpOptCumulativeHD = propsCumulativeOF["2"]
+      //     ? propsCumulativeOF["2"]
+      //     : 0;
+      //   tmpUpdatedCumulativeHD = tmpOptCumulativeHD;
+      // }
 
       let result =
         ((tmpUnoptCumulativeOF - tmpUpdatedCumulativeOF) /
@@ -76,12 +76,23 @@ const PerformanceOutput = React.memo(
           unopt: tmpUnoptCumulativeHD,
           updated: tmpUpdatedCumulativeHD,
         },
-        objectiveFunction: {
-          title: "Objective Function",
-          opt: tmpOptCumulativeOF,
-          unopt: tmpUnoptCumulativeOF,
-          updated: tmpUpdatedCumulativeOF,
+        slackPenalty: {
+          title: "Slack Penalty",
+          opt: optimizedOutputJson.slack_penalty,
+          unopt: unoptimizedOutputJson.slack_penalty,
+          updated: updatedOutputJson.slack_penalty
+            ? updatedOutputJson.slack_penalty
+            : optimizedOutputJson.slack_penalty,
         },
+        total: {
+          title: "Total",
+          opt: tmpOptCumulativeHD + optimizedOutputJson.slack_penalty,
+          unopt: tmpUnoptCumulativeHD + unoptimizedOutputJson.slack_penalty,
+          updated: tmpUpdatedCumulativeHD + (updatedOutputJson.slack_penalty
+            ? updatedOutputJson.slack_penalty
+            : optimizedOutputJson.slack_penalty),
+        },
+
       });
       setStaticValues({
         excessWaitTime: {
@@ -91,15 +102,7 @@ const PerformanceOutput = React.memo(
           updated: updatedOutputJson.ewt_value
             ? updatedOutputJson.ewt_value
             : optimizedOutputJson.ewt_value,
-        },
-        slackPenalty: {
-          title: "Slack Penalty",
-          opt: optimizedOutputJson.slack_penalty,
-          unopt: unoptimizedOutputJson.slack_penalty,
-          updated: updatedOutputJson.slack_penalty
-            ? updatedOutputJson.slack_penalty
-            : optimizedOutputJson.slack_penalty,
-        },
+        }
       });
     };
 
@@ -162,25 +165,25 @@ const PerformanceOutput = React.memo(
           isNaN(delta) || !isFinite(delta) ? "-" : delta.toFixed(2) + "%";
         tableRows.push(
           <div className="flex" key={metric}>
-            <div className="font-semibold text-center w-[125px] border">
+            <div className={`font-semibold text-center w-[125px] border ${metric == "total" ? "bg-slate-200" : ""}`}>
               {performanceValues[metric].title}
             </div>
-            <div className={`text-center border ${cellWidth}`}>
+            <div className={`text-center border ${cellWidth} ${metric == "total" ? "bg-slate-200" : ""}`}>
               {performanceValues[metric].unopt.toFixed(2)}
             </div>
-            <div className={`text-center border ${cellWidth}`}>
+            <div className={`text-center border ${cellWidth} ${metric == "total" ? "bg-slate-200" : ""}`}>
               {performanceValues[metric].opt.toFixed(2)}
             </div>
             {showUpdated ? (
-              <div className={`text-center border ${cellWidth}`}>
+              <div className={`text-center border ${cellWidth} ${metric == "total" ? "bg-slate-200" : ""}`}>
                 {performanceValues[metric].updated.toFixed(2)}
               </div>
             ) : (
               ""
             )}
             {showDelta ? (
-              <div className={`text-center w-[70px] border ${textColor}`}>
-                {metric === "slackPenalty" ? "-" : deltaText}
+              <div className={`text-center w-[70px] border ${textColor} ${metric == "total" ? "bg-slate-200" : ""}`}>
+                {deltaText}
               </div>
             ) : (
               ""
@@ -243,7 +246,11 @@ const PerformanceOutput = React.memo(
         Object.keys(unoptimizedOutputJson).length !== 0 &&
         Object.keys(optimizedOutputJson).length !== 0
       ) {
-        getPerformanceImprovement();
+        if (optCumulativeOF && unoptCumulativeOF) {
+          getPerformanceImprovement();
+        }
+
+        console.log("jere");
       }
     }, [
       optCumulativeOF,
@@ -264,45 +271,24 @@ const PerformanceOutput = React.memo(
       <div className="w-20vw mr-auto text-xs">
         <div className="my-5">
           <span className="text-base tracking-tight leading-8">
-            Key Metrics
+            Objective Function
           </span>
           {renderMetrics(localPerformanceValues, true, dispatchUpdated)}
+          <span className="text-slate-500 text-xs">Total (Objective Value) = Headway Deviation + Slack Penalty</span>
         </div>
         <div className="my-5">
           <span className="text-base tracking-tight leading-8">
-            Secondary Metrics
+            Secondary Metric
           </span>
           <div>
             {loadingOptimizedOutputJSON || loadingUnoptimizedOutputJSON
               ? ""
-              : renderMetrics(staticValues, false, dispatchUpdated)}
+              : renderMetrics(staticValues, true, dispatchUpdated)}
+            <span className="text-slate-500 text-xs">This is the standard metric by transport operators.</span>
+
           </div>
         </div>
-        <div className="my-5">
-          <div className="mb-3 pb-1 border-b-2 text-base mb-2 leading-none tracking-tight">
-            Overall Performance Results
-          </div>
-          <div className="flex my-1">
-            <div>Objective Function:</div>
-            <div className={`mx-2 ${getTextColor(performanceImprovement)}`}>
-              {performanceImprovement.toFixed(2)} %
-            </div>
-          </div>
-          {Object.keys(staticValues).length === 0 || !skipToEndTrigger ? (
-            ""
-          ) : (
-            <div className="flex my-1">
-              <div>Excess Wait Time:</div>
-              <div
-                className={`mx-2 ${getTextColor(
-                  calculateDelta(staticValues.excessWaitTime)
-                )}`}
-              >
-                {calculateDelta(staticValues.excessWaitTime).toFixed(2)} %
-              </div>
-            </div>
-          )}
-        </div>
+       
       </div>
     );
   }

@@ -143,6 +143,65 @@ const Metrics = React.memo(
       }
     };
 
+    const processCumulativeObjectiveFnlol = (unoptimised, optimised) => {
+
+      var obj = unoptimised;
+      var objOptimised = optimised;
+      var collectedData = {};
+
+      if (obj != null) {
+        var temp = {};
+        Object.keys(obj).forEach((key) => {
+          var stopNo_unoptimised = key.split(",")[1];
+          if (temp[stopNo_unoptimised]) {
+            temp[stopNo_unoptimised].push(obj[key]);
+          } else {
+            temp[stopNo_unoptimised] = [obj[key]];
+          }
+        });
+        var cumulative_output = [];
+        var currentCumulative = 0;
+
+        Object.keys(temp).forEach((stopNo_unoptimised) => {
+          temp[stopNo_unoptimised].map((OF_value, i) => {
+            currentCumulative += OF_value;
+          });
+          cumulative_output.push(currentCumulative);
+        });
+        collectedData["1"] = cumulative_output;
+      }
+
+      if (objOptimised != null) {
+        var tempOptimised = {};
+        Object.keys(objOptimised).forEach((key) => {
+          var stopNo_optimised = key.split(",")[1];
+          if (tempOptimised[stopNo_optimised]) {
+            tempOptimised[stopNo_optimised].push(objOptimised[key]);
+          } else {
+            tempOptimised[stopNo_optimised] = [objOptimised[key]];
+          }
+        });
+
+        var cumulative_optimised_output = [];
+        var currentCumulativeOptimised = 0;
+        Object.keys(tempOptimised).forEach((stopNo_optimised) => {
+          tempOptimised[stopNo_optimised].map((OF_value, i) => {
+            currentCumulativeOptimised += OF_value;
+          });
+          cumulative_optimised_output.push(currentCumulativeOptimised);
+        });
+
+        collectedData["2"] = cumulative_optimised_output;
+      }
+
+      if (collectedData["2"]) {
+        setOptCumulativeOF(collectedData["2"][collectedData["2"].length - 1]);
+      }
+      if (collectedData["1"]) {
+        setUnoptCumulativeOF(collectedData["1"][collectedData["1"].length - 1]);
+      }
+    };
+
     // process data for chart
     const processedChartData = () => {
       var output = [];
@@ -219,7 +278,13 @@ const Metrics = React.memo(
         processObjectiveFn(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
         processCumulativeObjectiveFn(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
       }
-    }, [skipToEndTrigger,optimizedOutputJson,unoptimizedOutputJson]);
+
+      processCumulativeObjectiveFnlol(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
+
+
+
+
+    }, [skipToEndTrigger, optimizedOutputJson, unoptimizedOutputJson]);
 
     useEffect(() => {
       if (resetChart) {
@@ -232,7 +297,7 @@ const Metrics = React.memo(
       }
     }, [resetChart]);
 
-    useEffect(() => {}, [processedCumulativeData, processedData]);
+    useEffect(() => { }, [processedCumulativeData, processedData]);
 
     const data = {
       labels: busStopLabel,
@@ -252,7 +317,7 @@ const Metrics = React.memo(
         subtitle: {
           display: true,
           text: [
-            "Goal: ↓ objective function = ↓ bus bunching",
+            "Goal: The shorter the bar, the better. | Colors: Green (optimised); Red (unoptimised)",
             "",
           ],
         },
