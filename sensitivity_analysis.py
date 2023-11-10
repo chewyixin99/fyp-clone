@@ -138,6 +138,8 @@ def visualise_heatmap(timings_matrix, model_name):
     fig.update_xaxes(tickvals=list(range(timings_matrix.shape[1])), ticktext=list(range(1, timings_matrix.shape[1] + 1)))
     fig.update_yaxes(tickvals=list(range(timings_matrix.shape[0])), ticktext=list(range(1, timings_matrix.shape[0] + 1)))
 
+    fig.show()
+
     return fig
 
 def visualise_3d(timings_matrix):
@@ -175,6 +177,8 @@ def visualise_3d(timings_matrix):
 
     fig = px.scatter_3d(x=x, y=y, z=z, color=z, color_continuous_scale='Viridis',
                         labels={'x': 'Number of Stops', 'y': 'Number of Trips', 'z': 'Run time (s)'})
+
+    fig.show()
 
     return fig
 
@@ -241,10 +245,11 @@ def main():
         - It encapsulates the full workflow from data loading to visualisation and saving of results.
     """
 
-    MODEL_NAME = "v1_0CVXPY" # NOTE: to change to other model names
+    MODEL_NAME = "v1_0" # NOTE: to change to other model names
     FILE_TYPE = "html"
-    CHART_STUDIO_UPLOAD = True
-    SAVE_FIGURES = True
+    LOAD_VISUALISATION = True
+    CHART_STUDIO_UPLOAD = False
+    SAVE_FIGURES = False
 
     save_fig_path_2d = f"./data/sensitivity_analyses/{MODEL_NAME}_2d.{FILE_TYPE}"
     save_fig_path_3d = f"./data/sensitivity_analyses/{MODEL_NAME}_3d.{FILE_TYPE}"
@@ -252,8 +257,11 @@ def main():
 
     input_data = convert_json_to_dict("./data/inputs/actual/actual_input_2710.json")
 
-    timings_matrix = get_all_timings(input_data)
-    # timings_matrix = np.load(save_npy_path, allow_pickle=True)
+    if LOAD_VISUALISATION:
+        timings_matrix = np.load(save_npy_path, allow_pickle=True)
+    else:
+        timings_matrix = get_all_timings(input_data)
+
     fig_2d = visualise_heatmap(timings_matrix, MODEL_NAME)
     fig_3d = visualise_3d(timings_matrix)
 
