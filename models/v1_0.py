@@ -44,6 +44,7 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     boarding_duration = data["boarding_duration"]
     alighting_duration = data["alighting_duration"]
     max_allowed_deviation = data["max_allowed_deviation"]
+    penalty_coefficient = data["penalty_coefficient"]
 
     # Transformation to dictionaries to be referred to by the constraints
     original_dispatch = convert_list_to_dict(data["original_dispatch_list"], 1, num_trips)
@@ -195,12 +196,12 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                                 deviated_dispatch_dict[key])
 
     # OBJECTIVE FUNCTION
-    objective_function = f_x + 10000 * slack # soft constraint using bigM = 1000 in case of infeasibility
+    objective_function = f_x + penalty_coefficient * slack # soft constraint using bigM = 1000 in case of infeasibility
 
     if unoptimised:
         value = 0
         for j in range(1, num_trips+1):
-            value += abs(dispatch_offset[j])
+            value += model.abs(dispatch_offset[j])
         objective_function = value
     # objective_function = sum(dispatch_offset) # to find smallest dispatch_offsets
     model.minimize(objective_function)
@@ -216,8 +217,6 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
                         Time of Dispatch = {original_dispatch[j] + dispatch_offset[j].solution_value:.0f}")
 
         print("\nObjective Function Value:", model.objective_value)
-
-    # OUTPUTS NOTE: to refactor once finalised
 
     dwell_dict = {}
     for j in range(1, num_trips+1):
@@ -239,6 +238,13 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
         for s in range(2, num_stops+1):
             headway_dict[f"{j},{s}"] = round(headway[j,s].solution_value)
 
+    obj_fn_dict = {}
+    for j in range(1, num_trips+1):
+        for s in range(2, num_stops+1):
+            obj_fn_dict[f"{j},{s}"] = weights[s] * beta * \
+                                            (headway[j,s].solution_value - target_headway[(j,s)]) ** 2 \
+                                            if headway[j,s].solution_value != None else 0
+
     stranded_dict = {}
     for j in range(1, num_trips+1):
         for s in range(1, num_stops+1):
@@ -248,17 +254,38 @@ def run_model(data: Dict[str, Any], silent: bool = False, deviated_dispatch_dict
     for j in range(1, num_trips+1):
         dispatch_dict[f"{j}"] = round(original_dispatch[j] + dispatch_offset[j].solution_value)
 
+    # Calculate Scheduled Waiting Time
+    swt = sum(target_headway.values())/len(target_headway)/2
+    
+    # Calculate Actual Waiting Time
+    total_awt = []
+    for s in range(2, num_stops):
+        total_wait_time = 0
+        total_passengers = 0
+
+        for j in range(1, num_trips+1):
+            num_passengers = headway_dict[f"{j},{s}"] * arrival_rate[s]
+            average_wait_time = headway_dict[f"{j},{s}"]/2
+            total_passengers += num_passengers
+            total_wait_time += num_passengers * average_wait_time
+        
+        awt_for_stop = total_wait_time / total_passengers
+        total_awt.append(awt_for_stop)
+    awt = sum(total_awt)/len(total_awt)
+
+    slack_penalty = slack.solution_value * penalty_coefficient
+
     variables_to_return = {
         "dwell_dict": dwell_dict,
         "busload_dict": busload_dict,
         "arrival_dict": arrival_dict,
         "headway_dict": headway_dict,
-        "obj_fn_dict": {},
+        "obj_fn_dict": obj_fn_dict,
         "stranded_dict": stranded_dict,
         "dispatch_dict": dispatch_dict,
         "objective_value": model.objective_value,
-        "slack_penalty": -1, # assumes unoptimised cannot incur slack penalty
-        "ewt_value": -1
+        "slack_penalty": 0 if unoptimised else slack_penalty, # assumes unoptimised cannot incur slack penalty
+        "ewt_value": awt - swt
     }
             
     return variables_to_return
