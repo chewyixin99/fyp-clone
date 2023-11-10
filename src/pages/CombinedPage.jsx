@@ -402,7 +402,7 @@ const CombinedPage = () => {
     );
   };
 
-  const renderTooltip = (title, key, direction, size, height) => {
+  const renderTooltip = (title, key, direction, size) => {
     const toolTipPosition = direction == "right" ? "left-full" : "right-1/4";
     const contentObj = {
       dataType: [
@@ -468,9 +468,7 @@ const CombinedPage = () => {
           )}
           <BsQuestionCircle className={`text-${size ? size : "sm"}`} />
           <div
-            className={`z-20 text-white text-[11px] max-w-[30vw] p-2 pointer-events-none absolute -top-${
-              height ? height : "24"
-            } ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
+            className={`z-20 text-white text-[11px] max-w-[30vw] p-2 pointer-events-none absolute -top-24 ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
           >
             {contentObj[key].map((item, index) => {
               return (
@@ -605,11 +603,11 @@ const CombinedPage = () => {
             Currently viewing <span className="underline">{dataInUse}</span>{" "}
             data
           </div>
-          {renderTooltip("", "dataType", "right", "xs", "20")}
+          {renderTooltip("", "dataType", "right", "xs")}
         </div>
       </div>
       {/* Metrics */}
-      <div className="border-t-2 border-b-2 xl:py-[1%] md:pb-[10%] md:pt-[2%] my-[1%] px-[1%] flex justify-center items-center min-h-[45vh]">
+      <div className="border-t-2 border-b-2 2xl:py-[1%] xl:py-[7%] md:py-[4%] my-[1%] px-[1%] flex justify-center items-center min-h-[45vh]">
         <div className="grid 2xl:grid-cols-12 xl:grid-cols-8 grid-rows-12 w-full">
           <div
             className="2xl:col-span-8 xl:col-span-8 ms-12 flex justify-center ms-8 xl:mb-12 md:mb-24"
@@ -626,7 +624,6 @@ const CombinedPage = () => {
                   "OFchart",
                   "right",
                   "",
-                  ""
                 )}
               </div>
               <div className="row-start-2 col-span-12">
@@ -660,7 +657,6 @@ const CombinedPage = () => {
                     : "performanceResults",
                   "left",
                   "",
-                  ""
                 )}
                 <div className="absolute right-36">
                   <button
@@ -714,7 +710,6 @@ const CombinedPage = () => {
           toggle.line ? "line" : "map",
           "right",
           "",
-          ""
         )}
         <div className="absolute right-1/4">
           <button
