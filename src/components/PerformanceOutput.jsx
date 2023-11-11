@@ -127,7 +127,9 @@ const PerformanceOutput = React.memo(
 
     const calculateDelta = (obj) => {
       // obj has opt and unopt value
-      return ((obj.unopt - obj.updated) / obj.unopt) * 100;
+      const betterValue =
+        isNaN(obj.updated) || obj.updated === undefined ? obj.opt : obj.updated;
+      return ((obj.unopt - betterValue) / obj.unopt) * 100;
     };
 
     const renderMetrics = (
