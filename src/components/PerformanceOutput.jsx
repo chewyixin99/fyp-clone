@@ -41,16 +41,19 @@ const PerformanceOutput = React.memo(
       let tmpUpdatedCumulativeHD;
       let tmpPerfImprovement;
       // if (skipToEndTrigger) {
+      // opt
       tmpOptCumulativeHD = optCumulativeOF;
-      tmpUnoptCumulativeHD = unoptCumulativeOF;
-
       tmpOptCumulativeOF = optCumulativeOF + optimizedOutputJson.slack_penalty;
+      // unopt
+      tmpUnoptCumulativeHD = unoptCumulativeOF;
       tmpUnoptCumulativeOF =
         unoptCumulativeOF + unoptimizedOutputJson.slack_penalty;
-
-      tmpUpdatedCumulativeHD = optCumulativeOF;
-      tmpUpdatedCumulativeOF = updatedOutputJson.slack_penalty
-        ? optCumulativeOF + updatedOutputJson.slack_penalty
+      // updated
+      tmpUpdatedCumulativeHD = updatedOutputJson.objective_value
+        ? updatedOutputJson.objective_value - updatedOutputJson.slack_penalty
+        : tmpOptCumulativeHD;
+      tmpUpdatedCumulativeOF = updatedOutputJson.objective_value
+        ? updatedOutputJson.objective_value
         : tmpOptCumulativeOF;
       // } else {
       //   tmpUnoptCumulativeOF = propsCumulativeOF["1"]
@@ -90,19 +93,16 @@ const PerformanceOutput = React.memo(
           title: "Slack Penalty",
           opt: optimizedOutputJson.slack_penalty,
           unopt: unoptimizedOutputJson.slack_penalty,
-          updated: updatedOutputJson.slack_penalty
-            ? updatedOutputJson.slack_penalty
-            : optimizedOutputJson.slack_penalty,
+          updated:
+            updatedOutputJson.slack_penalty !== undefined
+              ? updatedOutputJson.slack_penalty
+              : optimizedOutputJson.slack_penalty,
         },
         total: {
           title: "Total",
           opt: tmpOptCumulativeHD + optimizedOutputJson.slack_penalty,
           unopt: tmpUnoptCumulativeHD + unoptimizedOutputJson.slack_penalty,
-          updated:
-            tmpUpdatedCumulativeHD +
-            (updatedOutputJson.slack_penalty
-              ? updatedOutputJson.slack_penalty
-              : optimizedOutputJson.slack_penalty),
+          updated: tmpUpdatedCumulativeHD + updatedOutputJson.slack_penalty,
         },
       });
       setStaticValues({
@@ -294,6 +294,7 @@ const PerformanceOutput = React.memo(
       errorOutputJSON,
       errorMsgOutputJSON,
       skipToEndTrigger,
+      updatedOutputJson,
     ]);
 
     return (

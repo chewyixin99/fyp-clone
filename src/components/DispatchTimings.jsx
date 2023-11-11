@@ -139,6 +139,7 @@ const DispatchTimings = React.memo(
         })
         .then((responseJson) => {
           setUpdatedOutputJson(responseJson.data);
+          console.log(responseJson.data);
           setDispatchUpdated(true);
         })
         .catch((e) => {
