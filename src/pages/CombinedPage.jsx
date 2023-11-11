@@ -84,6 +84,7 @@ const CombinedPage = () => {
     useState(false);
   const [errorOutputJSON, setErrorOutputJSON] = useState(false);
   const [errorMsgOutputJSON, setErrorMsgOutputJSON] = useState("");
+  const [performanceComponentLoaded, setPerformanceComponentLoaded] = useState(false);
 
   // output json states
   const [optimizedOutputJson, setOptimizedOutputJson] = useState({});
@@ -402,7 +403,7 @@ const CombinedPage = () => {
     );
   };
 
-  const renderTooltip = (title, key, direction, size, height) => {
+  const renderTooltip = (title, key, direction, size) => {
     const toolTipPosition = direction == "right" ? "left-full" : "right-1/4";
     const contentObj = {
       dataType: [
@@ -468,9 +469,8 @@ const CombinedPage = () => {
           )}
           <BsQuestionCircle className={`text-${size ? size : "sm"}`} />
           <div
-            className={`z-20 text-white text-[11px] max-w-[30vw] p-2 pointer-events-none absolute -top-${
-              height ? height : "24"
-            } ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
+            className={`z-20 text-white text-[11px] max-w-[30vw] p-2 pointer-events-none absolute -top-24 
+            ${toolTipPosition} w-max opacity-0 transition-opacity group-hover:opacity-100 bg-slate-700 rounded-lg`}
           >
             {contentObj[key].map((item, index) => {
               return (
@@ -605,7 +605,7 @@ const CombinedPage = () => {
             Currently viewing <span className="underline">{dataInUse}</span>{" "}
             data
           </div>
-          {renderTooltip("", "dataType", "right", "xs", "20")}
+          {renderTooltip("", "dataType", "right", "xs")}
         </div>
       </div>
       {/* Metrics */}
@@ -625,7 +625,6 @@ const CombinedPage = () => {
                   "Objective Function Mixed Chart",
                   "OFchart",
                   "right",
-                  "",
                   ""
                 )}
               </div>
@@ -649,17 +648,16 @@ const CombinedPage = () => {
             className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-8 mb-12"
             style={{ height: "30vh" }}
           >
-            <div className="grid grid-cols-12 grid-rows-12 w-full">
+            {performanceComponentLoaded ? <div className="grid grid-cols-12 grid-rows-12 w-full">
               <div className="col-span-12 flex justify-center items-center mb-4">
                 {renderTooltip(
-                  toggleStates.dispatch
+                  !toggleStates.dispatch
                     ? "Dispatch Timings"
                     : "Performance Results",
-                  toggleStates.dispatch
+                  !toggleStates.dispatch
                     ? "dispatchTimings"
                     : "performanceResults",
                   "left",
-                  "",
                   ""
                 )}
                 <div className="absolute right-36">
@@ -674,7 +672,7 @@ const CombinedPage = () => {
               </div>
               <div className="col-span-12 row-start-2 flex justify-center items-center mb-4">
                 <div
-                  style={{ display: toggleStates.dispatch ? "block" : "none" }}
+                  style={{ display: !toggleStates.dispatch ? "block" : "none" }}
                 >
                   <div className="my-5 w-20vw mr-auto">
                     <DispatchTimings
@@ -685,7 +683,7 @@ const CombinedPage = () => {
                   </div>
                 </div>
                 <div
-                  style={{ display: toggleStates.dispatch ? "none" : "block" }}
+                  style={{ display: !toggleStates.dispatch ? "none" : "block" }}
                 >
                   <PerformanceOutput
                     skipToEndTrigger={skipToEndTrigger}
@@ -700,10 +698,11 @@ const CombinedPage = () => {
                     errorOutputJSON={errorOutputJSON}
                     errorMsgOutputJSON={errorMsgOutputJSON}
                     dispatchUpdated={dispatchUpdated}
+                    setPerformanceComponentLoaded={setPerformanceComponentLoaded}
                   />
                 </div>
               </div>
-            </div>
+            </div> : "Loading..."}
           </div>
         </div>
       </div>
@@ -713,7 +712,6 @@ const CombinedPage = () => {
           toggle.line ? "Journey Chart (Line)" : "Journey Chart (Map)",
           toggle.line ? "line" : "map",
           "right",
-          "",
           ""
         )}
         <div className="absolute right-1/4">

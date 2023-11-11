@@ -16,6 +16,7 @@ const PerformanceOutput = React.memo(
     errorOutputJSON,
     errorMsgOutputJSON,
     dispatchUpdated,
+    setPerformanceComponentLoaded,
   }) => {
     const [localPerformanceValues, setLocalPerformanceValues] = useState({});
     const [staticValues, setStaticValues] = useState({});
@@ -266,6 +267,10 @@ const PerformanceOutput = React.memo(
       errorMsgOutputJSON,
       skipToEndTrigger,
     ]);
+
+    useEffect(() => {
+      setPerformanceComponentLoaded(true);
+    }, [localPerformanceValues, staticValues]);
 
     return (
       <div className="w-20vw mr-auto text-xs">
