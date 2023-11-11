@@ -245,7 +245,7 @@ def main():
         - It encapsulates the full workflow from data loading to visualisation and saving of results.
     """
 
-    MODEL_NAME = "v1_0" # NOTE: to change to other model names
+    MODEL_NAME = "v1_0CVXPY" # NOTE: to change to other model names
     FILE_TYPE = "html"
     LOAD_VISUALISATION = True
     CHART_STUDIO_UPLOAD = False
