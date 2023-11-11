@@ -36,7 +36,7 @@ const Metrics = React.memo(
     resetChart,
     optimizedOutputJson,
     unoptimizedOutputJson,
-    stopObjs
+    stopObjs,
   }) => {
     const [processedData, setProcessedData] = useState({});
     const [processedCumulativeData, setProcessedCumulativeData] = useState({});
@@ -144,7 +144,6 @@ const Metrics = React.memo(
     };
     // process cumulative objective function immediately upon page load
     const processCumulativeObjectiveFn2 = (unoptimised, optimised) => {
-
       var obj = unoptimised;
       var objOptimised = optimised;
       var collectedData = {};
@@ -239,7 +238,7 @@ const Metrics = React.memo(
           yAxisID: "y",
         })
       );
-      // optimised stacked bar chart 
+      // optimised stacked bar chart
       fillerArr2.map((x, i) =>
         output.push({
           label: `Trip ${i + 1} Optimised`,
@@ -268,12 +267,21 @@ const Metrics = React.memo(
     }, [unoptimisedOF, optimisedOF]);
 
     useEffect(() => {
-      setNumTrips(unoptimizedOutputJson.num_trips)
+      setNumTrips(unoptimizedOutputJson.num_trips);
       if (skipToEndTrigger) {
-        processObjectiveFn(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
-        processCumulativeObjectiveFn1(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
+        processObjectiveFn(
+          unoptimizedOutputJson.obj_fn_matrix,
+          optimizedOutputJson.obj_fn_matrix
+        );
+        processCumulativeObjectiveFn1(
+          unoptimizedOutputJson.obj_fn_matrix,
+          optimizedOutputJson.obj_fn_matrix
+        );
       }
-      processCumulativeObjectiveFn2(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
+      processCumulativeObjectiveFn2(
+        unoptimizedOutputJson.obj_fn_matrix,
+        optimizedOutputJson.obj_fn_matrix
+      );
     }, [skipToEndTrigger, optimizedOutputJson, unoptimizedOutputJson]);
 
     useEffect(() => {
@@ -287,7 +295,7 @@ const Metrics = React.memo(
       }
     }, [resetChart]);
 
-    useEffect(() => { }, [processedCumulativeData, processedData]);
+    useEffect(() => {}, [processedCumulativeData, processedData]);
 
     const data = {
       labels: busStopLabel,
@@ -309,8 +317,8 @@ const Metrics = React.memo(
           text: [
             "Goal: The shorter/lower the bar/line, the better.",
             "Colors: Green (optimised); Red (unoptimised)",
-            "Type: Line (Cumulative Objective Function); Bar (Bus Stop Objective Function)"
-
+            "Type: Line (Cumulative Objective Function); Bar (Bus Stop Objective Function)",
+            "",
           ],
         },
       },
@@ -381,7 +389,7 @@ Metrics.propTypes = {
   resetChart: PropTypes.bool,
   optimizedOutputJson: PropTypes.object,
   unoptimizedOutputJson: PropTypes.object,
-  stopObjs: PropTypes.array
+  stopObjs: PropTypes.array,
 };
 
 Metrics.displayName = "Metrics";

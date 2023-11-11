@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import { processCsvData } from "../util/mapHelper";
 import { TiTick } from "react-icons/ti";
 import { BsQuestionCircle } from "react-icons/bs";
+import { PacmanLoader } from "react-spinners";
 
 const DispatchTimings = React.memo(
   ({ dispatchTimes, setUpdatedOutputJson, setDispatchUpdated }) => {
@@ -15,6 +16,15 @@ const DispatchTimings = React.memo(
     const [errorMsgFetch, setErrorMsgFetch] = useState("");
     const [updatedData, setUpdatedData] = useState({});
     const [updatedDispatchTimes, setUpdatedDispatchTimes] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      if (loadingFetch) {
+        setLoading(loadingFetch);
+      } else {
+        setLoading(loadingFetch);
+      }
+    }, [loadingFetch]);
 
     useEffect(() => {
       setLocalDispatchTimes(dispatchTimes);
@@ -231,60 +241,70 @@ const DispatchTimings = React.memo(
     };
 
     return (
-      <div className="text-xs my-5">
-        {errorFetch &&
-        loadingFetch &&
-        Object.keys(dispatchTimes).length === 0 ? (
-          <div className="text-orange-500">{errorMsgFetch}</div>
-        ) : (
-          <div className="overflow-y-scroll h-[30vh] border-2">
-            <div>
-              <div className="flex font-semibold">
-                <div className="text-center w-[50px] border">#</div>
-                <div className="text-center w-[100px] border">Planned</div>
-                <div className="text-center w-[100px] border">
-                  <span>Optimised</span>
+      <div>
+        {!loading ? (
+          <div className="text-xs my-5">
+            {errorFetch &&
+            loadingFetch &&
+            Object.keys(dispatchTimes).length === 0 ? (
+              <div className="text-orange-500">{errorMsgFetch}</div>
+            ) : (
+              <div className="overflow-y-scroll h-[30vh] border-2">
+                <div>
+                  <div className="flex font-semibold">
+                    <div className="text-center w-[50px] border">#</div>
+                    <div className="text-center w-[100px] border">Planned</div>
+                    <div className="text-center w-[100px] border">
+                      <span>Optimised</span>
+                    </div>
+                    <div className="text-center w-[100px] border">
+                      <span>Actual</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-center w-[100px] border">
-                  <span>Actual</span>
+                <div>
+                  {Object.keys(localDispatchTimes).map((trip) => {
+                    const plannedTime = parseInt(
+                      localDispatchTimes[trip].planned
+                    );
+                    const optimizedTime = parseInt(
+                      localDispatchTimes[trip].optimized
+                    );
+                    return (
+                      <div className="flex" key={trip}>
+                        <div className="text-center w-[50px] border">
+                          {parseInt(trip)}
+                        </div>
+                        <div className="text-center w-[100px] border">
+                          {plannedTime}
+                        </div>
+                        <div className="text-center w-[100px] border">
+                          <span>{optimizedTime}</span>
+                        </div>
+                        <input
+                          id={trip}
+                          onChange={handleInputChange}
+                          className="text-center w-[100px] border"
+                          type="number"
+                          placeholder={
+                            Object.keys(updatedDispatchTimes).length === 0
+                              ? optimizedTime
+                              : updatedDispatchTimes[trip]
+                          }
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
-            <div>
-              {Object.keys(localDispatchTimes).map((trip) => {
-                const plannedTime = parseInt(localDispatchTimes[trip].planned);
-                const optimizedTime = parseInt(
-                  localDispatchTimes[trip].optimized
-                );
-                return (
-                  <div className="flex" key={trip}>
-                    <div className="text-center w-[50px] border">
-                      {parseInt(trip)}
-                    </div>
-                    <div className="text-center w-[100px] border">
-                      {plannedTime}
-                    </div>
-                    <div className="text-center w-[100px] border">
-                      <span>{optimizedTime}</span>
-                    </div>
-                    <input
-                      id={trip}
-                      onChange={handleInputChange}
-                      className="text-center w-[100px] border"
-                      type="number"
-                      placeholder={
-                        Object.keys(updatedDispatchTimes).length === 0
-                          ? optimizedTime
-                          : updatedDispatchTimes[trip]
-                      }
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            )}
+            {renderFetchButton()}
+          </div>
+        ) : (
+          <div>
+            <PacmanLoader />
           </div>
         )}
-        {renderFetchButton()}
       </div>
     );
   }

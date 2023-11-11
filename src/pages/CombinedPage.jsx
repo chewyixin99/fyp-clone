@@ -84,7 +84,6 @@ const CombinedPage = () => {
     useState(false);
   const [errorOutputJSON, setErrorOutputJSON] = useState(false);
   const [errorMsgOutputJSON, setErrorMsgOutputJSON] = useState("");
-  const [performanceComponentLoaded, setPerformanceComponentLoaded] = useState(false);
 
   // output json states
   const [optimizedOutputJson, setOptimizedOutputJson] = useState({});
@@ -647,7 +646,7 @@ const CombinedPage = () => {
             className="2xl:col-span-4 xl:col-span-8 flex justify-center ms-8 mb-12"
             style={{ height: "30vh" }}
           >
-            {performanceComponentLoaded ? <div className="grid grid-cols-12 grid-rows-12 w-full">
+            <div className="grid grid-cols-12 grid-rows-12 w-full">
               <div className="col-span-12 flex justify-center items-center mb-4">
                 {renderTooltip(
                   !toggleStates.dispatch
@@ -697,11 +696,10 @@ const CombinedPage = () => {
                     errorOutputJSON={errorOutputJSON}
                     errorMsgOutputJSON={errorMsgOutputJSON}
                     dispatchUpdated={dispatchUpdated}
-                    setPerformanceComponentLoaded={setPerformanceComponentLoaded}
                   />
                 </div>
               </div>
-            </div> : "Loading..."}
+            </div>
           </div>
         </div>
       </div>
