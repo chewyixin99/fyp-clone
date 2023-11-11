@@ -210,6 +210,8 @@ const CombinedPage = () => {
         setDataInUse("ORIGINAL");
         setStopObjs(processedDataOptimised.stopObjs);
         setJourneyData(processedDataOptimised.journeyData);
+        setDispatchUpdated(false);
+        setUpdatedOutputJson({});
       })
       .catch((e) => {
         setLoadingFetchOptimized(false);
@@ -244,6 +246,8 @@ const CombinedPage = () => {
         );
         setDataInUse("ORIGINAL");
         setJourneyDataUnoptimized(processedDataUnoptimised.journeyData);
+        setDispatchUpdated(false);
+        setUpdatedOutputJson({});
       })
       .catch((e) => {
         setLoadingFetchUnoptimized(false);
@@ -595,6 +599,8 @@ const CombinedPage = () => {
             setGlobalTime={setGlobalTime}
             setMapsGlobalTime={setMapsGlobalTime}
             renderTooltip={renderTooltip}
+            setDispatchUpdated={setDispatchUpdated}
+            setUpdatedOutputJson={setUpdatedOutputJson}
           />
         </div>
         {/* row 3 */}
