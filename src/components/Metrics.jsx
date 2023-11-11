@@ -80,8 +80,8 @@ const Metrics = React.memo(
       setProcessedData(collectedData);
     };
 
-    // process objective function over the whole journey
-    const processCumulativeObjectiveFn = (unoptimised, optimised) => {
+    // process cumulative objective function over the visualisation timeframe
+    const processCumulativeObjectiveFn1 = (unoptimised, optimised) => {
       var obj = unoptimised;
       var objOptimised = optimised;
       var collectedData = {};
@@ -142,8 +142,8 @@ const Metrics = React.memo(
         });
       }
     };
-
-    const processCumulativeObjectiveFnlol = (unoptimised, optimised) => {
+    // process cumulative objective function immediately upon page load
+    const processCumulativeObjectiveFn2 = (unoptimised, optimised) => {
 
       var obj = unoptimised;
       var objOptimised = optimised;
@@ -206,6 +206,8 @@ const Metrics = React.memo(
     const processedChartData = () => {
       var output = [];
       var fillerArr2 = [...Array(numTrips)];
+
+      // cumulative line unoptimised line chart
       output.push({
         label: `Unoptimised Cumulative`,
         data: processedCumulativeData["1"],
@@ -216,7 +218,7 @@ const Metrics = React.memo(
         yAxisID: "y1",
         backgroundColor: "rgb(252, 86, 121)",
       });
-
+      // cumulative line optimised line chart
       output.push({
         label: `Optimised Cumulative`,
         data: processedCumulativeData["2"],
@@ -227,29 +229,22 @@ const Metrics = React.memo(
         yAxisID: "y1",
         backgroundColor: "rgb(13, 143, 143)",
       });
-      // unoptimised dataset
+      // unoptimised stacked bar chart (stacked because everytime a bus reaches a bus stop, it adds onto its objective function value)
       fillerArr2.map((x, i) =>
         output.push({
           label: `Trip ${i + 1} Unoptimised`,
           data: processedData["1"] ? processedData["1"][i + 1] : [],
-          backgroundColor:
-            (i % numTrips) % 2 == 0
-              ? "rgb(240, 134, 156)"
-              : "rgb(247, 178, 192)",
+          backgroundColor: "rgb(240, 134, 156)",
           stack: `Stack 1`,
           yAxisID: "y",
         })
       );
-
-      // optimised dataset
+      // optimised stacked bar chart 
       fillerArr2.map((x, i) =>
         output.push({
           label: `Trip ${i + 1} Optimised`,
           data: processedData["2"] ? processedData["2"][i + 1] : [],
-          backgroundColor:
-            (i % numTrips) % 2 == 0
-              ? "rgb(45, 189, 189)"
-              : "rgb(110, 219, 219)",
+          backgroundColor: "rgb(45, 189, 189)",
           stack: `Stack 2`,
           yAxisID: "y",
         })
@@ -269,21 +264,16 @@ const Metrics = React.memo(
 
     useEffect(() => {
       processObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
-      processCumulativeObjectiveFn(unoptimisedOF.obj, optimisedOF.obj);
+      processCumulativeObjectiveFn1(unoptimisedOF.obj, optimisedOF.obj);
     }, [unoptimisedOF, optimisedOF]);
 
     useEffect(() => {
       setNumTrips(unoptimizedOutputJson.num_trips)
       if (skipToEndTrigger) {
         processObjectiveFn(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
-        processCumulativeObjectiveFn(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
+        processCumulativeObjectiveFn1(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
       }
-
-      processCumulativeObjectiveFnlol(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
-
-
-
-
+      processCumulativeObjectiveFn2(unoptimizedOutputJson.obj_fn_matrix, optimizedOutputJson.obj_fn_matrix);
     }, [skipToEndTrigger, optimizedOutputJson, unoptimizedOutputJson]);
 
     useEffect(() => {
@@ -292,7 +282,7 @@ const Metrics = React.memo(
         setPropsCumulativeOF({});
         setProcessedCumulativeData({});
         setOptCumulativeOF(0);
-        processCumulativeObjectiveFn(null, null);
+        processCumulativeObjectiveFn1(null, null);
         processObjectiveFn(null, null);
       }
     }, [resetChart]);
@@ -317,8 +307,10 @@ const Metrics = React.memo(
         subtitle: {
           display: true,
           text: [
-            "Goal: The shorter the bar, the better. | Colors: Green (optimised); Red (unoptimised)",
-            "",
+            "Goal: The shorter/lower the bar/line, the better.",
+            "Colors: Green (optimised); Red (unoptimised)",
+            "Type: Line (Cumulative Objective Function); Bar (Bus Stop Objective Function)"
+
           ],
         },
       },
